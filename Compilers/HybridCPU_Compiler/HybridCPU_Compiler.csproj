@@ -59,10 +59,6 @@
 	<ItemGroup>
 	  
 	  <Folder Include="HardwareBridge\CompilerFacts\" />
-	  <Folder Include="HardwareBridge\Docs\" />
-	  <Folder Include="HardwareBridge\GoldenOracle\" />
-	  <Folder Include="HardwareBridge\SourceSnapshot\" />
-	  <Folder Include="HardwareBridge\Tests\" />
 	</ItemGroup>
 
 </Project>
