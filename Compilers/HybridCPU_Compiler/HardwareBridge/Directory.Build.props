@@ -1,0 +1,7 @@
+<!-- Keep generated assembly metadata outside HardwareBridge: parent project compiles its subtree recursively. -->
+<Project>
+  <PropertyGroup>
+    <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)..\obj\HardwareBridge\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
+    <OutputPath>$(MSBuildThisFileDirectory)..\bin\HardwareBridge\$(MSBuildProjectName)\</OutputPath>
+  </PropertyGroup>
+</Project>
