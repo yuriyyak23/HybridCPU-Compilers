@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net11.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <DefineConstants>$(DefineConstants);HARDWAREBRIDGE_COMPANION</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="SourceSnapshot\*.cs" />
+    <Compile Include="CompilerFacts\*.cs" />
+    <Compile Include="GoldenOracle\*.cs" />
+    <!-- This additional dependency is confined to this opt-in project. -->
+    <ProjectReference Include="..\Roslyn\HybridCPU.Compiler.Roslyn.csproj" />
+  </ItemGroup>
+</Project>

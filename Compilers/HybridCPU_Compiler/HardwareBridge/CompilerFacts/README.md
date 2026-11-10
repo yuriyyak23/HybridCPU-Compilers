@@ -1,1 +1,7 @@
-# HybridCPU Compilers
+# CompilerFacts v1 — software compiler facts, not hardware
+
+`CompanionBridgeProjectionV1` is compiled only by `HardwareBridge.Companion.csproj`, because the parent project does not directly reference the Roslyn/CIL projects and may not be changed. The sidecar project explicitly references **existing** `HybridCPU.Compiler.Roslyn` and projects only `ManagedSourceBodyWorldResultV1`; it does not create a second compiler/importer. No HWIR, RTL, Verilog, CIRCT, hardware binding resolver or EDA bridge exists here.
+
+`Project` emits `Candidate` only for a successful **software** StandaloneRestrictedModule graph with exact roots, owned PE module hashes, admitted method imports, closed method identities and independently re-checked **primary** source maps/PDB. Missing graph, analyzer failure, ambiguous root, stale PE/PDB, unowned body, partial closure or oversize lists yields `Rejected` with a diagnostic (or a fail-closed exception for malformed caller objects). Primary PDB mapping is never asserted for dependency modules; metadata-only references are not body owners. Root selectors include tokens and generic arguments where supplied; absent token overload selection remains the authority of the existing CIL importer.
+
+Facts expose Companion `SourceInputDigest` and distinct output PE/PDB hashes. They are reported by Companion, **not self-attested evidence**. VLIW IR is not a hardware netlist. Hardware qualification, clock/latency/reset/memory contracts, target binding and independent evidence remain wholly external.
