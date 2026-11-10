@@ -1,0 +1,2 @@
+using HybridCPU.Compiler.Profiles;
+public static class CliFixture { [HybridCpuKernelNoHeap] public static int Read() => new int[1].Length; }

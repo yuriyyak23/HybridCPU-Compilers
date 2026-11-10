@@ -1,0 +1,22 @@
+<Project TreatAsLocalProperty="PublishAot">
+  <PropertyGroup>
+    <HybridCpuSdkPackRoot Condition="'$(HybridCpuSdkPackRoot)' == ''">..\..\Packaging\</HybridCpuSdkPackRoot>
+    <HybridCpuCompilerPath Condition="'$(HybridCpuCompilerPath)' == ''">..\..\bin\Release\net10.0\HybridCPU.Compiler.NativeAot.Adapter.dll</HybridCpuCompilerPath>
+  </PropertyGroup>
+  <Import Project="$(HybridCpuSdkPackRoot)HybridCPU.Sdk.props" />
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <HybridCpuProfile>HybridCPU.DotNetAot.ScalarControlFlowV2</HybridCpuProfile>
+    <HybridCpuEntryType>Phase07BoundedRecursionPublish.EntryPoint</HybridCpuEntryType>
+    <HybridCpuEntryMethod>Root</HybridCpuEntryMethod>
+    <HybridCpuPresentedMethods>Phase07BoundedRecursionPublish.EntryPoint::Root;Phase07BoundedRecursionPublish.EntryPoint::Countdown</HybridCpuPresentedMethods>
+    <HybridCpuMaximumRecursionDepth>7</HybridCpuMaximumRecursionDepth>
+    <HybridCpuMaximumRecursionStackBytes>1048576</HybridCpuMaximumRecursionStackBytes>
+  </PropertyGroup>
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+  <Import Project="$(HybridCpuSdkPackRoot)HybridCPU.Sdk.targets" />
+</Project>

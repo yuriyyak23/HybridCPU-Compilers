@@ -1,0 +1,1039 @@
+using System;
+using System.IO;
+using HybridCPU_ISE.Core;
+using HybridCPU_ISE.Tests.TestHelpers;
+using Xunit;
+using YAKSys_Hybrid_CPU;
+using YAKSys_Hybrid_CPU.Arch;
+using YAKSys_Hybrid_CPU.Core;
+using YAKSys_Hybrid_CPU.Core.Registers;
+using YAKSys_Hybrid_CPU.Memory;
+
+namespace HybridCPU_ISE.Tests
+{
+    public partial class AssistRuntimeTests
+    {
+        [Fact]
+        public void PackBundle_WithInterCoreCrossVtLdsaAssistNomination_InjectsAssistIntoLane6ViaDedicatedAssistTransport()
+        {
+            Array.Fill(Processor.Pods, null!);
+
+            var scheduler = new MicroOpScheduler
+            {
+                TypedSlotEnabled = true
+            };
+            var pod = new PodController(0, 0, scheduler);
+            Processor.Pods[0] = pod;
+
+            LoadMicroOp load = MicroOpTestHelper.CreateLoad(
+                virtualThreadId: 2,
+                destReg: 5,
+                address: 0xCC00,
+                domainTag: 1);
+            load.OwnerContextId = 3;
+            load.MemoryLocalityHint = LocalityHint.Cold;
+            load.InitializeMetadata();
+
+            pod.PublishAssistOwnerSnapshot(
+                localCoreId: 1,
+                virtualThreadId: 2,
+                ownerContextId: 3,
+                domainTag: 1,
+                assistEpochId: 0);
+
+            Assert.True(AssistMicroOp.TryCreateInterCoreTransportFromSeed(
+                load,
+                donorCoreId: 1,
+                donorPodId: 0,
+                out AssistInterCoreTransport transport));
+
+            scheduler.NominateInterCoreAssistCandidate(1, transport);
+
+            MicroOp[] bundle = new MicroOp[8];
+            bundle[0] = MicroOpTestHelper.CreateScalarALU(1, destReg: 1, src1Reg: 2, src2Reg: 3);
+
+            MicroOp[] packed = scheduler.PackBundle(
+                bundle,
+                currentThreadId: 1,
+                stealEnabled: true,
+                stealMask: 0xFF,
+                localCoreId: 0,
+                bundleOwnerContextId: 9,
+                bundleOwnerDomainTag: 1,
+                assistRuntimeEpoch: 5);
+
+            AssistMicroOp injectedAssist = Assert.IsType<AssistMicroOp>(packed[6]);
+            Assert.Equal(AssistKind.Ldsa, injectedAssist.Kind);
+            Assert.Equal(AssistExecutionMode.StreamRegisterPrefetch, injectedAssist.ExecutionMode);
+            Assert.Equal(AssistCarrierKind.Lane6Dma, injectedAssist.CarrierKind);
+            Assert.Equal(AssistDonorSourceKind.InterCoreVtDonorSeed, injectedAssist.DonorSource.Kind);
+            Assert.Equal(2, injectedAssist.DonorVirtualThreadId);
+            Assert.Equal(1, injectedAssist.TargetVirtualThreadId);
+            Assert.True(injectedAssist.DonorSource.IsCrossVirtualThread);
+            Assert.Equal(1, injectedAssist.DonorSource.SourceCoreId);
+            Assert.Equal(0, injectedAssist.CarrierCoreId);
+            Assert.Equal(0, injectedAssist.TargetCoreId);
+            Assert.Equal(5UL, injectedAssist.AssistEpochId);
+            Assert.Equal(1, scheduler.AssistInterCoreNominations);
+            Assert.Equal(1, scheduler.AssistInterCoreInjections);
+            Assert.Equal(0, scheduler.AssistInterCoreRejects);
+            Assert.Equal(1, scheduler.AssistInjectionsCount);
+            Assert.Equal(1, scheduler.AssistLdsaInjects);
+            Assert.Equal(0, scheduler.AssistSameVtInjects);
+            Assert.Equal(1, scheduler.AssistDonorVtInjects);
+            Assert.Equal(1, scheduler.AssistInterCoreLane6LdsaInjects);
+            Assert.Equal(1, scheduler.DmaStreamClassInjects);
+
+            SchedulerPhaseMetrics metrics = scheduler.GetPhaseMetrics();
+            Assert.Equal(1, metrics.AssistInterCoreNominations);
+            Assert.Equal(1, metrics.AssistInterCoreInjections);
+            Assert.Equal(0, metrics.AssistInterCoreRejects);
+            Assert.Equal(1, metrics.AssistLdsaInjects);
+            Assert.Equal(0, metrics.AssistSameVtInjects);
+            Assert.Equal(1, metrics.AssistDonorVtInjects);
+            Assert.Equal(1, metrics.AssistInterCoreLane6LdsaInjects);
+            Assert.Equal(1, metrics.DmaStreamClassInjects);
+        }
+
+        [Fact]
+        public void PackBundle_WithCrossPodDonorPrefetchAssistNomination_InjectsAssistIntoTargetPodViaDedicatedAssistTransport()
+        {
+            Array.Fill(Processor.Pods, null!);
+
+            var donorScheduler = new MicroOpScheduler
+            {
+                TypedSlotEnabled = true
+            };
+            var targetScheduler = new MicroOpScheduler
+            {
+                TypedSlotEnabled = true
+            };
+
+            var donorPod = new PodController(0, 0, donorScheduler);
+            var targetPod = new PodController(1, 0, targetScheduler);
+            Processor.Pods[0] = donorPod;
+            Processor.Pods[1] = targetPod;
+
+            LoadMicroOp load = MicroOpTestHelper.CreateLoad(
+                virtualThreadId: 2,
+                destReg: 5,
+                address: 0xC800,
+                domainTag: 1);
+            load.OwnerContextId = 3;
+            load.InitializeMetadata();
+
+            donorPod.PublishAssistOwnerSnapshot(
+                localCoreId: 1,
+                virtualThreadId: 2,
+                ownerContextId: 3,
+                domainTag: 1,
+                assistEpochId: 0);
+
+            Assert.True(AssistMicroOp.TryCreateInterCoreTransportFromSeed(
+                load,
+                donorCoreId: 1,
+                donorPodId: donorPod.PodId,
+                out AssistInterCoreTransport transport));
+
+            donorScheduler.NominateInterCoreAssistCandidate(1, transport);
+
+            MicroOp[] bundle = new MicroOp[8];
+            bundle[0] = MicroOpTestHelper.CreateScalarALU(1, destReg: 1, src1Reg: 2, src2Reg: 3);
+
+            MicroOp[] packed = targetPod.PackBundle(
+                originalBundle: bundle,
+                currentThreadId: 1,
+                stealEnabled: true,
+                stealMask: 0xFF,
+                localCoreId: 0,
+                bundleOwnerContextId: 9,
+                bundleOwnerDomainTag: 1,
+                assistRuntimeEpoch: 5);
+
+            AssistMicroOp injected = Assert.IsType<AssistMicroOp>(packed[6]);
+            Assert.Equal(AssistDonorSourceKind.InterCoreVtDonorSeed, injected.DonorSource.Kind);
+            Assert.Equal(AssistExecutionMode.StreamRegisterPrefetch, injected.ExecutionMode);
+            Assert.Equal(AssistCarrierKind.Lane6Dma, injected.CarrierKind);
+            Assert.Equal(targetPod.PodId, injected.PodId);
+            Assert.Equal(donorPod.PodId, injected.DonorSource.SourcePodId);
+            Assert.Equal(2, injected.DonorVirtualThreadId);
+            Assert.Equal(1, injected.TargetVirtualThreadId);
+            Assert.Equal(0, targetScheduler.SuccessfulInjectionsCount);
+            Assert.Equal(1, donorScheduler.AssistInterCoreNominations);
+            Assert.Equal(1, targetScheduler.AssistInterCoreInjections);
+            Assert.Equal(0, targetScheduler.AssistInterCorePodLocalInjections);
+            Assert.Equal(1, targetScheduler.AssistInterCoreCrossPodInjections);
+            Assert.Equal(0, targetScheduler.AssistInterCoreRejects);
+            Assert.Equal(0, targetScheduler.AssistInterCorePodLocalRejects);
+            Assert.Equal(0, targetScheduler.AssistInterCoreCrossPodRejects);
+            Assert.Equal(1, targetScheduler.AssistInjectionsCount);
+            Assert.Equal(1, targetScheduler.AssistDonorPrefetchInjects);
+            Assert.Equal(1, targetScheduler.AssistInterCoreLane6DonorPrefetchInjects);
+            Assert.Equal(0, targetScheduler.AssistSameVtInjects);
+            Assert.Equal(1, targetScheduler.AssistDonorVtInjects);
+            Assert.Equal(1, targetScheduler.DmaStreamClassInjects);
+            Assert.False(donorPod.TryPeekInterCoreAssistTransport(1, out _));
+
+            SchedulerPhaseMetrics metrics = targetScheduler.GetPhaseMetrics();
+            Assert.Equal(1, metrics.AssistInterCoreInjections);
+            Assert.Equal(0, metrics.AssistInterCorePodLocalInjections);
+            Assert.Equal(1, metrics.AssistInterCoreCrossPodInjections);
+            Assert.Equal(0, metrics.AssistInterCorePodLocalRejects);
+            Assert.Equal(0, metrics.AssistInterCoreCrossPodRejects);
+            Assert.Equal(1, metrics.AssistInterCoreLane6DonorPrefetchInjects);
+        }
+
+        [Fact]
+        public void PublishAssistOwnerSnapshot_WhenOwnerScopeChanges_ClearsPendingInterCoreAssistTransport()
+        {
+            Array.Fill(Processor.Pods, null!);
+
+            var scheduler = new MicroOpScheduler
+            {
+                TypedSlotEnabled = true
+            };
+            var pod = new PodController(0, 0, scheduler);
+            Processor.Pods[0] = pod;
+
+            LoadMicroOp load = MicroOpTestHelper.CreateLoad(
+                virtualThreadId: 2,
+                destReg: 5,
+                address: 0xCA00,
+                domainTag: 1);
+            load.OwnerContextId = 3;
+            load.InitializeMetadata();
+
+            pod.PublishAssistOwnerSnapshot(
+                localCoreId: 1,
+                virtualThreadId: 2,
+                ownerContextId: 3,
+                domainTag: 1,
+                assistEpochId: 5);
+
+            Assert.True(AssistMicroOp.TryCreateInterCoreTransportFromSeed(
+                load,
+                donorCoreId: 1,
+                donorPodId: pod.PodId,
+                donorAssistEpochId: 5,
+                out AssistInterCoreTransport transport));
+
+            scheduler.NominateInterCoreAssistCandidate(1, transport);
+            Assert.True(pod.TryPeekInterCoreAssistTransport(1, out _));
+
+            pod.PublishAssistOwnerSnapshot(
+                localCoreId: 1,
+                virtualThreadId: 2,
+                ownerContextId: 9,
+                domainTag: 1,
+                assistEpochId: 6);
+
+            Assert.False(pod.TryPeekInterCoreAssistTransport(1, out _));
+        }
+
+        [Fact]
+        public void SetCoreStalled_WhenInterCoreAssistTransportPending_ClearsAssistTransport()
+        {
+            Array.Fill(Processor.Pods, null!);
+
+            var scheduler = new MicroOpScheduler
+            {
+                TypedSlotEnabled = true
+            };
+            var pod = new PodController(0, 0, scheduler);
+            Processor.Pods[0] = pod;
+
+            LoadMicroOp load = MicroOpTestHelper.CreateLoad(
+                virtualThreadId: 2,
+                destReg: 5,
+                address: 0xCC00,
+                domainTag: 1);
+            load.OwnerContextId = 3;
+            load.InitializeMetadata();
+
+            pod.PublishAssistOwnerSnapshot(
+                localCoreId: 1,
+                virtualThreadId: 2,
+                ownerContextId: 3,
+                domainTag: 1,
+                assistEpochId: 5);
+
+            Assert.True(AssistMicroOp.TryCreateInterCoreTransportFromSeed(
+                load,
+                donorCoreId: 1,
+                donorPodId: pod.PodId,
+                donorAssistEpochId: 5,
+                out AssistInterCoreTransport transport));
+
+            scheduler.NominateInterCoreAssistCandidate(1, transport);
+            Assert.True(pod.TryPeekInterCoreAssistTransport(1, out _));
+
+            scheduler.SetCoreStalled(1, true);
+
+            Assert.False(pod.TryPeekInterCoreAssistTransport(1, out _));
+        }
+
+        [Fact]
+        public void PackBundle_WhenPodLocalInterCoreAssistTransportHasNoOwnerSnapshot_RejectsStaleTransportBeforeMaterialization()
+        {
+            Array.Fill(Processor.Pods, null!);
+
+            var scheduler = new MicroOpScheduler
+            {
+                TypedSlotEnabled = true
+            };
+            var pod = new PodController(0, 0, scheduler);
+            Processor.Pods[0] = pod;
+
+            LoadMicroOp load = MicroOpTestHelper.CreateLoad(
+                virtualThreadId: 2,
+                destReg: 5,
+                address: 0xCE00,
+                domainTag: 1);
+            load.OwnerContextId = 3;
+            load.InitializeMetadata();
+
+            Assert.True(AssistMicroOp.TryCreateInterCoreTransportFromSeed(
+                load,
+                donorCoreId: 1,
+                donorPodId: pod.PodId,
+                donorAssistEpochId: 5,
+                out AssistInterCoreTransport transport));
+
+            scheduler.NominateInterCoreAssistCandidate(1, transport);
+
+            MicroOp[] bundle = new MicroOp[8];
+            bundle[0] = MicroOpTestHelper.CreateScalarALU(1, destReg: 1, src1Reg: 2, src2Reg: 3);
+
+            MicroOp[] packed = pod.PackBundle(
+                originalBundle: bundle,
+                currentThreadId: 1,
+                stealEnabled: true,
+                stealMask: 0xFF,
+                localCoreId: 0,
+                bundleOwnerContextId: 9,
+                bundleOwnerDomainTag: 1,
+                assistRuntimeEpoch: 5);
+
+            Assert.DoesNotContain(packed, microOp => microOp is AssistMicroOp);
+            Assert.Equal(1, scheduler.AssistInterCoreRejects);
+            Assert.Equal(1, scheduler.AssistInterCorePodLocalRejects);
+            Assert.Equal(0, scheduler.AssistInterCoreCrossPodRejects);
+            Assert.Equal(0, scheduler.AssistInterCoreInjections);
+            Assert.Equal(0, scheduler.AssistInjectionsCount);
+            Assert.False(pod.TryPeekInterCoreAssistTransport(1, out _));
+        }
+
+        [Fact]
+        public void PackBundle_WhenCrossPodInterCoreAssistTransportHasNoOwnerSnapshot_RejectsStaleTransportBeforeMaterialization()
+        {
+            Array.Fill(Processor.Pods, null!);
+
+            var donorScheduler = new MicroOpScheduler
+            {
+                TypedSlotEnabled = true
+            };
+            var targetScheduler = new MicroOpScheduler
+            {
+                TypedSlotEnabled = true
+            };
+
+            var donorPod = new PodController(0, 0, donorScheduler);
+            var targetPod = new PodController(1, 0, targetScheduler);
+            Processor.Pods[0] = donorPod;
+            Processor.Pods[1] = targetPod;
+
+            LoadMicroOp load = MicroOpTestHelper.CreateLoad(
+                virtualThreadId: 2,
+                destReg: 5,
+                address: 0xD000,
+                domainTag: 1);
+            load.OwnerContextId = 3;
+            load.InitializeMetadata();
+
+            Assert.True(AssistMicroOp.TryCreateInterCoreTransportFromSeed(
+                load,
+                donorCoreId: 1,
+                donorPodId: donorPod.PodId,
+                donorAssistEpochId: 5,
+                out AssistInterCoreTransport transport));
+
+            donorScheduler.NominateInterCoreAssistCandidate(1, transport);
+
+            MicroOp[] bundle = new MicroOp[8];
+            bundle[0] = MicroOpTestHelper.CreateScalarALU(1, destReg: 1, src1Reg: 2, src2Reg: 3);
+
+            MicroOp[] packed = targetPod.PackBundle(
+                originalBundle: bundle,
+                currentThreadId: 1,
+                stealEnabled: true,
+                stealMask: 0xFF,
+                localCoreId: 0,
+                bundleOwnerContextId: 9,
+                bundleOwnerDomainTag: 1,
+                assistRuntimeEpoch: 5);
+
+            Assert.DoesNotContain(packed, microOp => microOp is AssistMicroOp);
+            Assert.Equal(1, targetScheduler.AssistInterCoreRejects);
+            Assert.Equal(0, targetScheduler.AssistInterCorePodLocalRejects);
+            Assert.Equal(1, targetScheduler.AssistInterCoreCrossPodRejects);
+            Assert.Equal(0, targetScheduler.AssistInterCoreInjections);
+            Assert.Equal(0, targetScheduler.AssistInjectionsCount);
+            Assert.False(donorPod.TryPeekInterCoreAssistTransport(1, out _));
+        }
+
+        [Fact]
+        public void ExecuteAssistMicroOp_WhenVdsaUsesDmaCarrier_DoesNotMaterializeL1PrefetchWindow()
+        {
+            var core = new Processor.CPU_Core(0);
+            core.PrepareExecutionStart(0x1000);
+            core.L1_Data = null;
+            core.L1_VLIWBundles = null;
+
+            Assert.True(AssistMicroOp.TryCreateFromSeed(
+                CreateVectorSeed(virtualThreadId: 0, ownerContextId: 3, baseAddress: 0x3400, src2Address: 0x3800),
+                carrierVirtualThreadId: 0,
+                replayEpochId: 0,
+                assistEpochId: 0,
+                out AssistMicroOp assist));
+
+            Assert.Equal(SlotClass.DmaStreamClass, assist.CarrierSlotClass);
+            Assert.True(core.ExecuteAssistMicroOp(assist));
+            Assert.Null(core.L1_Data);
+            Assert.Null(core.L1_VLIWBundles);
+        }
+
+        [Fact]
+        public void ExecuteAssistMicroOp_WhenInterCoreLdsaUsesDmaCarrier_DoesNotMaterializeL1PrefetchWindow()
+        {
+            Array.Fill(Processor.Pods, null!);
+
+            var core = new Processor.CPU_Core(0);
+            core.PrepareExecutionStart(0x1000, activeVtId: 1);
+            core.TestInitializeFSPScheduler();
+            core.L1_Data = null;
+            core.L1_VLIWBundles = null;
+
+            var pod = new PodController(0, 0, new MicroOpScheduler());
+            Processor.Pods[0] = pod;
+
+            LoadMicroOp load = MicroOpTestHelper.CreateLoad(
+                virtualThreadId: 1,
+                destReg: 7,
+                address: 0x3A00,
+                domainTag: 1);
+            load.OwnerContextId = 5;
+            load.MemoryLocalityHint = LocalityHint.Cold;
+            load.InitializeMetadata();
+
+            Assert.True(AssistMicroOp.TryCreateInterCoreTransportFromSeed(
+                load,
+                donorCoreId: 0,
+                donorPodId: pod.PodId,
+                donorAssistEpochId: 0,
+                out AssistInterCoreTransport transport));
+
+            Assert.True(AssistMicroOp.TryCreateFromInterCoreTransport(
+                transport,
+                podId: pod.PodId,
+                carrierCoreId: 0,
+                carrierVirtualThreadId: 1,
+                targetCoreId: 0,
+                targetVirtualThreadId: 1,
+                targetOwnerContextId: 9,
+                targetDomainTag: 1,
+                replayEpochId: 0,
+                assistEpochId: 0,
+                out AssistMicroOp assist));
+
+            pod.PublishAssistOwnerSnapshot(
+                localCoreId: 0,
+                virtualThreadId: 1,
+                ownerContextId: 5,
+                domainTag: 1,
+                assistEpochId: 0);
+
+            Assert.Equal(SlotClass.DmaStreamClass, assist.CarrierSlotClass);
+            Assert.True(core.ExecuteAssistMicroOp(assist));
+            Assert.Null(core.L1_Data);
+            Assert.Null(core.L1_VLIWBundles);
+        }
+
+        [Fact]
+        public void ExecuteAssistMicroOp_WhenInterCoreDonorPrefetchUsesDmaCarrier_DoesNotMaterializeL1PrefetchWindow()
+        {
+            Array.Fill(Processor.Pods, null!);
+
+            var core = new Processor.CPU_Core(0);
+            core.PrepareExecutionStart(0x1000, activeVtId: 1);
+            core.TestInitializeFSPScheduler();
+            core.L1_Data = null;
+            core.L1_VLIWBundles = null;
+
+            var pod = new PodController(0, 0, new MicroOpScheduler());
+            Processor.Pods[0] = pod;
+
+            LoadMicroOp load = MicroOpTestHelper.CreateLoad(
+                virtualThreadId: 1,
+                destReg: 7,
+                address: 0x3C00,
+                domainTag: 1);
+            load.OwnerContextId = 5;
+            load.InitializeMetadata();
+
+            Assert.True(AssistMicroOp.TryCreateInterCoreTransportFromSeed(
+                load,
+                donorCoreId: 0,
+                donorPodId: pod.PodId,
+                donorAssistEpochId: 0,
+                out AssistInterCoreTransport transport));
+
+            Assert.True(AssistMicroOp.TryCreateFromInterCoreTransport(
+                transport,
+                podId: pod.PodId,
+                carrierCoreId: 0,
+                carrierVirtualThreadId: 1,
+                targetCoreId: 0,
+                targetVirtualThreadId: 1,
+                targetOwnerContextId: 9,
+                targetDomainTag: 1,
+                replayEpochId: 0,
+                assistEpochId: 0,
+                out AssistMicroOp assist));
+
+            pod.PublishAssistOwnerSnapshot(
+                localCoreId: 0,
+                virtualThreadId: 1,
+                ownerContextId: 5,
+                domainTag: 1,
+                assistEpochId: 0);
+
+            Assert.Equal(SlotClass.DmaStreamClass, assist.CarrierSlotClass);
+            Assert.Equal(AssistKind.DonorPrefetch, assist.Kind);
+            Assert.True(core.ExecuteAssistMicroOp(assist));
+            Assert.Null(core.L1_Data);
+            Assert.Null(core.L1_VLIWBundles);
+        }
+
+        [Fact]
+        public void AssistMemoryQuotaState_WhenIssueCreditsExhausted_RejectsReservationDeterministically()
+        {
+            LoadMicroOp load = MicroOpTestHelper.CreateLoad(
+                virtualThreadId: 1,
+                destReg: 5,
+                address: 0x2400,
+                domainTag: 3);
+
+            Assert.True(AssistMicroOp.TryCreateFromSeed(
+                load,
+                carrierVirtualThreadId: 0,
+                replayEpochId: 0,
+                assistEpochId: 0,
+                out AssistMicroOp assist));
+
+            AssistMemoryQuotaState quotaState =
+                new AssistMemoryQuota(issueCredits: 0, lineCredits: 4, hotLineCap: 2, coldLineCap: 4)
+                    .CreateState();
+
+            Assert.False(quotaState.TryReserve(
+                assist,
+                out uint reservedLineDemand,
+                out AssistQuotaRejectKind rejectKind));
+            Assert.Equal(1u, reservedLineDemand);
+            Assert.Equal(AssistQuotaRejectKind.IssueCredits, rejectKind);
+        }
+
+        [Fact]
+        public void ExecuteAssistMicroOp_WhenRepeatedLsuAssistPrefetchesRun_ResidentAssistLinesStayWithinCarrierPartition()
+        {
+            var core = new Processor.CPU_Core(0);
+            core.PrepareExecutionStart(0x1000);
+
+            for (int i = 0; i < 12; i++)
+            {
+                Assert.True(AssistMicroOp.TryCreateFromSeed(
+                    MicroOpTestHelper.CreateLoad(
+                        virtualThreadId: 1,
+                        destReg: 5,
+                        address: 0x8000UL + ((ulong)i * 0x20UL),
+                        domainTag: 1),
+                    carrierVirtualThreadId: 0,
+                    replayEpochId: 0,
+                    assistEpochId: 0,
+                    out AssistMicroOp assist));
+
+                Assert.True(core.ExecuteAssistMicroOp(assist));
+            }
+
+            int residentAssistLines = CountAssistResidentLines(core.L1_Data, AssistCarrierKind.LsuHosted);
+            Assert.Equal(
+                AssistCachePartitionPolicy.Default.ResolveCarrierLineBudget(AssistCarrierKind.LsuHosted),
+                residentAssistLines);
+        }
+
+        [Fact]
+        public void GetDataByMemPtr_WhenForegroundConsumesAssistLine_ClearsAssistOwnership()
+        {
+            var core = new Processor.CPU_Core(0);
+            core.PrepareExecutionStart(0x1000);
+
+            Assert.True(AssistMicroOp.TryCreateFromSeed(
+                MicroOpTestHelper.CreateLoad(
+                    virtualThreadId: 1,
+                    destReg: 5,
+                    address: 0x9000,
+                    domainTag: 1),
+                carrierVirtualThreadId: 0,
+                replayEpochId: 0,
+                assistEpochId: 0,
+                out AssistMicroOp assist));
+
+            Assert.True(core.ExecuteAssistMicroOp(assist));
+            Assert.Equal(1, CountAssistResidentLines(core.L1_Data, AssistCarrierKind.LsuHosted));
+
+            Processor.CPU_Core.Cache_Data_Object line = core.GetDataByMemPtr(0x9000, domainTag: 1);
+            Assert.Equal((ulong)0x9000, line.DataCache_MemoryAddress);
+            Assert.Equal(0, CountAssistResidentLines(core.L1_Data, AssistCarrierKind.LsuHosted));
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void RestoreVectorContext_RevokesOutstandingAssistBeforeCacheEffect(bool validRestore)
+        {
+            var core = new Processor.CPU_Core(0);
+            core.PrepareExecutionStart(0x1000);
+            core.TestInitializeFSPScheduler();
+            var pod = new PodController(0, 0, new MicroOpScheduler());
+            PodController previousPod = Processor.Pods[0];
+            Processor.Pods[0] = pod;
+            try
+            {
+                pod.PublishAssistOwnerSnapshot(0, 0, 3, 1, assistEpochId: 0);
+                pod.PublishAssistOwnerSnapshot(1, 1, 4, 1, assistEpochId: 0);
+                Assert.True(AssistMicroOp.TryCreateFromSeed(
+                    MicroOpTestHelper.CreateLoad(
+                        virtualThreadId: 1, destReg: 5, address: 0x9000, domainTag: 1),
+                    carrierVirtualThreadId: 0, replayEpochId: 0, assistEpochId: 0,
+                    out AssistMicroOp assist));
+                Processor.CPU_Core.VectorContext saved = core.SaveVectorContext();
+                saved.Valid = validRestore;
+
+                // A no-op CSR write must preserve the captured assist and source.
+                core.WritePodCSR(Processor.CPU_Core.CSR_MEM_DOMAIN_CERT, 0);
+                core.RestoreVectorContext(saved);
+                Assert.True(core.ExecuteAssistMicroOp(assist));
+
+                Assert.Equal(validRestore ? 0 : 1,
+                    CountAssistResidentLines(core.L1_Data, AssistCarrierKind.LsuHosted));
+                Assert.Equal(validRestore ? 1 : 0, core.Runtime.Telemetry.AssistKilledCount);
+                Assert.Equal(!validRestore, pod.TryGetAssistOwnerSnapshot(0, out _));
+                Assert.True(pod.TryGetAssistOwnerSnapshot(1, out _));
+            }
+            finally
+            {
+                Processor.Pods[0] = previousPod;
+            }
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void DonorBoundary_RevokesPublishedSourceBeforeRecipientCanExecuteAssist(bool domainCertificateChange)
+        {
+            var donor = new Processor.CPU_Core(0);
+            var recipient = new Processor.CPU_Core(1);
+            donor.PrepareExecutionStart(0x1000);
+            recipient.PrepareExecutionStart(0x1000, activeVtId: 1);
+            recipient.TestInitializeFSPScheduler();
+            var pod = new PodController(0, 0, new MicroOpScheduler());
+            PodController previousPod = Processor.Pods[0];
+            Processor.Pods[0] = pod;
+            try
+            {
+                LoadMicroOp seed = MicroOpTestHelper.CreateLoad(
+                    virtualThreadId: 0, destReg: 5, address: 0x9000, domainTag: 1);
+                seed.OwnerContextId = 3;
+                seed.InitializeMetadata();
+                Assert.True(AssistMicroOp.TryCreateInterCoreTransportFromSeed(
+                    seed, donorCoreId: 0, donorPodId: 0, donorAssistEpochId: 0,
+                    out AssistInterCoreTransport transport));
+                Assert.True(AssistMicroOp.TryCreateFromInterCoreTransport(
+                    transport, podId: 0, carrierCoreId: 1, carrierVirtualThreadId: 1,
+                    targetCoreId: 1, targetVirtualThreadId: 1, targetOwnerContextId: 4,
+                    targetDomainTag: 1, replayEpochId: 0, assistEpochId: 0,
+                    out AssistMicroOp assist));
+                pod.PublishAssistOwnerSnapshot(0, 0, 3, 1, assistEpochId: 0);
+                pod.PublishAssistOwnerSnapshot(1, 1, 4, 1, assistEpochId: 0);
+
+                if (domainCertificateChange)
+                    donor.WritePodCSR(Processor.CPU_Core.CSR_MEM_DOMAIN_CERT, 2);
+                else
+                    donor.FlushPipeline();
+                Assert.True(recipient.ExecuteAssistMicroOp(assist));
+
+                Assert.Equal(AssistInvalidationReason.InterCoreOwnerDrift,
+                    recipient.TestGetFSPScheduler()!.LastAssistInvalidationReason);
+                Assert.Equal(1, recipient.Runtime.Telemetry.AssistKilledCount);
+                Assert.Equal(0, recipient.Runtime.Telemetry.AssistCompletedCount);
+                Assert.False(pod.TryGetAssistOwnerSnapshot(0, out _));
+            }
+            finally
+            {
+                Processor.Pods[0] = previousPod;
+            }
+        }
+
+        [Fact]
+        public void ExecuteAssistMicroOp_WhenL1ContainsOnlyForegroundLines_DoesNotEvictForegroundCacheState()
+        {
+            var core = new Processor.CPU_Core(0);
+            core.PrepareExecutionStart(0x1000);
+            core.L1_Data = new Processor.CPU_Core.Cache_Data_Object[2];
+            core.L1_VLIWBundles = new Processor.CPU_Core.Cache_VLIWBundle_Object[1];
+            core.L1_Data[0] = new Processor.CPU_Core.Cache_Data_Object
+            {
+                DataCache_MemoryAddress = 0xA000,
+                DataCache_StoredValue = new byte[32],
+                DomainTag = 1,
+                AssistResident = false
+            };
+            core.L1_Data[1] = new Processor.CPU_Core.Cache_Data_Object
+            {
+                DataCache_MemoryAddress = 0xA020,
+                DataCache_StoredValue = new byte[32],
+                DomainTag = 1,
+                AssistResident = false
+            };
+
+            Assert.True(AssistMicroOp.TryCreateFromSeed(
+                MicroOpTestHelper.CreateLoad(
+                    virtualThreadId: 1,
+                    destReg: 5,
+                    address: 0xA040,
+                    domainTag: 1),
+                carrierVirtualThreadId: 0,
+                replayEpochId: 0,
+                assistEpochId: 0,
+                out AssistMicroOp assist));
+
+            Assert.True(core.ExecuteAssistMicroOp(assist));
+            Assert.Equal((ulong)0xA000, core.L1_Data[0].DataCache_MemoryAddress);
+            Assert.Equal((ulong)0xA020, core.L1_Data[1].DataCache_MemoryAddress);
+            Assert.Equal(0, CountAssistResidentLines(core.L1_Data));
+        }
+
+        [Fact]
+        public void PackBundleIntraCoreSmt_WithAssistNomination_InjectsAssistIntoLsuLane()
+        {
+            var scheduler = new MicroOpScheduler
+            {
+                TypedSlotEnabled = true
+            };
+
+            LoadMicroOp seed = MicroOpTestHelper.CreateLoad(
+                virtualThreadId: 1,
+                destReg: 7,
+                address: 0x5000,
+                domainTag: 1);
+            Assert.True(AssistMicroOp.TryCreateFromSeed(
+                seed,
+                carrierVirtualThreadId: 0,
+                replayEpochId: 0,
+                assistEpochId: 0,
+                out AssistMicroOp assist));
+
+            scheduler.NominateAssistCandidate(1, assist);
+
+            MicroOp[] bundle = new MicroOp[8];
+            bundle[0] = MicroOpTestHelper.CreateScalarALU(0, destReg: 1, src1Reg: 2, src2Reg: 3);
+
+            MicroOp[] packed = scheduler.PackBundleIntraCoreSmt(
+                bundle,
+                ownerVirtualThreadId: 0,
+                localCoreId: 0);
+
+            int injectedSlot = Array.FindIndex(packed, microOp => ReferenceEquals(microOp, assist));
+            Assert.True(injectedSlot is 4 or 5);
+            Assert.Equal(1, scheduler.AssistInjectionsCount);
+            Assert.Equal(1, scheduler.AssistDonorPrefetchInjects);
+            Assert.Equal(1, scheduler.AssistSameVtInjects);
+            Assert.Equal(0, scheduler.AssistDonorVtInjects);
+        }
+
+        [Fact]
+        public void PackBundleIntraCoreSmt_WithVdsaNomination_InjectsAssistIntoLane6()
+        {
+            var scheduler = new MicroOpScheduler
+            {
+                TypedSlotEnabled = true
+            };
+
+            Assert.True(AssistMicroOp.TryCreateFromSeed(
+                CreateVectorSeed(virtualThreadId: 1, ownerContextId: 0, baseAddress: 0xA000, src2Address: 0xA800),
+                carrierVirtualThreadId: 0,
+                replayEpochId: 0,
+                assistEpochId: 0,
+                out AssistMicroOp assist));
+
+            scheduler.NominateAssistCandidate(1, assist);
+
+            MicroOp[] bundle = new MicroOp[8];
+            bundle[0] = MicroOpTestHelper.CreateScalarALU(0, destReg: 1, src1Reg: 2, src2Reg: 3);
+
+            MicroOp[] packed = scheduler.PackBundleIntraCoreSmt(
+                bundle,
+                ownerVirtualThreadId: 0,
+                localCoreId: 0);
+
+            TypedSlotRejectClassification rejectClassification = scheduler.TestGetLastRejectClassification();
+            int injectedSlot = Array.FindIndex(packed, microOp => ReferenceEquals(microOp, assist));
+            Assert.True(
+                injectedSlot == 6,
+                $"Expected VDSA assist in lane 6, actual slot={injectedSlot}, rejects={scheduler.AssistRejects}, injections={scheduler.AssistInjectionsCount}, dmaInjects={scheduler.DmaStreamClassInjects}, rejectReason={rejectClassification.AdmissionReject}, certDetail={rejectClassification.CertificateDetail}, resourceRejects={scheduler.TypedSlotResourceConflictRejects}, lateBinding={scheduler.LateBindingConflicts}, staticOvercommit={scheduler.StaticClassOvercommitRejects}, dynamicExhaustion={scheduler.DynamicClassExhaustionRejects}, hwBudget={scheduler.TypedSlotHardwareBudgetRejects}, specBudget={scheduler.TypedSlotSpeculationBudgetRejects}");
+            Assert.Equal(1, scheduler.AssistInjectionsCount);
+            Assert.Equal(1, scheduler.AssistVdsaInjects);
+            Assert.Equal(1, scheduler.DmaStreamClassInjects);
+            Assert.Equal(1, scheduler.AssistSameVtInjects);
+            Assert.Equal(0, scheduler.AssistDonorVtInjects);
+
+            SchedulerPhaseMetrics metrics = scheduler.GetPhaseMetrics();
+            Assert.Equal(1, metrics.DmaStreamClassInjects);
+            Assert.Equal(1, metrics.AssistSameVtInjects);
+            Assert.Equal(0, metrics.AssistDonorVtInjects);
+        }
+
+        [Fact]
+        public void PackBundleIntraCoreSmt_WithCrossVtVdsaNomination_RecordsDonorVtTelemetry()
+        {
+            var scheduler = new MicroOpScheduler
+            {
+                TypedSlotEnabled = true
+            };
+
+            Assert.True(AssistMicroOp.TryCreateFromSeed(
+                CreateVectorSeed(virtualThreadId: 2, ownerContextId: 0, baseAddress: 0xB000, src2Address: 0xB800),
+                carrierVirtualThreadId: 0,
+                targetVirtualThreadId: 1,
+                replayEpochId: 0,
+                assistEpochId: 0,
+                assistMicroOp: out AssistMicroOp assist));
+
+            scheduler.NominateAssistCandidate(1, assist);
+
+            MicroOp[] bundle = new MicroOp[8];
+            bundle[0] = MicroOpTestHelper.CreateScalarALU(0, destReg: 1, src1Reg: 2, src2Reg: 3);
+
+            MicroOp[] packed = scheduler.PackBundleIntraCoreSmt(
+                bundle,
+                ownerVirtualThreadId: 0,
+                localCoreId: 0);
+
+            int injectedSlot = Array.FindIndex(packed, microOp => ReferenceEquals(microOp, assist));
+            Assert.Equal(6, injectedSlot);
+            Assert.Equal(1, scheduler.AssistInjectionsCount);
+            Assert.Equal(1, scheduler.AssistVdsaInjects);
+            Assert.Equal(0, scheduler.AssistSameVtInjects);
+            Assert.Equal(1, scheduler.AssistDonorVtInjects);
+
+            SchedulerPhaseMetrics metrics = scheduler.GetPhaseMetrics();
+            Assert.Equal(0, metrics.AssistSameVtInjects);
+            Assert.Equal(1, metrics.AssistDonorVtInjects);
+        }
+
+        [Fact]
+        public void PackBundleIntraCoreSmt_WithAssistLineQuotaBelowDemand_RejectsAssistDeterministically()
+        {
+            var scheduler = new MicroOpScheduler
+            {
+                TypedSlotEnabled = true,
+                AssistMemoryQuotaPolicy = new AssistMemoryQuota(
+                    issueCredits: 1,
+                    lineCredits: 0,
+                    hotLineCap: 2,
+                    coldLineCap: 4)
+            };
+
+            Assert.True(AssistMicroOp.TryCreateFromSeed(
+                MicroOpTestHelper.CreateLoad(
+                    virtualThreadId: 1,
+                    destReg: 7,
+                    address: 0x8200,
+                    domainTag: 1),
+                carrierVirtualThreadId: 0,
+                replayEpochId: 0,
+                assistEpochId: 0,
+                out AssistMicroOp assist));
+
+            scheduler.NominateAssistCandidate(1, assist);
+
+            MicroOp[] bundle = new MicroOp[8];
+            bundle[0] = MicroOpTestHelper.CreateScalarALU(0, destReg: 1, src1Reg: 2, src2Reg: 3);
+
+            MicroOp[] packed = scheduler.PackBundleIntraCoreSmt(
+                bundle,
+                ownerVirtualThreadId: 0,
+                localCoreId: 0);
+
+            Assert.DoesNotContain(packed, microOp => ReferenceEquals(microOp, assist));
+            Assert.Equal(1, scheduler.AssistRejects);
+            Assert.Equal(1, scheduler.AssistQuotaRejects);
+            Assert.Equal(0, scheduler.AssistQuotaIssueRejects);
+            Assert.Equal(1, scheduler.AssistQuotaLineRejects);
+            Assert.Equal(0, scheduler.AssistQuotaLinesReserved);
+            Assert.Equal(1, scheduler.TypedSlotAssistQuotaRejects);
+
+            SchedulerPhaseMetrics metrics = scheduler.GetPhaseMetrics();
+            Assert.Equal(1, metrics.AssistQuotaRejects);
+            Assert.Equal(1, metrics.AssistQuotaLineRejects);
+            Assert.Equal(1, metrics.TypedSlotAssistQuotaRejects);
+        }
+
+        [Fact]
+        public void PackBundleIntraCoreSmt_WithSharedOuterCapPressure_RejectsAssistWithExplicitBackpressureOwner()
+        {
+            var scheduler = new MicroOpScheduler
+            {
+                TypedSlotEnabled = true
+            };
+
+            Assert.True(AssistMicroOp.TryCreateFromSeed(
+                CreateVectorSeed(virtualThreadId: 1, ownerContextId: 0, baseAddress: 0xC000, src2Address: 0xC800),
+                carrierVirtualThreadId: 0,
+                replayEpochId: 0,
+                assistEpochId: 0,
+                out AssistMicroOp assist));
+
+            scheduler.NominateAssistCandidate(1, assist);
+
+            MicroOp[] bundle = new MicroOp[8];
+            bundle[0] = MicroOpTestHelper.CreateScalarALU(0, destReg: 1, src1Reg: 2, src2Reg: 3);
+            bundle[4] = MicroOpTestHelper.CreateLoad(0, destReg: 10, address: 0xD000, domainTag: 0);
+            bundle[5] = MicroOpTestHelper.CreateLoad(0, destReg: 11, address: 0xD040, domainTag: 0);
+
+            MicroOp[] packed = scheduler.PackBundleIntraCoreSmt(
+                bundle,
+                ownerVirtualThreadId: 0,
+                localCoreId: 0);
+
+            Assert.DoesNotContain(packed, microOp => ReferenceEquals(microOp, assist));
+            Assert.Equal(1, scheduler.AssistRejects);
+            Assert.Equal(1, scheduler.AssistBackpressureRejects);
+            Assert.Equal(1, scheduler.AssistBackpressureOuterCapRejects);
+            Assert.Equal(0, scheduler.AssistBackpressureMshrRejects);
+            Assert.Equal(0, scheduler.AssistBackpressureDmaSrfRejects);
+            Assert.Equal(1, scheduler.TypedSlotAssistBackpressureRejects);
+            Assert.Equal(0, scheduler.TypedSlotHardwareBudgetRejects);
+            Assert.Equal(TypedSlotRejectReason.AssistBackpressureReject, scheduler.TestGetLastRejectClassification().AdmissionReject);
+
+            SchedulerPhaseMetrics metrics = scheduler.GetPhaseMetrics();
+            Assert.Equal(1, metrics.AssistBackpressureRejects);
+            Assert.Equal(1, metrics.AssistBackpressureOuterCapRejects);
+            Assert.Equal(1, metrics.TypedSlotAssistBackpressureRejects);
+        }
+
+        [Fact]
+        public void PackBundleIntraCoreSmt_WithOutstandingMemoryPressure_RejectsAssistWithExplicitBackpressureOwner()
+        {
+            var scheduler = new MicroOpScheduler
+            {
+                TypedSlotEnabled = true
+            };
+
+            scheduler.ClearSmtScoreboard();
+            for (int slot = 0; slot < 8; slot++)
+            {
+                Assert.NotEqual(
+                    -1,
+                    scheduler.SetSmtScoreboardPendingTyped(
+                        targetId: 100 + slot,
+                        virtualThreadId: 1,
+                        currentCycle: 0,
+                        entryType: ScoreboardEntryType.OutstandingLoad,
+                        bankId: slot % 16));
+            }
+
+            Assert.True(AssistMicroOp.TryCreateFromSeed(
+                MicroOpTestHelper.CreateLoad(
+                    virtualThreadId: 1,
+                    destReg: 7,
+                    address: 0xE000,
+                    domainTag: 1),
+                carrierVirtualThreadId: 0,
+                replayEpochId: 0,
+                assistEpochId: 0,
+                out AssistMicroOp assist));
+
+            scheduler.NominateAssistCandidate(1, assist);
+
+            MicroOp[] bundle = new MicroOp[8];
+            bundle[0] = MicroOpTestHelper.CreateScalarALU(0, destReg: 1, src1Reg: 2, src2Reg: 3);
+
+            MicroOp[] packed = scheduler.PackBundleIntraCoreSmt(
+                bundle,
+                ownerVirtualThreadId: 0,
+                localCoreId: 0);
+
+            Assert.DoesNotContain(packed, microOp => ReferenceEquals(microOp, assist));
+            Assert.Equal(1, scheduler.AssistBackpressureRejects);
+            Assert.Equal(0, scheduler.AssistBackpressureOuterCapRejects);
+            Assert.Equal(1, scheduler.AssistBackpressureMshrRejects);
+            Assert.Equal(0, scheduler.TypedSlotScoreboardRejects);
+            Assert.Equal(TypedSlotRejectReason.AssistBackpressureReject, scheduler.TestGetLastRejectClassification().AdmissionReject);
+        }
+
+        [Fact]
+        public void PackBundleIntraCoreSmt_WithForegroundOwnedSrfOnly_RejectsLane6AssistWithoutEvictingForeground()
+        {
+            var savedMemory = Processor.Memory;
+            try
+            {
+                _ = new Processor(ProcessorMode.Emulation);
+                StreamRegisterFile srf = Processor.Memory!.StreamRegisters;
+                byte[] scratch = new byte[32];
+                for (int index = 0; index < 8; index++)
+                {
+                    int regIndex = srf.AllocateRegister(
+                        sourceAddr: 0x1000UL + ((ulong)index * 0x100UL),
+                        elementSize: 4,
+                        elementCount: 8);
+                    Assert.NotEqual(-1, regIndex);
+                    Assert.True(srf.WriteRegister(regIndex, scratch, (uint)scratch.Length));
+                }
+
+                var scheduler = new MicroOpScheduler
+                {
+                    TypedSlotEnabled = true
+                };
+
+                Assert.True(AssistMicroOp.TryCreateFromSeed(
+                    CreateVectorSeed(virtualThreadId: 1, ownerContextId: 0, baseAddress: 0xF000, src2Address: 0xF800),
+                    carrierVirtualThreadId: 0,
+                    replayEpochId: 0,
+                    assistEpochId: 0,
+                    out AssistMicroOp assist));
+
+                scheduler.NominateAssistCandidate(1, assist);
+
+                MicroOp[] bundle = new MicroOp[8];
+                bundle[0] = MicroOpTestHelper.CreateScalarALU(0, destReg: 1, src1Reg: 2, src2Reg: 3);
+
+                MicroOp[] packed = scheduler.PackBundleIntraCoreSmt(
+                    bundle,
+                    ownerVirtualThreadId: 0,
+                    localCoreId: 0,
+                    eligibleVirtualThreadMask: MicroOpScheduler.AllEligibleVirtualThreadMask,
+                    memSub: Processor.Memory);
+
+                Assert.DoesNotContain(packed, microOp => ReferenceEquals(microOp, assist));
+                Assert.Equal(1, scheduler.AssistBackpressureRejects);
+                Assert.Equal(1, scheduler.AssistBackpressureDmaSrfRejects);
+                Assert.Equal(0, srf.CountAssistOwnedRegisters());
+            }
+            finally
+            {
+                Processor.Memory = savedMemory;
+            }
+        }
+
+    }
+}

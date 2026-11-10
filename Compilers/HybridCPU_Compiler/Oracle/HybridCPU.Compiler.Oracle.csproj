@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net11.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>HybridCPU.Compiler.Oracle</AssemblyName>
+    <RootNamespace>HybridCPU.Compiler.Oracle</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\HybridCPU.Compiler.Core.csproj"
+                      GlobalPropertiesToRemove="DefineTestSupport;BuildRuntimeDiagnosticConsole;HybridCpuIseProjectReferenceProperties" />
+  </ItemGroup>
+
+</Project>

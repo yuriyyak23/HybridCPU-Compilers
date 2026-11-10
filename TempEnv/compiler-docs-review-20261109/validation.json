@@ -1,0 +1,33 @@
+{
+  "compiler-source-final.json": {
+    "Drift": 0,
+    "Count": 541,
+    "Paths": []
+  },
+  "evaluated-source-final.json": {
+    "Drift": 0,
+    "Count": 493,
+    "Paths": []
+  },
+  "compiler_source_inventory": {
+    "Count": 541,
+    "SetDifference": []
+  },
+  "documents": {
+    "TrailingWhitespace": [],
+    "Broken": [],
+    "LocalLinks": 215,
+    "Files": 35
+  },
+  "manifest": {
+    "PhaseFiles": 10,
+    "Parsed": true,
+    "Qualification": "no"
+  },
+  "checksums": {
+    "Whitebook": 1,
+    "Plan": 35,
+    "Verified": true,
+    "DiffCheckExit": 0
+  }
+}

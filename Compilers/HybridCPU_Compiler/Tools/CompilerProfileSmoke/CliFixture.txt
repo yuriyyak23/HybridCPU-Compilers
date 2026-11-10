@@ -1,0 +1,6 @@
+public static class CliFixture
+{
+    public static int Read() => Add(40);
+    private static int Add(int value) => value + 2;
+    public static int Unsupported() => (int)(double.Parse("1"));
+}

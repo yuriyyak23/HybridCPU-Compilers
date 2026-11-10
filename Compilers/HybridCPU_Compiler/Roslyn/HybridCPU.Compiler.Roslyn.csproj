@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net11.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>13.0</LangVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Analyzers\HybridCPU.Compiler.Analyzers.csproj" />
+    <ProjectReference Include="..\Cil\HybridCPU.Compiler.Cil.csproj" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" Condition="'$(UseSdkRoslynForCompanion)' != 'true'" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(UseSdkRoslynForCompanion)' == 'true'">
+    <AssemblyMetadata Include="CompanionSdkRoslynHost" Value="$(NETCoreSdkVersion)" />
+  </ItemGroup>
+  <Import Project="SdkRoslynHost.targets" />
+</Project>

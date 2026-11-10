@@ -1,0 +1,25 @@
+<Project>
+  <PropertyGroup>
+    <RuntimeIdentifierGraphPath>$(MSBuildThisFileDirectory)runtime.json</RuntimeIdentifierGraphPath>
+    <UseRidGraph>true</UseRidGraph>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'hybridcpu'">
+    <_HybridCpuPublishAotRequested>$(PublishAot)</_HybridCpuPublishAotRequested>
+    <PublishAot>false</PublishAot>
+    <SelfContained>false</SelfContained>
+    <UseAppHost>false</UseAppHost>
+    <HybridCpuRuntimePackManifest Condition="'$(HybridCpuRuntimePackManifest)' == ''">$(MSBuildThisFileDirectory)hybridcpu.runtime-pack.json</HybridCpuRuntimePackManifest>
+    <HybridCpuCompilerPath Condition="'$(HybridCpuCompilerPath)' == ''">$(MSBuildThisFileDirectory)HybridCPU.Compiler.NativeAot.Adapter.dll</HybridCpuCompilerPath>
+    <HybridCpuIlCompilerPath Condition="'$(HybridCpuIlCompilerPath)' == ''">$(MSBuildThisFileDirectory)ilcompiler\ilc.dll</HybridCpuIlCompilerPath>
+    <HybridCpuRuntimeReferenceDirectory Condition="'$(HybridCpuRuntimeReferenceDirectory)' == ''">$(MSBuildThisFileDirectory)references</HybridCpuRuntimeReferenceDirectory>
+    <HybridCpuInstalledPackFilesManifest Condition="'$(HybridCpuInstalledPackFilesManifest)' == ''">$(MSBuildThisFileDirectory)hybridcpu.pack-files.json</HybridCpuInstalledPackFilesManifest>
+    <HybridCpuTargetRid>hybridcpu</HybridCpuTargetRid>
+    <HybridCpuHostRid Condition="'$(HybridCpuHostRid)' == '' and '$(OS)' == 'Windows_NT'">win-x64</HybridCpuHostRid>
+    <HybridCpuManagedRequirements Condition="'$(HybridCpuManagedRequirements)' == ''"></HybridCpuManagedRequirements>
+    <HybridCpuProfile Condition="'$(HybridCpuProfile)' == ''">LegacyRestrictedSingleMethod</HybridCpuProfile>
+    <HybridCpuPresentedMethods Condition="'$(HybridCpuPresentedMethods)' == ''"></HybridCpuPresentedMethods>
+    <HybridCpuMaximumRecursionDepth Condition="'$(HybridCpuMaximumRecursionDepth)' == ''"></HybridCpuMaximumRecursionDepth>
+    <HybridCpuMaximumRecursionStackBytes Condition="'$(HybridCpuMaximumRecursionStackBytes)' == ''"></HybridCpuMaximumRecursionStackBytes>
+    <HybridCpuUsePinnedGraph>true</HybridCpuUsePinnedGraph>
+  </PropertyGroup>
+</Project>

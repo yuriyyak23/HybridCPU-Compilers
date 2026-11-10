@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net11.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>HybridCPU.RuntimeKernel</AssemblyName>
+    <RootNamespace>HybridCPU.RuntimeKernel</RootNamespace>
+    <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="obj\**\*.cs" />
+    <EmbeddedResource Remove="obj\**\*" />
+    <None Remove="obj\**\*" />
+    <ProjectReference Include="..\HybridCPU_Platform.Contracts\HybridCPU.Platform.Contracts.csproj" />
+  </ItemGroup>
+</Project>

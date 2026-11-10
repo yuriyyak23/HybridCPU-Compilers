@@ -1,0 +1,75 @@
+diff --git a/src/coreclr/tools/aot/ILCompiler.RyuJit/Compiler/RyuJitCompilation.cs b/src/coreclr/tools/aot/ILCompiler.RyuJit/Compiler/RyuJitCompilation.cs
+index 969cce46..0113d0fa 100644
+--- a/src/coreclr/tools/aot/ILCompiler.RyuJit/Compiler/RyuJitCompilation.cs
++++ b/src/coreclr/tools/aot/ILCompiler.RyuJit/Compiler/RyuJitCompilation.cs
+@@ -33,6 +33,7 @@ public sealed class RyuJitCompilation : Compilation
+         private readonly int _parallelism;
+         private readonly HybridCpuSeamConfiguration _hybridCpuSeam;
+         private byte[] _hybridCpuCode;
++        private byte[] _hybridCpuManifest;
+         private int _hybridCpuCompiledMethodCount;
+ 
+         public InstructionSetSupport InstructionSetSupport { get; }
+@@ -118,6 +119,8 @@ protected override void CompileInternal(string outputFile, ObjectDumper dumper)
+                 if (_hybridCpuCompiledMethodCount != 1 || _hybridCpuCode == null)
+                     throw new InvalidOperationException($"HybridCPU seam requires exactly one compiled method; observed {_hybridCpuCompiledMethodCount}.");
+                 File.WriteAllBytes(outputFile, _hybridCpuCode);
++                if (_hybridCpuManifest != null)
++                    File.WriteAllBytes(outputFile + ".json", _hybridCpuManifest);
+                 return;
+             }
+ 
+@@ -271,7 +274,7 @@ method.OwningType is not MetadataType metadataType ||
+                     UseShellExecute = false,
+                 };
+                 start.ArgumentList.Add(_hybridCpuSeam.AdapterAssembly);
+-                start.ArgumentList.Add("compile");
++                start.ArgumentList.Add(_hybridCpuSeam.OutputKind == "image" ? "compile-image" : "compile");
+                 AddPair(start, "--assembly", _hybridCpuSeam.InputAssembly);
+                 AddPair(start, "--type", _hybridCpuSeam.TypeName);
+                 AddPair(start, "--method", _hybridCpuSeam.MethodName);
+@@ -291,6 +294,10 @@ method.OwningType is not MetadataType metadataType ||
+-                if (code.Length == 0 || code.Length % 32 != 0)
+-                    throw new InvalidOperationException("HybridCPU adapter returned an empty or non-bundle-aligned method body.");
++                if (code.Length == 0)
++                    throw new InvalidOperationException("HybridCPU adapter returned an empty output.");
++                if (_hybridCpuSeam.OutputKind != "image" && code.Length % 32 != 0)
++                    throw new InvalidOperationException("HybridCPU adapter returned a non-bundle-aligned method body.");
+                 _hybridCpuCode = code;
++                if (File.Exists(temporaryCode + ".json"))
++                    _hybridCpuManifest = File.ReadAllBytes(temporaryCode + ".json");
+                 methodNode.SetCode(new ObjectNode.ObjectData(code, Array.Empty<Relocation>(), 32, new ISymbolDefinitionNode[] { methodNode }));
+             }
+             finally
+@@ -314,16 +319,22 @@ internal sealed class HybridCpuSeamConfiguration
+         public string MethodName { get; private init; }
+         public string SourceCommit { get; private init; }
+         public string PatchDigest { get; private init; }
++        public string OutputKind { get; private init; }
+ 
+         public static HybridCpuSeamConfiguration Parse(IReadOnlyDictionary<string, string> options)
+         {
+             string[] required = ["HybridCpuDotNetHost", "HybridCpuAdapter", "HybridCpuAssembly", "HybridCpuType", "HybridCpuMethod", "HybridCpuSourceCommit", "HybridCpuPatchDigest"];
+-            if (options.Count != required.Length || required.Any(name => !options.TryGetValue(name, out string value) || string.IsNullOrWhiteSpace(value)))
++            if (options.Count < required.Length || options.Count > required.Length + 1 ||
++                required.Any(name => !options.TryGetValue(name, out string value) || string.IsNullOrWhiteSpace(value)) ||
++                options.Keys.Any(name => !required.Contains(name) && name != "HybridCpuOutputKind"))
+                 throw new InvalidOperationException($"HybridCPU seam requires exactly: {string.Join(", ", required)}.");
+             if (options["HybridCpuSourceCommit"] != "94ea82652cdd4e0f8046b5bd5becbd11461482ca")
+                 throw new InvalidOperationException("HCNAOT1001: unsupported dotnet/runtime source commit.");
+             if (options["HybridCpuPatchDigest"].Length != 64 || !options["HybridCpuPatchDigest"].All(Uri.IsHexDigit))
+                 throw new InvalidOperationException("HCNAOT1002: patch digest must be 64 hexadecimal characters.");
++            string outputKind = options.TryGetValue("HybridCpuOutputKind", out string configured) ? configured : "code";
++            if (outputKind is not ("code" or "image"))
++                throw new InvalidOperationException("HCPUB1005: HybridCpuOutputKind must be 'code' or 'image'.");
+ 
+             return new HybridCpuSeamConfiguration
+             {
+@@ -334,6 +345,7 @@ public static HybridCpuSeamConfiguration Parse(IReadOnlyDictionary<string, strin
+                 MethodName = options["HybridCpuMethod"],
+                 SourceCommit = options["HybridCpuSourceCommit"],
+                 PatchDigest = options["HybridCpuPatchDigest"],
++                OutputKind = outputKind,
+             };
+         }
+     }

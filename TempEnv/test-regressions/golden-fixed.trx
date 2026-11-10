@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="f704ab81-3f73-4993-bdfa-9effb776c1bf" name="Yuriy@DESKTOP-4PD77ND 2026-11-11 00:01:31" runUser="DESKTOP-4PD77ND\Yuriy" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-11-11T00:01:31.6753668+03:00" queuing="2026-11-11T00:01:31.6753670+03:00" start="2026-11-11T00:01:29.8064543+03:00" finish="2026-11-11T00:01:31.6814717+03:00" />
+  <TestSettings name="default" id="aaa9a8be-4296-4408-868d-3edcc2e90955">
+    <Deployment runDeploymentRoot="Yuriy_DESKTOP-4PD77ND_2026-11-11_00_01_31" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="bdf4e889-1d64-45c6-a83a-156a4ab6def7" testId="21e9aef2-6fb0-ad60-9753-8e199eccc1ab" testName="HybridCPU_ISE.Tests.CompilerTests.CompilerPhase02GoldenArtifactHarnessTests.NegativeManifest_ContainsRequiredFailClosedCasesWithoutCarrierHashes" computerName="DESKTOP-4PD77ND" duration="00:00:00.0278042" startTime="2026-11-11T00:01:31.0008816+03:00" endTime="2026-11-11T00:01:31.0372337+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="bdf4e889-1d64-45c6-a83a-156a4ab6def7" />
+    <UnitTestResult executionId="36c18c80-a4da-4ac1-8bd0-bedb2d0d23bf" testId="b0a8ac67-b6e9-08b1-ba9c-3cc820a280e7" testName="HybridCPU_ISE.Tests.CompilerTests.CompilerPhase02GoldenArtifactHarnessTests.PositiveCompatibilityPackages_MatchSeparatedGoldenBaselines" computerName="DESKTOP-4PD77ND" duration="00:00:00.5001664" startTime="2026-11-11T00:01:31.0503790+03:00" endTime="2026-11-11T00:01:31.5378248+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="36c18c80-a4da-4ac1-8bd0-bedb2d0d23bf" />
+    <UnitTestResult executionId="fdcbf2fd-f4b8-489b-9109-1b620548a51f" testId="eb77692c-34be-2e78-8f7a-2ae17954d2a2" testName="HybridCPU_ISE.Tests.CompilerTests.CompilerPhase02GoldenArtifactHarnessTests.PositivePackages_KeepEnvelopeSeparationAndRuntimeAuthorityPending" computerName="DESKTOP-4PD77ND" duration="00:00:00.0495504" startTime="2026-11-11T00:01:31.5388235+03:00" endTime="2026-11-11T00:01:31.5873729+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="fdcbf2fd-f4b8-489b-9109-1b620548a51f" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="HybridCPU_ISE.Tests.CompilerTests.CompilerPhase02GoldenArtifactHarnessTests.NegativeManifest_ContainsRequiredFailClosedCasesWithoutCarrierHashes" storage="c:\users\yuriy\desktop\hybridcpu compilers\tests\bin\debug\net11.0\hybridcpu.compiler.tests.dll" id="21e9aef2-6fb0-ad60-9753-8e199eccc1ab">
+      <Execution id="bdf4e889-1d64-45c6-a83a-156a4ab6def7" />
+      <TestMethod codeBase="C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\bin\Debug\net11.0\HybridCPU.Compiler.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HybridCPU_ISE.Tests.CompilerTests.CompilerPhase02GoldenArtifactHarnessTests" name="NegativeManifest_ContainsRequiredFailClosedCasesWithoutCarrierHashes" />
+    </UnitTest>
+    <UnitTest name="HybridCPU_ISE.Tests.CompilerTests.CompilerPhase02GoldenArtifactHarnessTests.PositiveCompatibilityPackages_MatchSeparatedGoldenBaselines" storage="c:\users\yuriy\desktop\hybridcpu compilers\tests\bin\debug\net11.0\hybridcpu.compiler.tests.dll" id="b0a8ac67-b6e9-08b1-ba9c-3cc820a280e7">
+      <Execution id="36c18c80-a4da-4ac1-8bd0-bedb2d0d23bf" />
+      <TestMethod codeBase="C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\bin\Debug\net11.0\HybridCPU.Compiler.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HybridCPU_ISE.Tests.CompilerTests.CompilerPhase02GoldenArtifactHarnessTests" name="PositiveCompatibilityPackages_MatchSeparatedGoldenBaselines" />
+    </UnitTest>
+    <UnitTest name="HybridCPU_ISE.Tests.CompilerTests.CompilerPhase02GoldenArtifactHarnessTests.PositivePackages_KeepEnvelopeSeparationAndRuntimeAuthorityPending" storage="c:\users\yuriy\desktop\hybridcpu compilers\tests\bin\debug\net11.0\hybridcpu.compiler.tests.dll" id="eb77692c-34be-2e78-8f7a-2ae17954d2a2">
+      <Execution id="fdcbf2fd-f4b8-489b-9109-1b620548a51f" />
+      <TestMethod codeBase="C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\bin\Debug\net11.0\HybridCPU.Compiler.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HybridCPU_ISE.Tests.CompilerTests.CompilerPhase02GoldenArtifactHarnessTests" name="PositivePackages_KeepEnvelopeSeparationAndRuntimeAuthorityPending" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="21e9aef2-6fb0-ad60-9753-8e199eccc1ab" executionId="bdf4e889-1d64-45c6-a83a-156a4ab6def7" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b0a8ac67-b6e9-08b1-ba9c-3cc820a280e7" executionId="36c18c80-a4da-4ac1-8bd0-bedb2d0d23bf" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="eb77692c-34be-2e78-8f7a-2ae17954d2a2" executionId="fdcbf2fd-f4b8-489b-9109-1b620548a51f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Список результатов" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="Все загруженные результаты" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="3" executed="3" passed="3" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v4.0.1+0f7d528729 (64-bit .NET 11.0.0)&#xD;
+[xUnit.net 00:00:00.16]   Discovering: HybridCPU.Compiler.Tests&#xD;
+[xUnit.net 00:00:00.51]   Discovered:  HybridCPU.Compiler.Tests&#xD;
+[xUnit.net 00:00:00.55]   Starting:    HybridCPU.Compiler.Tests&#xD;
+[xUnit.net 00:00:01.17]   Finished:    HybridCPU.Compiler.Tests&#xD;
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>

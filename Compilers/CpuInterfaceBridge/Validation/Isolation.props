@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup>
+    <DefineTestSupport>false</DefineTestSupport>
+    <BaseIntermediateOutputPath>$(BridgeValidationRoot)/obj/$(MSBuildProjectName)/</BaseIntermediateOutputPath>
+    <MSBuildProjectExtensionsPath>$(BaseIntermediateOutputPath)</MSBuildProjectExtensionsPath>
+    <OutputPath>$(BridgeValidationRoot)/bin/$(MSBuildProjectName)/</OutputPath>
+    <NuGetAudit>false</NuGetAudit>
+    <RestorePackagesPath>$(BridgeValidationRoot)/packages/</RestorePackagesPath>
+    <!-- Relocating obj must not make old obj/bin trees into default source items. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);**/obj/**;**/bin/**;**/.artifacts/**</DefaultItemExcludes>
+  </PropertyGroup>
+</Project>

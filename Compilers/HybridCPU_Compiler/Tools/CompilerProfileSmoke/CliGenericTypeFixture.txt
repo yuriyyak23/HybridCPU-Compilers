@@ -1,0 +1,2 @@
+public static class CliGenericType<T> { public static T Identity(T value) => value; public static U Method<U>(U value) => value; }
+public static class CliConstrained<T> where T : class { public static T Identity(T value) => value; }

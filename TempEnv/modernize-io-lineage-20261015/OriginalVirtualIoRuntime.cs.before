@@ -1,0 +1,257 @@
+using HybridCPU.ExternalRuntime.Contracts;
+
+namespace HybridCPU.ExternalRuntime;
+
+public sealed partial class HybridCpuExternalRuntime : IHybridCpuOriginalVirtualIoRuntimeV1, IHybridCpuOriginalVirtualIoContainmentRuntimeV1, IHybridCpuOriginalParentDeviceNoEffectRuntimeV1
+{
+    private sealed class OriginalParentDeviceFact(ExternalOriginalParentDeviceRequest request, DomainRecord owner)
+    {
+        public ExternalOriginalParentDeviceRequest Request { get; } = request;
+        public DomainRecord Owner { get; } = owner;
+        public OriginalParentDeviceFact? Self;
+        public ExternalOriginalParentDeviceReceipt? Receipt;
+        public byte[]? Backing;
+        public ExternalOriginalParentDeviceClosure? Closure;
+        public ExternalOriginalVirtualIoContainmentRequest? ContainmentRequest;
+        public ExternalOriginalVirtualIoContainmentClosure? Containment;
+        public ExternalOriginalParentDeviceNoEffect? NoEffect;
+        public List<OriginalVirtualIoFact> Users { get; } = [];
+        public ulong UsersIssued;
+    }
+    private sealed class OriginalVirtualIoFact(ExternalOriginalVirtualIoRequest request, ChildRecord child, OriginalParentDeviceFact device)
+    {
+        public ExternalOriginalVirtualIoRequest Request { get; } = request;
+        public ChildRecord Child { get; } = child;
+        public ExternalChildDomainCreateReceipt? Admission { get; } = child.OriginalAdmission;
+        public OriginalParentDeviceFact Device { get; } = device;
+        public OriginalVirtualIoFact? Self;
+        public ExternalChildVirtualIoBindReceipt? Receipt;
+        public VirtualIoRecord? Binding;
+        public ExternalOriginalVirtualIoCloseRequest? CloseRequest;
+        public ExternalOriginalVirtualIoClosure? Closure;
+        public List<OriginalIoTransferFact> Transfers { get; } = [];
+        public ulong TransfersIssued;
+    }
+    private bool DeviceHistory(DomainRecord owner) => (ulong)owner.OriginalParentDevices.Count == owner.OriginalParentDevicesIssued &&
+        owner.OriginalParentDevices.All(f => f is not null && ReferenceEquals(f.Self, f) && ReferenceEquals(f.Owner, owner)) &&
+        owner.OriginalParentDevices.Distinct(ReferenceEqualityComparer.Instance).Count() == owner.OriginalParentDevices.Count &&
+        owner.OriginalParentDevices.Select(f => f.Request).Distinct(ReferenceEqualityComparer.Instance).Count() == owner.OriginalParentDevices.Count &&
+        owner.OriginalParentDevices.Select(f => f.Request.Operation).Distinct().Count() == owner.OriginalParentDevices.Count;
+    private bool IoHistory(ChildRecord child) => (ulong)child.OriginalVirtualIo.Count == child.OriginalVirtualIoIssued &&
+        child.OriginalVirtualIo.All(f => f is not null && ReferenceEquals(f.Self, f) && ReferenceEquals(f.Child, child)) &&
+        child.OriginalVirtualIo.Distinct(ReferenceEqualityComparer.Instance).Count() == child.OriginalVirtualIo.Count &&
+        child.OriginalVirtualIo.Select(f => f.Request).Distinct(ReferenceEqualityComparer.Instance).Count() == child.OriginalVirtualIo.Count &&
+        child.OriginalVirtualIo.Select(f => f.Request.Operation).Distinct().Count() == child.OriginalVirtualIo.Count;
+    private bool DeviceUsersHistory(OriginalParentDeviceFact device) => (ulong)device.Users.Count == device.UsersIssued &&
+        device.Users.All(f => f is not null && ReferenceEquals(f.Self, f) && ReferenceEquals(f.Device, device)) &&
+        device.Users.Distinct(ReferenceEqualityComparer.Instance).Count() == device.Users.Count &&
+        device.Users.Select(f => f.Request).Distinct(ReferenceEqualityComparer.Instance).Count() == device.Users.Count &&
+        device.Users.Select(f => f.Request.Operation).Distinct().Count() == device.Users.Count;
+    private bool IoContained(OriginalVirtualIoFact fact) => fact.Closure is { NoFurtherUse: true } ||
+        fact.Device.Containment is { NoFurtherUse: true } c && ReferenceEquals(c.Request, fact.Device.ContainmentRequest) &&
+        ReferenceEquals(c.Request.Admission, fact.Device.Request) && fact.Device.Backing is null;
+    private bool DeviceContained(OriginalParentDeviceFact fact) => fact.Backing is null &&
+        (fact.NoEffect is { NoEffect: true, NoFurtherAdmission: true } denied && ReferenceEquals(denied.Request, fact.Request) && fact.UsersIssued == 0 && fact.Users.Count == 0 ||
+        fact.Closure is { NoFurtherUse: true } || fact.Containment is { NoFurtherUse: true } c &&
+        ReferenceEquals(c.Request, fact.ContainmentRequest) && ReferenceEquals(c.Request.Admission, fact.Request));
+    private bool HasOriginalIoPins(ChildRecord child) => !IoHistory(child) || child.OriginalVirtualIo.Any(f => !IoSource(f) || !IoContained(f));
+    private bool DeviceSource(OriginalParentDeviceFact fact) => DeviceHistory(fact.Owner) &&
+        fact.Owner.OriginalParentDevices.Contains(fact) && ReferenceEquals(fact.Self, fact) && ReferenceEquals(fact.Owner.OriginalOwner, fact.Owner) &&
+        ReferenceEquals(fact.Owner.OriginalAdmission, fact.Request.ParentAdmission) &&
+        TryFind(fact.Request.ParentAdmission.Lease, out var current, out _, out _) && ReferenceEquals(current, fact.Owner) &&
+        fact.Request.ParentAdmission.ContractVersion == manifest.ContractVersion && fact.Request.ParentAdmission.ManifestGeneration == manifest.Generation;
+    private OriginalParentDeviceFact? FindDevice(ExternalOriginalParentDeviceReceipt receipt)
+    {
+        if (receipt is null || !TryFind(receipt.Request.ParentAdmission.Lease, out var owner, out _, out _) || owner is null) return null;
+        lock (owner.Sync) return DeviceHistory(owner) ? owner.OriginalParentDevices.SingleOrDefault(f => ReferenceEquals(f.Receipt, receipt) && ReferenceEquals(f.Request, receipt.Request)) : null;
+    }
+    private bool IoSource(OriginalVirtualIoFact fact) => DeviceSource(fact.Device) && IoHistory(fact.Child) && TransferHistory(fact) &&
+        fact.Child.OriginalVirtualIo.Contains(fact) && ReferenceEquals(fact.Self, fact) && ReferenceEquals(fact.Child.OriginalOwner, fact.Child) &&
+        fact.Admission is not null && ReferenceEquals(fact.Child.OriginalAdmission, fact.Admission) && fact.Admission.Lease == fact.Child.Lease &&
+        fact.Admission.ContractVersion == manifest.ContractVersion && fact.Admission.ManifestGeneration == manifest.Generation &&
+        ReferenceEquals(fact.Child.ParentSource, fact.Device.Owner) && TryFindChild(fact.Child.Lease, out var canonicalChild, out _, out _, allowOriginalClose: true) && ReferenceEquals(canonicalChild, fact.Child) &&
+        fact.Device.Owner.Children.TryGetValue(fact.Child.Lease.Handle, out var child) && ReferenceEquals(child, fact.Child) &&
+        ReferenceEquals(fact.Request.Device, fact.Device.Receipt) && fact.Request.Child == fact.Child.Lease &&
+        DeviceUsersHistory(fact.Device) && fact.Device.Users.Contains(fact) &&
+        fact.Device.Users.All(f => ReferenceEquals(f.Self, f) && ReferenceEquals(f.Device, fact.Device));
+    private OriginalVirtualIoFact? FindIo(ExternalOriginalVirtualIoRequest request)
+    {
+        if (FindDevice(request.Device) is not { } device) return null;
+        lock (device.Owner.Sync) return DeviceUsersHistory(device) ? device.Users.SingleOrDefault(f => ReferenceEquals(f.Request, request)) : null;
+    }
+
+    public ExternalOriginalParentDeviceReceipt? BindOriginalParentDevice(ExternalOriginalParentDeviceRequest request)
+    {
+        const ExternalChildVirtualIoRights known = ExternalChildVirtualIoRights.Read | ExternalChildVirtualIoRights.Write | ExternalChildVirtualIoRights.Configure;
+        if (request is null || request.ParentAdmission is null || request.LoanCorrelation == Guid.Empty || string.IsNullOrWhiteSpace(request.DeviceIdentity) ||
+            !Valid(request.Operation) || request.MaximumTransferBytes is <= 0 or > 1048576 || request.Rights == 0 || (request.Rights & ~known) != 0 ||
+            !TryFind(request.ParentAdmission.Lease, out var owner, out _, out _)) return null;
+        lock (owner!.Sync)
+        {
+            if (!DeviceHistory(owner) || !ReferenceEquals(owner.OriginalOwner, owner) || !ReferenceEquals(owner.OriginalAdmission, request.ParentAdmission) ||
+                request.ParentAdmission.ContractVersion != manifest.ContractVersion || request.ParentAdmission.ManifestGeneration != manifest.Generation ||
+                !TryFind(owner.Lease, out var current, out _, out _) || !ReferenceEquals(current, owner) || owner.OriginalParentDevicesIssued == ulong.MaxValue ||
+                owner.OriginalParentDevices.Any(f => f.Request.LoanCorrelation == request.LoanCorrelation)) return null;
+            owner.OriginalParentDevices.EnsureCapacity(owner.OriginalParentDevices.Count + 1);
+            var fact = new OriginalParentDeviceFact(request, owner); fact.Self = fact;
+            owner.OriginalParentDevices.Add(fact); owner.OriginalParentDevicesIssued++;
+            if (owner.Lifecycle != Lifecycle.Ready || owner.InFlight is not null || !TryReserveOperation(request.Operation))
+            {
+                fact.NoEffect = new(request, true, true, manifest.ContractVersion, manifest.Generation);
+                return null; // The history latch prevents later admission of this original, even when readiness changes.
+            }
+            // Intent survives allocation failure; neither absence nor a failed reply is closure.
+            fact.Backing = new byte[request.MaximumTransferBytes];
+            fact.Receipt = new(request, new(Guid.NewGuid()), new(1), manifest.ContractVersion, manifest.Generation);
+            return DeviceSource(fact) ? fact.Receipt : null;
+        }
+    }
+    public ExternalOriginalParentDeviceReceipt? ResolveOriginalParentDevice(ExternalOriginalParentDeviceRequest request)
+    {
+        if (request is null || !TryFind(request.ParentAdmission.Lease, out var owner, out _, out _)) return null;
+        lock (owner!.Sync) { if (!DeviceHistory(owner)) return null; var fact = owner.OriginalParentDevices.SingleOrDefault(f => ReferenceEquals(f.Request, request)); return fact is not null && DeviceSource(fact) ? fact.Receipt : null; }
+    }
+    public ExternalOriginalParentDeviceNoEffect? ResolveOriginalParentDeviceNoEffect(ExternalOriginalParentDeviceRequest request)
+    {
+        if (request is null || !TryFind(request.ParentAdmission.Lease, out var owner, out _, out _) || owner is null) return null;
+        lock (owner.Sync)
+        {
+            if (!DeviceHistory(owner)) return null;
+            var fact = owner.OriginalParentDevices.SingleOrDefault(f => ReferenceEquals(f.Request, request));
+            return fact is not null && DeviceSource(fact) && DeviceContained(fact) && fact.NoEffect is { NoEffect: true, NoFurtherAdmission: true } raw &&
+                ReferenceEquals(raw.Request, request) ? raw : null;
+        }
+    }
+    public ExternalChildVirtualIoBindReceipt? BindOriginalVirtualIo(ExternalOriginalVirtualIoRequest request)
+    {
+        if (request is null || !Valid(request.Operation) || FindDevice(request.Device) is not { } device) return null;
+        lock (device.Owner.Sync)
+        {
+            if (!DeviceSource(device) || device.Closure is not null || device.ContainmentRequest is not null || device.Backing is null || device.Owner.Lifecycle != Lifecycle.Ready ||
+                !TryFindChild(request.Child, out var child, out _, out _) || child is null) return null;
+            lock (child.Sync)
+            {
+                if (!IoHistory(child) || !ReferenceEquals(child.ParentSource, device.Owner) || child.OriginalAdmission is not { } admission ||
+                    admission.Lease != request.Child || admission.ContractVersion != manifest.ContractVersion || admission.ManifestGeneration != manifest.Generation ||
+                    !device.Owner.Children.TryGetValue(child.Lease.Handle, out var canonical) || !ReferenceEquals(canonical, child) ||
+                    !DeviceUsersHistory(device) || child.State == ExternalChildDomainState.Closed ||
+                    !child.Authority.HasFlag(ExternalChildAuthority.VirtualIo) || child.OriginalVirtualIoIssued == ulong.MaxValue || device.UsersIssued == ulong.MaxValue ||
+                    device.Users.Any(f => ReferenceEquals(f.Request, request)) || !ReserveChildOperation(child, request.Operation, out _)) return null;
+                child.OriginalVirtualIo.EnsureCapacity(child.OriginalVirtualIo.Count + 1); device.Users.EnsureCapacity(device.Users.Count + 1);
+                var fact = new OriginalVirtualIoFact(request, child, device); fact.Self = fact;
+                child.OriginalVirtualIo.Add(fact); child.OriginalVirtualIoIssued++; device.Users.Add(fact); device.UsersIssued++;
+                fact.Receipt = new(new(Guid.NewGuid()), new(NextNonZero(ref nextVirtualIoEpoch)), child.Lease.Handle, child.Lease.Epoch, child.Lease.Parent,
+                    request.Device.Handle, request.Device.Epoch, device.Request.Rights, (uint)device.Request.MaximumTransferBytes, request.Operation, manifest.ContractVersion, manifest.Generation);
+                fact.Binding = new() { Receipt = fact.Receipt }; child.VirtualIo.Add(fact.Receipt.IoHandle, fact.Binding);
+                return IoSource(fact) ? fact.Receipt : null;
+            }
+        }
+    }
+    public ExternalChildVirtualIoBindReceipt? ResolveOriginalVirtualIo(ExternalOriginalVirtualIoRequest request)
+    {
+        if (request is null || FindIo(request) is not { } fact) return null;
+        lock (fact.Device.Owner.Sync) lock (fact.Child.Sync) return IoSource(fact) ? fact.Receipt : null;
+    }
+    public bool TransferOriginalVirtualIo(ExternalOriginalVirtualIoRequest original, ulong offset, byte[] bytes, bool write)
+    {
+        if (original is null || bytes is null || FindIo(original) is not { } fact) return false;
+        lock (fact.Device.Owner.Sync) lock (fact.Child.Sync)
+        {
+            if (!IoSource(fact) || fact.Closure is not null || fact.Binding is not { Closed: false } binding ||
+                !fact.Child.VirtualIo.TryGetValue(binding.Receipt.IoHandle, out var current) || !ReferenceEquals(current, binding) ||
+                fact.Device.Closure is not null || fact.Device.ContainmentRequest is not null || fact.Device.Backing is not { } buffer || fact.Child.State == ExternalChildDomainState.Closed ||
+                fact.Device.Owner.Lifecycle != Lifecycle.Ready || !fact.Device.Request.Rights.HasFlag(write ? ExternalChildVirtualIoRights.Write : ExternalChildVirtualIoRights.Read) ||
+                offset > (ulong)buffer.Length || (ulong)bytes.Length > (ulong)buffer.Length - offset) return false;
+            if (write) bytes.AsSpan().CopyTo(buffer.AsSpan((int)offset)); else buffer.AsSpan((int)offset, bytes.Length).CopyTo(bytes);
+            return true;
+        }
+    }
+    public ExternalOriginalVirtualIoClosure? CloseOriginalVirtualIo(ExternalOriginalVirtualIoCloseRequest request)
+    {
+        if (request is null || !Valid(request.Operation) || FindIo(request.Admission) is not { } fact) return null;
+        lock (fact.Device.Owner.Sync) lock (fact.Child.Sync)
+        {
+            if (!IoSource(fact) || !ReferenceEquals(fact.Receipt, request.Binding)) return null;
+            if (fact.CloseRequest is not null) return ReferenceEquals(fact.CloseRequest, request) ? fact.Closure : null;
+            if (fact.Binding is not { Closed: false } binding || !fact.Child.VirtualIo.TryGetValue(request.Binding.IoHandle, out var current) ||
+                !ReferenceEquals(current, binding) || !ReserveChildOperation(fact.Child, request.Operation, out _)) return null;
+            fact.CloseRequest = request;
+            binding.Closed = true;
+            ReleaseTransferSnapshots(fact);
+            return fact.Closure = new(request, true, manifest.ContractVersion, manifest.Generation);
+        }
+    }
+    public ExternalOriginalVirtualIoClosure? ResolveOriginalVirtualIoClosure(ExternalOriginalVirtualIoCloseRequest request)
+    {
+        if (request is null || FindIo(request.Admission) is not { } fact) return null;
+        lock (fact.Device.Owner.Sync) lock (fact.Child.Sync) return IoSource(fact) && ReferenceEquals(fact.CloseRequest, request) && fact.Binding is { Closed: true } ? fact.Closure : null;
+    }
+    public ExternalOriginalParentDeviceClosure? CloseOriginalParentDevice(ExternalOriginalParentDeviceReceipt device)
+    {
+        if (FindDevice(device) is not { } fact) return null;
+        lock (fact.Owner.Sync)
+        {
+            if (!DeviceSource(fact) || !DeviceUsersContained(fact)) return null;
+            if (fact.Closure is not null) return fact.Closure;
+            if (fact.Backing is not { } backing) return null;
+            Array.Clear(backing); fact.Backing = null;
+            return fact.Closure = new(device, true, manifest.ContractVersion, manifest.Generation);
+        }
+    }
+    public ExternalOriginalParentDeviceClosure? ResolveOriginalParentDeviceClosure(ExternalOriginalParentDeviceReceipt device)
+    {
+        if (FindDevice(device) is not { } fact) return null;
+        lock (fact.Owner.Sync) return DeviceSource(fact) && DeviceUsersContained(fact) && fact.Backing is null ? fact.Closure : null;
+    }
+    private bool DeviceUsersContained(OriginalParentDeviceFact fact)
+    {
+        if (!DeviceUsersHistory(fact)) return false;
+        foreach (var user in fact.Users) lock (user.Child.Sync)
+            if (!IoSource(user) || !IoContained(user) || user.Binding is not { Closed: true }) return false;
+        return true;
+    }
+
+    public ExternalOriginalVirtualIoContainmentClosure? ContainOriginalVirtualIoBacking(ExternalOriginalVirtualIoContainmentRequest request)
+    {
+        if (request is null || request.Admission is null || !Valid(request.Operation) ||
+            !TryFind(request.Admission.ParentAdmission.Lease, out var owner, out _, out _) || owner is null) return null;
+        lock (owner.Sync)
+        {
+            if (!DeviceHistory(owner)) return null;
+            var fact = owner.OriginalParentDevices.SingleOrDefault(f => ReferenceEquals(f.Request, request.Admission));
+            if (fact is null || !DeviceSource(fact) || !DeviceUsersHistory(fact)) return null;
+            if (fact.ContainmentRequest is not null)
+                return ReferenceEquals(fact.ContainmentRequest, request) ? ResolveOriginalVirtualIoBackingContainment(request) : null;
+            // All native effects/use of this private buffer also take this root gate.
+            // Intact original histories are mandatory; absence never proves containment.
+            foreach (var user in fact.Users) lock (user.Child.Sync)
+                if (!IoSource(user) || !ReferenceEquals(user.Device, fact) ||
+                    user.Binding is { } binding && (user.Receipt is null ||
+                    !user.Child.VirtualIo.TryGetValue(user.Receipt.IoHandle, out var route) || !ReferenceEquals(route, binding))) return null;
+            if (!TryReserveOperation(request.Operation)) return null;
+            fact.ContainmentRequest = request; // Fence before irreversible clearing; retained if completion fails.
+            foreach (var user in fact.Users) lock (user.Child.Sync)
+            {
+                if (user.Binding is { } binding) binding.Closed = true;
+                ReleaseTransferSnapshots(user);
+            }
+            if (fact.Backing is { } backing) Array.Clear(backing);
+            fact.Backing = null;
+            return fact.Containment = new(request, true, manifest.ContractVersion, manifest.Generation);
+        }
+    }
+    public ExternalOriginalVirtualIoContainmentClosure? ResolveOriginalVirtualIoBackingContainment(ExternalOriginalVirtualIoContainmentRequest request)
+    {
+        if (request is null || request.Admission is null || !TryFind(request.Admission.ParentAdmission.Lease, out var owner, out _, out _) || owner is null) return null;
+        lock (owner.Sync)
+        {
+            if (!DeviceHistory(owner)) return null;
+            var fact = owner.OriginalParentDevices.SingleOrDefault(f => ReferenceEquals(f.Request, request.Admission));
+            if (fact is null || !DeviceSource(fact) || !ReferenceEquals(fact.ContainmentRequest, request) || !DeviceContained(fact) ||
+                !DeviceUsersHistory(fact)) return null;
+            foreach (var user in fact.Users) lock (user.Child.Sync)
+                if (!IoSource(user) || !IoContained(user) || user.Binding is { Closed: false }) return null;
+            return fact.Containment;
+        }
+    }
+}

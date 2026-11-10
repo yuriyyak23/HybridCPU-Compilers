@@ -1,0 +1,10 @@
+using HybridCPU.Compiler.Profiles;
+public static class Fixture
+{
+    [HybridCpuKernelNoHeap]
+    public static int Read(int input)
+    {
+        var value = new ScalarValue(input);
+        return value.Value;
+    }
+}

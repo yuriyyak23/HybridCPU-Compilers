@@ -1,0 +1,63 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net11.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+        <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<HybridCpuIseProjectReferenceProperties>DefineTestSupport=$(DefineTestSupport)</HybridCpuIseProjectReferenceProperties>
+		<HybridCpuIseProjectReferenceProperties Condition="'$(DefineTestSupport)' == 'true'">DefineTestSupport=$(DefineTestSupport);BaseIntermediateOutputPath=obj\testsupport\;MSBuildProjectExtensionsPath=obj\;OutputPath=bin\$(Configuration)\testsupport\</HybridCpuIseProjectReferenceProperties>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\..\HybridCPU ISE\HybridCPU_ISE\HybridCPU_ISE.csproj">
+			<AdditionalProperties>$(HybridCpuIseProjectReferenceProperties)</AdditionalProperties>
+		</ProjectReference>
+		<ProjectReference Include="Core\HybridCPU.Compiler.Core.csproj" GlobalPropertiesToRemove="DefineTestSupport;BuildRuntimeDiagnosticConsole;HybridCpuIseProjectReferenceProperties">
+		</ProjectReference>
+	</ItemGroup>
+
+	<ItemGroup>
+    <Compile Remove="Core\**\*.cs" />
+    <Compile Remove="Native\**\*.cs" />
+    <Compile Remove="LLVM\**\*.cs" />
+    <Compile Remove="OldDocs\**" />
+    <Compile Remove="Oracle\**\*.cs" />
+    <Compile Remove="Cil\**\*.cs" />
+    <Compile Remove="NativeAot\**\*.cs" />
+    <Compile Remove="Release\**\*.cs" />
+    <Compile Remove="ReleaseQualification\**\*.cs" />
+    <Compile Remove="Analyzers\**\*.cs" />
+    <Compile Remove="Generators\**\*.cs" />
+    <Compile Remove="Profiles\**\*.cs" />
+    <Compile Remove="Roslyn\**\*.cs" />
+		<Compile Remove="Tools\**\*.cs" />
+		<Compile Remove="RefPlan6\**\*.cs" />
+		<Compile Remove="RefPlan7\**\*.cs" />
+		<None Include="API\**\*.cs" />
+		<None Include="Core\**\*.cs" />
+		<None Include="Native\**\*.cs" />
+		<None Include="LLVM\**\*.cs" />
+		<None Include="Oracle\**\*.cs" />
+		<None Include="Cil\**\*.cs" />
+		<None Include="NativeAot\**\*.cs" />
+		<None Include="Release\**\*.cs" />
+		<None Include="ReleaseQualification\**\*.cs" />
+		<None Include="Tools\**\*.cs" />
+		<None Include="RefPlan6\**\*.cs" />
+		<None Include="RefPlan7\**\*.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Remove="OldDocs\**" />
+	  <None Remove="OldDocs\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Legacy\VMX-1\" />
+	</ItemGroup>
+
+</Project>

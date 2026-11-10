@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net11.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RestoreUseStaticGraphEvaluation>false</RestoreUseStaticGraphEvaluation>
+    <DefineTestSupport>true</DefineTestSupport>
+    <HybridCpuIseProjectReferenceProperties>DefineTestSupport=$(DefineTestSupport);BaseIntermediateOutputPath=obj\testsupport\;MSBuildProjectExtensionsPath=obj\;OutputPath=bin\$(Configuration)\testsupport\</HybridCpuIseProjectReferenceProperties>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Compilers\HybridCPU_Compiler\HybridCPU_Compiler.csproj">
+      <AdditionalProperties>DefineTestSupport=$(DefineTestSupport)</AdditionalProperties>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\HybridCPU ISE\HybridCPU_ISE\HybridCPU_ISE.csproj">
+      <AdditionalProperties>$(HybridCpuIseProjectReferenceProperties)</AdditionalProperties>
+    </ProjectReference>
+  </ItemGroup>
+
+</Project>

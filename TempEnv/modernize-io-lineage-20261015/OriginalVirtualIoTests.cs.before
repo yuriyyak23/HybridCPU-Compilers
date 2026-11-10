@@ -1,0 +1,279 @@
+using System.Collections;
+using System.Reflection;
+using HybridCPU.ExternalRuntime.Contracts;
+namespace HybridCPU.ExternalRuntime.Tests;
+public sealed class OriginalVirtualIoTests
+{
+    private static ExternalOperationIdentity Op(ulong n) => new(new(Guid.NewGuid()), new(n));
+    [Fact]
+    public async Task OriginalSnapshotReleaseSerializesCopiesAndPreservesPeerReadAndBacking()
+    {
+        var runtime=new HybridCpuExternalRuntime();
+        var parent=runtime.BindDomain(new(Guid.NewGuid(),ExternalDomainProfile.IsolatedDomain,Op(401))).Receipt!;
+        var child=runtime.CreateChildDomain(parent.Lease,new(Guid.NewGuid(),ExternalChildAuthority.VirtualIo,4096,Op(402))).Receipt!;
+        var device=runtime.BindOriginalParentDevice(new(parent,Guid.NewGuid(),"snapshot-release",ExternalChildVirtualIoRights.Read|ExternalChildVirtualIoRights.Write,512,Op(403)))!;
+        var admission=new ExternalOriginalVirtualIoRequest(child.Lease,device,Op(404));
+        var io=runtime.BindOriginalVirtualIo(admission)!;
+        Assert.True(runtime.TransferOriginalVirtualIo(new(admission,Op(405),0,true,512,Enumerable.Repeat((byte)0x5A,512).ToArray()))!.Completed);
+        var first=runtime.TransferOriginalVirtualIo(new(admission,Op(406),0,false,512))!;
+        var peer=runtime.TransferOriginalVirtualIo(new(admission,Op(407),0,false,16))!;
+        var detached=first.CopyReadData();
+        var release=new ExternalOriginalVirtualIoSnapshotReleaseRequest(first);
+        var copy=(ExternalOriginalVirtualIoSnapshotReleaseRequest)typeof(object).GetMethod("MemberwiseClone",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(release,null)!;
+        Assert.Null(runtime.ReleaseOriginalVirtualIoSnapshot(copy));
+        using var start=new ManualResetEventSlim();
+        var copies=Task.Run(()=>
+        {
+            start.Wait();
+            for(var i=0;i<1000;i++)
+            {
+                byte[] data;try{data=first.CopyReadData();}catch(InvalidOperationException){return;}
+                Assert.All(data,b=>Assert.Equal(0x5A,b));
+            }
+        });
+        ExternalOriginalVirtualIoSnapshotRelease? raw=null;
+        var clearing=Task.Run(()=>{start.Wait();raw=runtime.ReleaseOriginalVirtualIoSnapshot(release);});
+        start.Set();await Task.WhenAll(copies,clearing);
+        Assert.True(raw!.NoFurtherSnapshotRead);Assert.Same(raw,runtime.ResolveOriginalVirtualIoSnapshotRelease(release));
+        Assert.Same(raw,runtime.ReleaseOriginalVirtualIoSnapshot(release));
+        Assert.Null(runtime.ReleaseOriginalVirtualIoSnapshot(new(first)));
+        Assert.Throws<InvalidOperationException>(()=>first.CopyReadData());
+        Assert.All(detached,b=>Assert.Equal(0x5A,b));Assert.All(peer.CopyReadData(),b=>Assert.Equal(0x5A,b));
+        Assert.True(runtime.TransferOriginalVirtualIo(new(admission,Op(408),0,true,1,new byte[]{79}))!.Completed);
+        Assert.True(runtime.CloseOriginalVirtualIo(new(admission,io,Op(409)))!.NoFurtherUse);
+        Assert.True(runtime.CloseOriginalParentDevice(device)!.NoFurtherUse);
+    }
+    [Fact]
+    public async Task OriginalReadSnapshotCopiesSerializeWithExactCloseClearing()
+    {
+        var runtime = new HybridCpuExternalRuntime();
+        var parent = runtime.BindDomain(new(Guid.NewGuid(),ExternalDomainProfile.IsolatedDomain,Op(301))).Receipt!;
+        var child = runtime.CreateChildDomain(parent.Lease,new(Guid.NewGuid(),ExternalChildAuthority.VirtualIo,4096,Op(302))).Receipt!;
+        var device = runtime.BindOriginalParentDevice(new(parent,Guid.NewGuid(),"snapshot-race",ExternalChildVirtualIoRights.Read | ExternalChildVirtualIoRights.Write,4096,Op(303)))!;
+        var admission = new ExternalOriginalVirtualIoRequest(child.Lease,device,Op(304));
+        var io = runtime.BindOriginalVirtualIo(admission)!;
+        Assert.True(runtime.TransferOriginalVirtualIo(new ExternalOriginalVirtualIoTransferRequest(admission,Op(305),0,true,4096,Enumerable.Repeat((byte)0x5A,4096).ToArray()))!.Completed);
+        var read = new ExternalOriginalVirtualIoTransferRequest(admission,Op(306),0,false,4096);
+        var receipt = runtime.TransferOriginalVirtualIo(read)!;
+        using var start = new ManualResetEventSlim();
+        var copies = Task.Run(() =>
+        {
+            start.Wait();
+            for(var i=0;i<1000;i++)
+            {
+                byte[] data;
+                try { data = receipt.CopyReadData(); }
+                catch(InvalidOperationException) { return; }
+                Assert.Equal(4096,data.Length); Assert.All(data,b => Assert.Equal((byte)0x5A,b));
+            }
+        });
+        var close = Task.Run(() => { start.Wait(); Assert.True(runtime.CloseOriginalVirtualIo(new(admission,io,Op(307)))!.NoFurtherUse); });
+        start.Set(); await Task.WhenAll(copies,close);
+        Assert.Throws<InvalidOperationException>(() => receipt.CopyReadData());
+        Assert.Same(receipt,runtime.ResolveOriginalVirtualIoTransfer(read));
+        Assert.True(runtime.CloseOriginalParentDevice(device)!.NoFurtherUse);
+    }
+
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public void LostOrDuplicateTransferHistoryCannotRepeatBytesOrClearBacking(bool duplicate)
+    {
+        var runtime = new HybridCpuExternalRuntime();
+        var parent = runtime.BindDomain(new(Guid.NewGuid(),ExternalDomainProfile.IsolatedDomain,Op(201))).Receipt!;
+        var child = runtime.CreateChildDomain(parent.Lease,new(Guid.NewGuid(),ExternalChildAuthority.VirtualIo,4096,Op(202))).Receipt!;
+        var deviceRequest = new ExternalOriginalParentDeviceRequest(parent,Guid.NewGuid(),"history-data",ExternalChildVirtualIoRights.Read | ExternalChildVirtualIoRights.Write,512,Op(203));
+        var device = runtime.BindOriginalParentDevice(deviceRequest)!;
+        var admission = new ExternalOriginalVirtualIoRequest(child.Lease,device,Op(204));
+        var io = runtime.BindOriginalVirtualIo(admission)!;
+        var q = new ExternalOriginalVirtualIoTransferRequest(admission,Op(205),0,true,1,new byte[]{17});
+        Assert.True(runtime.TransferOriginalVirtualIo(q)!.Completed);
+        const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
+        var children = (IDictionary)runtime.GetType().GetField("childRegistry",flags)!.GetValue(runtime)!;
+        var childOwner = children[child.Lease.Handle]!;
+        var ioOwner = ((IList)childOwner.GetType().GetProperty("OriginalVirtualIo")!.GetValue(childOwner)!)[0]!;
+        var transfers = (IList)ioOwner.GetType().GetProperty("Transfers")!.GetValue(ioOwner)!;
+        if(duplicate) { transfers.Add(transfers[0]); ioOwner.GetType().GetField("TransfersIssued")!.SetValue(ioOwner,(ulong)transfers.Count); }
+        else transfers.Clear();
+        Assert.Null(runtime.ResolveOriginalVirtualIoTransfer(q)); Assert.Null(runtime.TransferOriginalVirtualIo(q));
+        Assert.Null(runtime.TransferOriginalVirtualIo(new ExternalOriginalVirtualIoTransferRequest(admission,Op(206),0,true,1,new byte[]{99})));
+        Assert.Null(runtime.CloseOriginalVirtualIo(new(admission,io,Op(207))));
+        Assert.Null(runtime.ContainOriginalVirtualIoBacking(new(deviceRequest,Op(208))));
+        var deviceOwner = ioOwner.GetType().GetProperty("Device")!.GetValue(ioOwner)!;
+        var backing = (byte[])deviceOwner.GetType().GetField("Backing")!.GetValue(deviceOwner)!;
+        Assert.Equal(512,backing.Length); Assert.Equal(17,backing[0]);
+    }
+
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public void OriginalTransferRetainsBytesAndIdentityUntilExactClosure(bool containment)
+    {
+        var runtime = new HybridCpuExternalRuntime();
+        var parent = runtime.BindDomain(new(Guid.NewGuid(),ExternalDomainProfile.IsolatedDomain,Op(101))).Receipt!;
+        var child = runtime.CreateChildDomain(parent.Lease,new(Guid.NewGuid(),ExternalChildAuthority.VirtualIo,4096,Op(102))).Receipt!;
+        var deviceRequest = new ExternalOriginalParentDeviceRequest(parent,Guid.NewGuid(),"data",ExternalChildVirtualIoRights.Read | ExternalChildVirtualIoRights.Write,512,Op(103));
+        var device = runtime.BindOriginalParentDevice(deviceRequest)!;
+        var admission = new ExternalOriginalVirtualIoRequest(child.Lease,device,Op(104));
+        var io = runtime.BindOriginalVirtualIo(admission)!;
+        var bytes = new byte[] {17,19};
+        var write = new ExternalOriginalVirtualIoTransferRequest(admission,Op(105),7,true,2,bytes);
+        bytes[0] = 99; // Caller copy cannot change immutable native input.
+        var written = runtime.TransferOriginalVirtualIo(write)!; Assert.True(written.Completed);
+        var read = new ExternalOriginalVirtualIoTransferRequest(admission,Op(106),7,false,2);
+        var result = runtime.TransferOriginalVirtualIo(read)!;
+        Assert.Equal(new byte[] {17,19},result.CopyReadData());
+        var copy = result.CopyReadData(); copy[0] = 88;
+        Assert.Equal(new byte[] {17,19},result.CopyReadData());
+        Assert.Same(written,runtime.TransferOriginalVirtualIo(write)); Assert.Same(result,runtime.ResolveOriginalVirtualIoTransfer(read));
+        Assert.Null(runtime.TransferOriginalVirtualIo(new ExternalOriginalVirtualIoTransferRequest(admission,write.Operation,7,true,2,new byte[]{55,66})));
+        var refused = new ExternalOriginalVirtualIoTransferRequest(admission,Op(107),512,true,2,new byte[]{1,2});
+        var refusal = runtime.TransferOriginalVirtualIo(refused)!; Assert.True(refusal.NoEffect); Assert.Same(refusal,runtime.ResolveOriginalVirtualIoTransfer(refused));
+        if(containment) Assert.True(runtime.ContainOriginalVirtualIoBacking(new(deviceRequest,Op(108)))!.NoFurtherUse);
+        else { Assert.True(runtime.CloseOriginalVirtualIo(new(admission,io,Op(108)))!.NoFurtherUse); Assert.True(runtime.CloseOriginalParentDevice(device)!.NoFurtherUse); }
+        Assert.Throws<InvalidOperationException>(() => result.CopyReadData());
+        Assert.Same(result,runtime.ResolveOriginalVirtualIoTransfer(read));
+        Assert.Null(runtime.TransferOriginalVirtualIo(new ExternalOriginalVirtualIoTransferRequest(admission,Op(109),7,false,2)));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void DuplicateDeviceOrIoInventoryRefusesTransferWithoutTouchingBacking(bool ioHistory)
+    {
+        var runtime = new HybridCpuExternalRuntime();
+        var parent = runtime.BindDomain(new(Guid.NewGuid(), ExternalDomainProfile.IsolatedDomain, Op(81))).Receipt!;
+        var child = runtime.CreateChildDomain(parent.Lease, new(Guid.NewGuid(), ExternalChildAuthority.VirtualIo, 4096, Op(82))).Receipt!;
+        var deviceRequest = new ExternalOriginalParentDeviceRequest(parent, Guid.NewGuid(), "duplicate", ExternalChildVirtualIoRights.Read | ExternalChildVirtualIoRights.Write, 512, Op(83));
+        var device = runtime.BindOriginalParentDevice(deviceRequest)!;
+        var request = new ExternalOriginalVirtualIoRequest(child.Lease, device, Op(84));
+        Assert.NotNull(runtime.BindOriginalVirtualIo(request));
+        const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
+        var roots = (IDictionary)typeof(HybridCpuExternalRuntime).GetField("registry", flags)!.GetValue(runtime)!;
+        var root = roots[parent.Lease.Handle]!;
+        var devices = (IList)root.GetType().GetProperty("OriginalParentDevices")!.GetValue(root)!;
+        var fact = devices[0]!;
+        var backing = (byte[])fact.GetType().GetField("Backing")!.GetValue(fact)!;
+        backing[0] = 17;
+        if (ioHistory)
+        {
+            var users = (IList)fact.GetType().GetProperty("Users")!.GetValue(fact)!;
+            users.Add(users[0]); fact.GetType().GetField("UsersIssued")!.SetValue(fact, 2UL);
+        }
+        else { devices.Add(fact); root.GetType().GetProperty("OriginalParentDevicesIssued")!.SetValue(root, 2UL); }
+        var newRequest = new ExternalOriginalVirtualIoRequest(child.Lease, device, Op(86));
+        var childOwner = ((IDictionary)typeof(HybridCpuExternalRuntime).GetField("childRegistry", flags)!.GetValue(runtime)!)[child.Lease.Handle]!;
+        var childHistory = (IList)childOwner.GetType().GetProperty("OriginalVirtualIo")!.GetValue(childOwner)!;
+        var before = childHistory.Count;
+        Assert.Null(runtime.BindOriginalVirtualIo(newRequest));
+        Assert.Null(runtime.BindOriginalVirtualIo(newRequest));
+        Assert.Equal(before, childHistory.Count); // Refusal must precede an irreversible additional user/binding.
+        Assert.False(runtime.TransferOriginalVirtualIo(request, 0, new byte[] { 99 }, true));
+        Assert.Null(runtime.ContainOriginalVirtualIoBacking(new(deviceRequest, Op(85))));
+        if (!ioHistory) Assert.Null(runtime.ResolveOriginalParentDevice(deviceRequest));
+        Assert.Equal(17, backing[0]);
+        Assert.NotNull(fact.GetType().GetField("Backing")!.GetValue(fact));
+    }
+    [Fact]
+    public void RefusedOriginalAdmissionHasExplicitNoEffectAndCannotBeAdmittedAfterReadinessRecovers()
+    {
+        var runtime = new HybridCpuExternalRuntime();
+        var parent = runtime.BindDomain(new(Guid.NewGuid(), ExternalDomainProfile.IsolatedDomain, Op(31))).Receipt!;
+        var domains = (IDictionary)typeof(HybridCpuExternalRuntime).GetField("registry", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(runtime)!;
+        var owner = domains[parent.Lease.Handle]!;
+        owner.GetType().GetProperty("InFlight")!.SetValue(owner, Op(32));
+        var request = new ExternalOriginalParentDeviceRequest(parent, Guid.NewGuid(), "refused", ExternalChildVirtualIoRights.Read, 512, Op(33));
+        Assert.Null(runtime.BindOriginalParentDevice(request));
+        var refused = runtime.ResolveOriginalParentDeviceNoEffect(request)!; Assert.True(refused.NoEffect); Assert.True(refused.NoFurtherAdmission);
+        owner.GetType().GetProperty("InFlight")!.SetValue(owner, null);
+        Assert.Null(runtime.BindOriginalParentDevice(request)); Assert.Null(runtime.BindOriginalParentDevice(request with { }));
+        Assert.Same(refused, runtime.ResolveOriginalParentDeviceNoEffect(request));
+        Assert.Null(runtime.ResolveOriginalParentDeviceNoEffect(request with { }));
+        Assert.Null(runtime.ResolveOriginalParentDevice(request));
+        var fact = Assert.Single(((IEnumerable)owner.GetType().GetProperty("OriginalParentDevices")!.GetValue(owner)!).Cast<object>());
+        Assert.Null(fact.GetType().GetField("Backing")!.GetValue(fact));
+        Assert.True(runtime.CloseOriginalDomain(new(parent, Op(34)))!.NoFurtherUse);
+    }
+    [Theory]
+    [InlineData("exact")] [InlineData("no-receipt")] [InlineData("history-loss")]
+    public void OriginalAdmissionContainmentFencesItsBackingWithoutAdoptingReturnedReceipt(string mode)
+    {
+        var runtime = new HybridCpuExternalRuntime();
+        var parent = runtime.BindDomain(new(Guid.NewGuid(), ExternalDomainProfile.IsolatedDomain, Op(21))).Receipt!;
+        var child = runtime.CreateChildDomain(parent.Lease, new(Guid.NewGuid(), ExternalChildAuthority.VirtualIo, 4096, Op(22))).Receipt!;
+        var admission = new ExternalOriginalParentDeviceRequest(parent, Guid.NewGuid(), "original", ExternalChildVirtualIoRights.Read | ExternalChildVirtualIoRights.Write, 512, Op(23));
+        var device = runtime.BindOriginalParentDevice(admission)!;
+        var domains = (IDictionary)typeof(HybridCpuExternalRuntime).GetField("registry", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(runtime)!;
+        var owner = domains[parent.Lease.Handle]!;
+        var fact = Assert.Single(((IEnumerable)owner.GetType().GetProperty("OriginalParentDevices")!.GetValue(owner)!).Cast<object>());
+        var backing = (byte[])fact.GetType().GetField("Backing")!.GetValue(fact)!; backing[0] = 17;
+        ExternalOriginalVirtualIoRequest? io = null;
+        if (mode == "no-receipt") fact.GetType().GetField("Receipt")!.SetValue(fact, null); // Actual allocated intent survives without receipt.
+        else
+        {
+            io = new(child.Lease, device, Op(24)); Assert.NotNull(runtime.BindOriginalVirtualIo(io));
+            if (mode == "history-loss")
+            {
+                var children = (IDictionary)typeof(HybridCpuExternalRuntime).GetField("childRegistry", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(runtime)!;
+                ((IList)children[child.Lease.Handle]!.GetType().GetProperty("OriginalVirtualIo")!.GetValue(children[child.Lease.Handle])!).Clear();
+            }
+        }
+        var cleanup = new ExternalOriginalVirtualIoContainmentRequest(admission, Op(25));
+        Assert.Null(runtime.ContainOriginalVirtualIoBacking(cleanup with { Admission = admission with { } }));
+        var closed = runtime.ContainOriginalVirtualIoBacking(cleanup);
+        if (mode == "history-loss") { Assert.Null(closed); Assert.Null(runtime.ResolveOriginalVirtualIoBackingContainment(cleanup)); Assert.Equal(17, backing[0]); return; }
+        Assert.True(closed!.NoFurtherUse); Assert.All(backing, b => Assert.Equal(0, b));
+        Assert.Null(fact.GetType().GetField("Backing")!.GetValue(fact));
+        Assert.Same(closed, runtime.ResolveOriginalVirtualIoBackingContainment(cleanup));
+        Assert.Null(runtime.ResolveOriginalVirtualIoBackingContainment(cleanup with { }));
+        Assert.Null(runtime.BindOriginalParentDevice(admission));
+        Assert.Null(runtime.BindOriginalVirtualIo(new(child.Lease, device, Op(26))));
+        if (io is not null) Assert.False(runtime.TransferOriginalVirtualIo(io, 0, new byte[1], false));
+        Assert.True(runtime.CloseOriginalChild(new(child, Op(27)))!.NoFurtherUse);
+        Assert.True(runtime.CloseOriginalDomain(new(parent, Op(28)))!.NoFurtherUse);
+    }
+    [Fact]
+    public void ActualBackingTransfersAndExactClosureFenceAllFurtherUse()
+    {
+        var runtime = new HybridCpuExternalRuntime();
+        var parent = runtime.BindDomain(new(Guid.NewGuid(), ExternalDomainProfile.IsolatedDomain, Op(1))).Receipt!;
+        var child = runtime.CreateChildDomain(parent.Lease, new(Guid.NewGuid(), ExternalChildAuthority.VirtualIo, 4096, Op(2))).Receipt!;
+        var deviceRequest = new ExternalOriginalParentDeviceRequest(parent, Guid.NewGuid(), "bounded-device", ExternalChildVirtualIoRights.Read | ExternalChildVirtualIoRights.Write, 512, Op(3));
+        Assert.Null(runtime.BindOriginalParentDevice(deviceRequest with { ParentAdmission = parent with { } }));
+        var device = runtime.BindOriginalParentDevice(deviceRequest)!; Assert.NotNull(device);
+        var request = new ExternalOriginalVirtualIoRequest(child.Lease, device, Op(4));
+        var binding = runtime.BindOriginalVirtualIo(request)!; Assert.NotNull(binding);
+        Assert.True(runtime.TransferOriginalVirtualIo(request, 7, [1, 2, 3], true));
+        byte[] read = new byte[3]; Assert.True(runtime.TransferOriginalVirtualIo(request, 7, read, false)); Assert.Equal(new byte[] { 1, 2, 3 }, read);
+        Assert.False(runtime.TransferOriginalVirtualIo(request with { }, 7, read, false));
+        Assert.False(runtime.TransferOriginalVirtualIo(request, 511, read, true));
+        Assert.Null(runtime.CloseOriginalParentDevice(device));
+        Assert.True(runtime.CloseOriginalChild(new(child, Op(5)))!.NoEffect);
+        var close = new ExternalOriginalVirtualIoCloseRequest(request, binding, Op(6));
+        Assert.Null(runtime.CloseOriginalVirtualIo(close with { Binding = binding with { } }));
+        var closed = runtime.CloseOriginalVirtualIo(close)!; Assert.True(closed.NoFurtherUse);
+        Assert.Same(closed, runtime.ResolveOriginalVirtualIoClosure(close));
+        Assert.Null(runtime.ResolveOriginalVirtualIoClosure(close with { }));
+        Assert.False(runtime.TransferOriginalVirtualIo(request, 0, read, false));
+        var released = runtime.CloseOriginalParentDevice(device)!; Assert.True(released.NoFurtherUse);
+        Assert.Same(released, runtime.ResolveOriginalParentDeviceClosure(device));
+        Assert.Null(runtime.ResolveOriginalParentDeviceClosure(device with { }));
+        Assert.True(runtime.CloseOriginalChild(new(child, Op(7)))!.NoFurtherUse);
+        Assert.True(runtime.CloseOriginalDomain(new(parent, Op(8)))!.NoFurtherUse);
+    }
+    [Fact]
+    public void LostOriginalUserHistoryCannotHideBackingOrProveClosure()
+    {
+        var runtime = new HybridCpuExternalRuntime();
+        var parent = runtime.BindDomain(new(Guid.NewGuid(), ExternalDomainProfile.IsolatedDomain, Op(11))).Receipt!;
+        var child = runtime.CreateChildDomain(parent.Lease, new(Guid.NewGuid(), ExternalChildAuthority.VirtualIo, 4096, Op(12))).Receipt!;
+        var device = runtime.BindOriginalParentDevice(new(parent, Guid.NewGuid(), "device", ExternalChildVirtualIoRights.Read, 512, Op(13)))!;
+        var request = new ExternalOriginalVirtualIoRequest(child.Lease, device, Op(14));
+        Assert.NotNull(runtime.BindOriginalVirtualIo(request));
+        var children = (IDictionary)typeof(HybridCpuExternalRuntime).GetField("childRegistry", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(runtime)!;
+        var owner = children[child.Lease.Handle]!;
+        ((IList)owner.GetType().GetProperty("OriginalVirtualIo")!.GetValue(owner)!).Clear();
+        Assert.False(runtime.TransferOriginalVirtualIo(request, 0, new byte[1], false));
+        Assert.Null(runtime.ResolveOriginalVirtualIo(request)); Assert.Null(runtime.CloseOriginalParentDevice(device));
+        Assert.True(runtime.CloseOriginalChild(new(child, Op(15)))!.NoEffect);
+        Assert.True(runtime.CloseOriginalDomain(new(parent, Op(16)))!.NoEffect);
+    }
+}

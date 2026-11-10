@@ -1,0 +1,323 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="2169dd33-2c64-4a5d-be30-d3ed14bdbe8b" name="Yuriy@DESKTOP-4PD77ND 2026-11-10 23:43:38" runUser="DESKTOP-4PD77ND\Yuriy" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-11-10T23:43:38.0743180+03:00" queuing="2026-11-10T23:43:38.0743182+03:00" start="2026-11-10T23:43:36.7150180+03:00" finish="2026-11-10T23:43:44.2796787+03:00" />
+  <TestSettings name="default" id="13a129e9-a29a-4ee1-998e-b3016e3c0570">
+    <Deployment runDeploymentRoot="Yuriy_DESKTOP-4PD77ND_2026-11-10_23_43_38" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="9e996e36-16fa-4f61-a741-89818266c7cc" testId="1c24cb4d-2da1-d235-e4f3-37a71aca0452" testName="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.OneHcoPerMethod_ContainsStableDefinitionDeclarationsAndUnresolvedCalls" computerName="DESKTOP-4PD77ND" duration="00:00:00.2516534" startTime="2026-11-10T23:43:43.6741603+03:00" endTime="2026-11-10T23:43:43.9248940+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="9e996e36-16fa-4f61-a741-89818266c7cc" />
+    <UnitTestResult executionId="4e565c8b-26c1-46bc-be0d-faa5e519a489" testId="fcc082c0-2088-bb63-a229-78b7baaccffe" testName="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.InvalidEntryAndStartupAdjustment_FailClosed" computerName="DESKTOP-4PD77ND" duration="00:00:00.2765572" startTime="2026-11-10T23:43:43.9256066+03:00" endTime="2026-11-10T23:43:44.2019834+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4e565c8b-26c1-46bc-be0d-faa5e519a489" />
+    <UnitTestResult executionId="36870b0f-b52a-4d6b-9310-d7616923d7d2" testId="de1cd0b4-45fb-563f-4168-ca9c17a9090e" testName="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.InstallerOwnsExactCompilerRuntimeSdkAndPatchSetInputs" computerName="DESKTOP-4PD77ND" duration="00:00:00.0014521" startTime="2026-11-10T23:43:39.7702638+03:00" endTime="2026-11-10T23:43:39.7703339+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="36870b0f-b52a-4d6b-9310-d7616923d7d2" />
+    <UnitTestResult executionId="2f4f41fd-b21d-41ba-8634-3d7eda65ea66" testId="21e9aef2-6fb0-ad60-9753-8e199eccc1ab" testName="HybridCPU_ISE.Tests.CompilerTests.CompilerPhase02GoldenArtifactHarnessTests.NegativeManifest_ContainsRequiredFailClosedCasesWithoutCarrierHashes" computerName="DESKTOP-4PD77ND" duration="00:00:00.0202129" startTime="2026-11-10T23:43:37.7356214+03:00" endTime="2026-11-10T23:43:37.7632204+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2f4f41fd-b21d-41ba-8634-3d7eda65ea66" />
+    <UnitTestResult executionId="aec286db-18fc-47d9-aac4-170ef44b0f0c" testId="75deeb73-4742-c2be-0ed6-b2d28d2ff3ac" testName="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.ManagedCallRelocation_HasExactCarrierBasisWidthAndFailClosedRange" computerName="DESKTOP-4PD77ND" duration="00:00:00.0002961" startTime="2026-11-10T23:43:43.9252219+03:00" endTime="2026-11-10T23:43:43.9253533+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="aec286db-18fc-47d9-aac4-170ef44b0f0c" />
+    <UnitTestResult executionId="3730e02b-3a6c-42a2-9af4-02feceed1b8d" testId="00f0dc3c-9516-99bc-7029-8fdd04617434" testName="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.PackDescriptor_DoesNotOverclaimComponentQualificationAsPublishSupport" computerName="DESKTOP-4PD77ND" duration="00:00:00.0123888" startTime="2026-11-10T23:43:37.8055416+03:00" endTime="2026-11-10T23:43:37.8172334+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3730e02b-3a6c-42a2-9af4-02feceed1b8d" />
+    <UnitTestResult executionId="b6538d74-cc25-4f7e-8cec-ce99060af3d5" testId="7bbbcc21-2613-e1f3-af82-bcd69e27174b" testName="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.MissingDuplicateAndMalformedRelocationsFailClosedWhileManagedCallRangeUsesCurrentThunk" computerName="DESKTOP-4PD77ND" duration="00:00:00.3446282" startTime="2026-11-10T23:43:43.3286780+03:00" endTime="2026-11-10T23:43:43.6731159+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b6538d74-cc25-4f7e-8cec-ce99060af3d5" />
+    <UnitTestResult executionId="aae1f68c-e142-4b11-a800-715b2857a0ec" testId="5f93c6cc-e9fc-ebd2-5def-c6b3590fdf8e" testName="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.LinkedCrossObjectCalls_ExecuteThroughRestrictedImageAndIse(value: 5, expected: 9)" computerName="DESKTOP-4PD77ND" duration="00:00:00.2207219" startTime="2026-11-10T23:43:42.8653124+03:00" endTime="2026-11-10T23:43:43.0846322+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="aae1f68c-e142-4b11-a800-715b2857a0ec">
+      <Output>
+        <ErrorInfo>
+          <Message>System.InvalidOperationException : Retired store lane 4 could not publish its complete physical range.</Message>
+          <StackTrace>   at YAKSys_Hybrid_CPU.Processor.CPU_Core.ApplyRetireBatchMemoryEffects(RetireWindowBatch&amp; retireBatch, ReadOnlySpan`1 capturedRetireEffects, ReadOnlySpan`1 retireLanes, Span`1 atomicOutcomes, Boolean&amp; predicateStateApplied) in C:\Users\Yuriy\Desktop\HybridCPU ISE\HybridCPU_ISE\CloseToHSL\Core\Pipeline\Retire\Evidence\CPU_Core.PipelineExecution.Retire.cs:line 909&#xD;
+   at YAKSys_Hybrid_CPU.Processor.CPU_Core.TestRunMemoryAndWriteBackStagesFromCurrentExecuteState() in C:\Users\Yuriy\Desktop\HybridCPU ISE\HybridCPU_ISE\CloseToHSL\Core\Pipeline\Core\CPU_Core.TestSupport.cs:line 1655&#xD;
+   at HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.RetireBundle(CPU_Core core, VLIW_Instruction[] bundle, UInt64 pc) in C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\CompilerTests\CompilerRefPlan6Phase04ObjectLinkImageTests.cs:line 309&#xD;
+   at HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.LinkedCrossObjectCalls_ExecuteThroughRestrictedImageAndIse(Int32 value, Int32 expected) in C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\CompilerTests\CompilerRefPlan6Phase04ObjectLinkImageTests.cs:line 227&#xD;
+   at InvokeStub_CompilerRefPlan6Phase04ObjectLinkImageTests.LinkedCrossObjectCalls_ExecuteThroughRestrictedImageAndIse(Object, Span`1)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="3387dd91-3a99-430d-bb30-b182ce137c8a" testId="46e96979-d98b-35a4-565d-f583d269beee" testName="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.UnsupportedManagedRequirement_FailsBeforeCodegen" computerName="DESKTOP-4PD77ND" duration="00:00:00.0002982" startTime="2026-11-10T23:43:39.7590031+03:00" endTime="2026-11-10T23:43:39.7591089+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3387dd91-3a99-430d-bb30-b182ce137c8a" />
+    <UnitTestResult executionId="753f190a-fdb6-4c5b-81cd-dbeac1e416f2" testId="ae6b1d86-e28e-62c6-3e7b-f70d0d7853e4" testName="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.LinkedCrossObjectCalls_ExecuteThroughRestrictedImageAndIse(value: 0, expected: -1)" computerName="DESKTOP-4PD77ND" duration="00:00:00.9639560" startTime="2026-11-10T23:43:41.6803163+03:00" endTime="2026-11-10T23:43:42.6447084+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="753f190a-fdb6-4c5b-81cd-dbeac1e416f2">
+      <Output>
+        <ErrorInfo>
+          <Message>System.InvalidOperationException : Retired store lane 4 could not publish its complete physical range.</Message>
+          <StackTrace>   at YAKSys_Hybrid_CPU.Processor.CPU_Core.ApplyRetireBatchMemoryEffects(RetireWindowBatch&amp; retireBatch, ReadOnlySpan`1 capturedRetireEffects, ReadOnlySpan`1 retireLanes, Span`1 atomicOutcomes, Boolean&amp; predicateStateApplied) in C:\Users\Yuriy\Desktop\HybridCPU ISE\HybridCPU_ISE\CloseToHSL\Core\Pipeline\Retire\Evidence\CPU_Core.PipelineExecution.Retire.cs:line 909&#xD;
+   at YAKSys_Hybrid_CPU.Processor.CPU_Core.TestRunMemoryAndWriteBackStagesFromCurrentExecuteState() in C:\Users\Yuriy\Desktop\HybridCPU ISE\HybridCPU_ISE\CloseToHSL\Core\Pipeline\Core\CPU_Core.TestSupport.cs:line 1655&#xD;
+   at HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.RetireBundle(CPU_Core core, VLIW_Instruction[] bundle, UInt64 pc) in C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\CompilerTests\CompilerRefPlan6Phase04ObjectLinkImageTests.cs:line 309&#xD;
+   at HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.LinkedCrossObjectCalls_ExecuteThroughRestrictedImageAndIse(Int32 value, Int32 expected) in C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\CompilerTests\CompilerRefPlan6Phase04ObjectLinkImageTests.cs:line 227&#xD;
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="bc58c568-f685-4457-894b-2245078067b7" testId="eb77692c-34be-2e78-8f7a-2ae17954d2a2" testName="HybridCPU_ISE.Tests.CompilerTests.CompilerPhase02GoldenArtifactHarnessTests.PositivePackages_KeepEnvelopeSeparationAndRuntimeAuthorityPending" computerName="DESKTOP-4PD77ND" duration="00:00:00.0518386" startTime="2026-11-10T23:43:38.3031072+03:00" endTime="2026-11-10T23:43:38.3484849+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="bc58c568-f685-4457-894b-2245078067b7" />
+    <UnitTestResult executionId="6b314a18-9860-4761-8204-0398cff1ca44" testId="78c085be-0d85-7b83-15fb-d7b957337cd0" testName="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.ExactRidAndHost_AreAcceptedForValueOnlyPublish" computerName="DESKTOP-4PD77ND" duration="00:00:00.0003044" startTime="2026-11-10T23:43:39.7699841+03:00" endTime="2026-11-10T23:43:39.7700635+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6b314a18-9860-4761-8204-0398cff1ca44" />
+    <UnitTestResult executionId="032161e0-b389-4dc3-b467-8b41711cace4" testId="d3522552-28df-c429-8608-8f7b1973ac21" testName="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.PackManifest_IsClosedVersionedAndTargetSpecific" computerName="DESKTOP-4PD77ND" duration="00:00:00.0034842" startTime="2026-11-10T23:43:38.0496885+03:00" endTime="2026-11-10T23:43:38.0497837+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="032161e0-b389-4dc3-b467-8b41711cace4" />
+    <UnitTestResult executionId="c3355e9d-a27d-4089-9d1c-41600ac024e3" testId="437712b2-0cd0-246e-6adb-6affaad9b370" testName="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.PublisherWithoutPostLinkEvidence_FailsClosedDeterministically" computerName="DESKTOP-4PD77ND" duration="00:00:01.7188045" startTime="2026-11-10T23:43:38.0502381+03:00" endTime="2026-11-10T23:43:39.7586968+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c3355e9d-a27d-4089-9d1c-41600ac024e3" />
+    <UnitTestResult executionId="fe1b5127-492c-4000-ab89-84371cac2941" testId="5779e75a-970c-e93d-910c-78093135e0a4" testName="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.PublisherRejectsUnsupportedRequirementWithoutImage" computerName="DESKTOP-4PD77ND" duration="00:00:00.1939291" startTime="2026-11-10T23:43:37.8194006+03:00" endTime="2026-11-10T23:43:38.0133714+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="fe1b5127-492c-4000-ab89-84371cac2941" />
+    <UnitTestResult executionId="e57c73fe-4098-4cec-94f0-e82aa063b18a" testId="47251481-420e-27bb-acbe-5c1e8b1c1868" testName="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.RidOrHostMismatch_FailsClosed(hostRid: &quot;linux-x64&quot;, diagnostic: &quot;HCPUB1002&quot;)" computerName="DESKTOP-4PD77ND" duration="00:00:00.0003622" startTime="2026-11-10T23:43:37.8053364+03:00" endTime="2026-11-10T23:43:37.8053882+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e57c73fe-4098-4cec-94f0-e82aa063b18a" />
+    <UnitTestResult executionId="545b0312-06d2-4583-83f1-b3abea57875b" testId="a7f2cccf-0040-9d63-bb4e-2db566ce62ee" testName="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.RidOrHostMismatch_FailsClosed(hostRid: &quot;win-x64&quot;, diagnostic: &quot;HCPUB1001&quot;)" computerName="DESKTOP-4PD77ND" duration="00:00:00.0642250" startTime="2026-11-10T23:43:37.7338159+03:00" endTime="2026-11-10T23:43:37.8043968+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="545b0312-06d2-4583-83f1-b3abea57875b" />
+    <UnitTestResult executionId="5027d736-b1d7-4918-8294-ead22eb3c5a0" testId="8348db99-3964-b39f-5321-5bfc2a374f5a" testName="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.PublishQualifiedGcComponent_IsAcceptedByPublishPack" computerName="DESKTOP-4PD77ND" duration="00:00:00.0017820" startTime="2026-11-10T23:43:37.8176055+03:00" endTime="2026-11-10T23:43:37.8192836+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5027d736-b1d7-4918-8294-ead22eb3c5a0" />
+    <UnitTestResult executionId="88f5323e-57e9-424c-86b4-b80797e56e0b" testId="753e2d13-19d9-877e-ef01-2fb0459fd7fd" testName="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.LinkedCrossObjectCalls_ExecuteThroughRestrictedImageAndIse(value: 17, expected: 33)" computerName="DESKTOP-4PD77ND" duration="00:00:00.2181096" startTime="2026-11-10T23:43:42.6464199+03:00" endTime="2026-11-10T23:43:42.8634192+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="88f5323e-57e9-424c-86b4-b80797e56e0b">
+      <Output>
+        <ErrorInfo>
+          <Message>System.InvalidOperationException : Retired store lane 4 could not publish its complete physical range.</Message>
+          <StackTrace>   at YAKSys_Hybrid_CPU.Processor.CPU_Core.ApplyRetireBatchMemoryEffects(RetireWindowBatch&amp; retireBatch, ReadOnlySpan`1 capturedRetireEffects, ReadOnlySpan`1 retireLanes, Span`1 atomicOutcomes, Boolean&amp; predicateStateApplied) in C:\Users\Yuriy\Desktop\HybridCPU ISE\HybridCPU_ISE\CloseToHSL\Core\Pipeline\Retire\Evidence\CPU_Core.PipelineExecution.Retire.cs:line 909&#xD;
+   at YAKSys_Hybrid_CPU.Processor.CPU_Core.TestRunMemoryAndWriteBackStagesFromCurrentExecuteState() in C:\Users\Yuriy\Desktop\HybridCPU ISE\HybridCPU_ISE\CloseToHSL\Core\Pipeline\Core\CPU_Core.TestSupport.cs:line 1655&#xD;
+   at HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.RetireBundle(CPU_Core core, VLIW_Instruction[] bundle, UInt64 pc) in C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\CompilerTests\CompilerRefPlan6Phase04ObjectLinkImageTests.cs:line 309&#xD;
+   at HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.LinkedCrossObjectCalls_ExecuteThroughRestrictedImageAndIse(Int32 value, Int32 expected) in C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\CompilerTests\CompilerRefPlan6Phase04ObjectLinkImageTests.cs:line 227&#xD;
+   at InvokeStub_CompilerRefPlan6Phase04ObjectLinkImageTests.LinkedCrossObjectCalls_ExecuteThroughRestrictedImageAndIse(Object, Span`1)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="b60802f1-eaf0-4c1f-83a8-be2473b5462e" testId="f73e230f-f9e6-9bb6-cf6e-38ec3e6a9529" testName="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.Phase26Patch_IsExactAndAddsOnlyClosedImageModeAndSidecar" computerName="DESKTOP-4PD77ND" duration="00:00:00.0016288" startTime="2026-11-10T23:43:39.7595587+03:00" endTime="2026-11-10T23:43:39.7614056+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b60802f1-eaf0-4c1f-83a8-be2473b5462e" />
+    <UnitTestResult executionId="d46bc754-292f-4421-b4f8-a3a8c6b492c6" testId="774f7fbf-9e38-5430-00bc-292f75f3efa8" testName="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.InstalledPackFileManifest_IsVerifiedBeforeToolSelection" computerName="DESKTOP-4PD77ND" duration="00:00:00.0227502" startTime="2026-11-10T23:43:38.0135767+03:00" endTime="2026-11-10T23:43:38.0361973+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d46bc754-292f-4421-b4f8-a3a8c6b492c6" />
+    <UnitTestResult executionId="434e2909-5ff0-4fa0-ae08-db7b0fa061ec" testId="aeffae9e-09ec-c6d0-9c4d-e689bd039f91" testName="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.StalePackDigest_FailsBeforeCodegen" computerName="DESKTOP-4PD77ND" duration="00:00:00.0005441" startTime="2026-11-10T23:43:39.7616652+03:00" endTime="2026-11-10T23:43:39.7620016+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="434e2909-5ff0-4fa0-ae08-db7b0fa061ec" />
+    <UnitTestResult executionId="f9948fa7-dc50-4d76-8817-ba09a4041a17" testId="2e046c81-488a-da24-1e52-eab5cd135961" testName="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.PublishSdkVersionSkew_FailsBeforeCodegen" computerName="DESKTOP-4PD77ND" duration="00:00:00.0002472" startTime="2026-11-10T23:43:37.8174350+03:00" endTime="2026-11-10T23:43:37.8174870+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f9948fa7-dc50-4d76-8817-ba09a4041a17" />
+    <UnitTestResult executionId="adcf30d2-829b-4212-bdc8-47fc6c665548" testId="7361a2a0-dd78-f8be-d120-6a7e20e72f58" testName="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.MultiMethodLink_IsIndependentOfDiscoveryOrderAndPreservesSharedCalleeAndLoopHelper" computerName="DESKTOP-4PD77ND" duration="00:00:01.2891793" startTime="2026-11-10T23:43:40.3917682+03:00" endTime="2026-11-10T23:43:41.6799943+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="adcf30d2-829b-4212-bdc8-47fc6c665548" />
+    <UnitTestResult executionId="e5a16360-1f82-4397-8e0b-e16afb748cd1" testId="7e7beb6c-d905-90bb-c971-ec70c6ccd69b" testName="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.OneMethodNoCallObject_RemainsCanonicalWithoutRelocationExtensionBytes" computerName="DESKTOP-4PD77ND" duration="00:00:00.2436283" startTime="2026-11-10T23:43:43.0869244+03:00" endTime="2026-11-10T23:43:43.3283615+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e5a16360-1f82-4397-8e0b-e16afb748cd1" />
+    <UnitTestResult executionId="2d25a8e6-7b80-4daf-89ae-f4a6d02f26c3" testId="1e6730bd-3e03-3f22-8870-a117b2bb0757" testName="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.ProfileObjectInputBudgetOverflow_FailsBeforeBackendOrLink" computerName="DESKTOP-4PD77ND" duration="00:00:00.6185977" startTime="2026-11-10T23:43:39.7713997+03:00" endTime="2026-11-10T23:43:40.3900332+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2d25a8e6-7b80-4daf-89ae-f4a6d02f26c3" />
+    <UnitTestResult executionId="61e5681f-1b04-447f-9b86-1fc7075175da" testId="c83b3049-3cd6-dc39-9f37-3c85fa84a327" testName="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.CheckedInManifest_EqualsProductionContract" computerName="DESKTOP-4PD77ND" duration="00:00:00.0035283" startTime="2026-11-10T23:43:39.7640443+03:00" endTime="2026-11-10T23:43:39.7678308+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="61e5681f-1b04-447f-9b86-1fc7075175da">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Equal() Failure: Strings differ&#xD;
+                                  ↓ (pos 655)&#xD;
+Expected: ···""ManagedAbiDigest":"02b21339fb63cc4361714"···&#xD;
+Actual:   ···""ManagedAbiDigest":"f90d879a32d455bfd87f9"···&#xD;
+                                  ↑ (pos 655)</Message>
+          <StackTrace>   at HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.CheckedInManifest_EqualsProductionContract() in C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\CompilerTests\CompilerRefPlan5Phase26SdkPublishTests.cs:line 164&#xD;
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="b6f3d4cf-cff1-40fb-9b76-6a9392dd6eed" testId="81fe7864-57d2-b74b-e2c6-54856c79a4cd" testName="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.PackagingTargets_HaveNoHostOrLlvmFallback" computerName="DESKTOP-4PD77ND" duration="00:00:00.0017148" startTime="2026-11-10T23:43:39.7622012+03:00" endTime="2026-11-10T23:43:39.7638010+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b6f3d4cf-cff1-40fb-9b76-6a9392dd6eed" />
+    <UnitTestResult executionId="9487ffd3-3b31-42ac-9b45-15db9b052218" testId="b0a8ac67-b6e9-08b1-ba9c-3cc820a280e7" testName="HybridCPU_ISE.Tests.CompilerTests.CompilerPhase02GoldenArtifactHarnessTests.PositiveCompatibilityPackages_MatchSeparatedGoldenBaselines" computerName="DESKTOP-4PD77ND" duration="00:00:00.5234282" startTime="2026-11-10T23:43:37.7774348+03:00" endTime="2026-11-10T23:43:38.2972405+03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="9487ffd3-3b31-42ac-9b45-15db9b052218">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Equal() Failure: Strings differ&#xD;
+                                  ↓ (pos 678)&#xD;
+Expected: ···"  "sideband_hash": "f6a6e02d69eeb093ddbd5"···&#xD;
+Actual:   ···"  "sideband_hash": "7af392d58e9d2cea68db6"···&#xD;
+                                  ↑ (pos 678)</Message>
+          <StackTrace>   at HybridCPU_ISE.Tests.CompilerTests.CompilerPhase02GoldenArtifactHarnessTests.PositiveCompatibilityPackages_MatchSeparatedGoldenBaselines() in C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\CompilerTests\CompilerPhase02GoldenArtifactHarnessTests.cs:line 114&#xD;
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.StalePackDigest_FailsBeforeCodegen" storage="c:\users\yuriy\desktop\hybridcpu compilers\tests\bin\debug\net11.0\hybridcpu.compiler.tests.dll" id="aeffae9e-09ec-c6d0-9c4d-e689bd039f91">
+      <Execution id="434e2909-5ff0-4fa0-ae08-db7b0fa061ec" />
+      <TestMethod codeBase="C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\bin\Debug\net11.0\HybridCPU.Compiler.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests" name="StalePackDigest_FailsBeforeCodegen" />
+    </UnitTest>
+    <UnitTest name="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.InstalledPackFileManifest_IsVerifiedBeforeToolSelection" storage="c:\users\yuriy\desktop\hybridcpu compilers\tests\bin\debug\net11.0\hybridcpu.compiler.tests.dll" id="774f7fbf-9e38-5430-00bc-292f75f3efa8">
+      <Execution id="d46bc754-292f-4421-b4f8-a3a8c6b492c6" />
+      <TestMethod codeBase="C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\bin\Debug\net11.0\HybridCPU.Compiler.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests" name="InstalledPackFileManifest_IsVerifiedBeforeToolSelection" />
+    </UnitTest>
+    <UnitTest name="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.RidOrHostMismatch_FailsClosed(hostRid: &quot;linux-x64&quot;, diagnostic: &quot;HCPUB1002&quot;)" storage="c:\users\yuriy\desktop\hybridcpu compilers\tests\bin\debug\net11.0\hybridcpu.compiler.tests.dll" id="47251481-420e-27bb-acbe-5c1e8b1c1868">
+      <Execution id="e57c73fe-4098-4cec-94f0-e82aa063b18a" />
+      <TestMethod codeBase="C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\bin\Debug\net11.0\HybridCPU.Compiler.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests" name="RidOrHostMismatch_FailsClosed" />
+    </UnitTest>
+    <UnitTest name="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.ProfileObjectInputBudgetOverflow_FailsBeforeBackendOrLink" storage="c:\users\yuriy\desktop\hybridcpu compilers\tests\bin\debug\net11.0\hybridcpu.compiler.tests.dll" id="1e6730bd-3e03-3f22-8870-a117b2bb0757">
+      <Execution id="2d25a8e6-7b80-4daf-89ae-f4a6d02f26c3" />
+      <TestMethod codeBase="C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\bin\Debug\net11.0\HybridCPU.Compiler.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests" name="ProfileObjectInputBudgetOverflow_FailsBeforeBackendOrLink" />
+    </UnitTest>
+    <UnitTest name="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.PublishQualifiedGcComponent_IsAcceptedByPublishPack" storage="c:\users\yuriy\desktop\hybridcpu compilers\tests\bin\debug\net11.0\hybridcpu.compiler.tests.dll" id="8348db99-3964-b39f-5321-5bfc2a374f5a">
+      <Execution id="5027d736-b1d7-4918-8294-ead22eb3c5a0" />
+      <TestMethod codeBase="C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\bin\Debug\net11.0\HybridCPU.Compiler.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests" name="PublishQualifiedGcComponent_IsAcceptedByPublishPack" />
+    </UnitTest>
+    <UnitTest name="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.MissingDuplicateAndMalformedRelocationsFailClosedWhileManagedCallRangeUsesCurrentThunk" storage="c:\users\yuriy\desktop\hybridcpu compilers\tests\bin\debug\net11.0\hybridcpu.compiler.tests.dll" id="7bbbcc21-2613-e1f3-af82-bcd69e27174b">
+      <Execution id="b6538d74-cc25-4f7e-8cec-ce99060af3d5" />
+      <TestMethod codeBase="C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\bin\Debug\net11.0\HybridCPU.Compiler.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests" name="MissingDuplicateAndMalformedRelocationsFailClosedWhileManagedCallRangeUsesCurrentThunk" />
+    </UnitTest>
+    <UnitTest name="HybridCPU_ISE.Tests.CompilerTests.CompilerPhase02GoldenArtifactHarnessTests.NegativeManifest_ContainsRequiredFailClosedCasesWithoutCarrierHashes" storage="c:\users\yuriy\desktop\hybridcpu compilers\tests\bin\debug\net11.0\hybridcpu.compiler.tests.dll" id="21e9aef2-6fb0-ad60-9753-8e199eccc1ab">
+      <Execution id="2f4f41fd-b21d-41ba-8634-3d7eda65ea66" />
+      <TestMethod codeBase="C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\bin\Debug\net11.0\HybridCPU.Compiler.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HybridCPU_ISE.Tests.CompilerTests.CompilerPhase02GoldenArtifactHarnessTests" name="NegativeManifest_ContainsRequiredFailClosedCasesWithoutCarrierHashes" />
+    </UnitTest>
+    <UnitTest name="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.PublishSdkVersionSkew_FailsBeforeCodegen" storage="c:\users\yuriy\desktop\hybridcpu compilers\tests\bin\debug\net11.0\hybridcpu.compiler.tests.dll" id="2e046c81-488a-da24-1e52-eab5cd135961">
+      <Execution id="f9948fa7-dc50-4d76-8817-ba09a4041a17" />
+      <TestMethod codeBase="C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\bin\Debug\net11.0\HybridCPU.Compiler.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests" name="PublishSdkVersionSkew_FailsBeforeCodegen" />
+    </UnitTest>
+    <UnitTest name="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.PackagingTargets_HaveNoHostOrLlvmFallback" storage="c:\users\yuriy\desktop\hybridcpu compilers\tests\bin\debug\net11.0\hybridcpu.compiler.tests.dll" id="81fe7864-57d2-b74b-e2c6-54856c79a4cd">
+      <Execution id="b6f3d4cf-cff1-40fb-9b76-6a9392dd6eed" />
+      <TestMethod codeBase="C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\bin\Debug\net11.0\HybridCPU.Compiler.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests" name="PackagingTargets_HaveNoHostOrLlvmFallback" />
+    </UnitTest>
+    <UnitTest name="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.ManagedCallRelocation_HasExactCarrierBasisWidthAndFailClosedRange" storage="c:\users\yuriy\desktop\hybridcpu compilers\tests\bin\debug\net11.0\hybridcpu.compiler.tests.dll" id="75deeb73-4742-c2be-0ed6-b2d28d2ff3ac">
+      <Execution id="aec286db-18fc-47d9-aac4-170ef44b0f0c" />
+      <TestMethod codeBase="C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\bin\Debug\net11.0\HybridCPU.Compiler.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests" name="ManagedCallRelocation_HasExactCarrierBasisWidthAndFailClosedRange" />
+    </UnitTest>
+    <UnitTest name="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.LinkedCrossObjectCalls_ExecuteThroughRestrictedImageAndIse(value: 0, expected: -1)" storage="c:\users\yuriy\desktop\hybridcpu compilers\tests\bin\debug\net11.0\hybridcpu.compiler.tests.dll" id="ae6b1d86-e28e-62c6-3e7b-f70d0d7853e4">
+      <Execution id="753f190a-fdb6-4c5b-81cd-dbeac1e416f2" />
+      <TestMethod codeBase="C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\bin\Debug\net11.0\HybridCPU.Compiler.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests" name="LinkedCrossObjectCalls_ExecuteThroughRestrictedImageAndIse" />
+    </UnitTest>
+    <UnitTest name="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.OneHcoPerMethod_ContainsStableDefinitionDeclarationsAndUnresolvedCalls" storage="c:\users\yuriy\desktop\hybridcpu compilers\tests\bin\debug\net11.0\hybridcpu.compiler.tests.dll" id="1c24cb4d-2da1-d235-e4f3-37a71aca0452">
+      <Execution id="9e996e36-16fa-4f61-a741-89818266c7cc" />
+      <TestMethod codeBase="C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\bin\Debug\net11.0\HybridCPU.Compiler.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests" name="OneHcoPerMethod_ContainsStableDefinitionDeclarationsAndUnresolvedCalls" />
+    </UnitTest>
+    <UnitTest name="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.UnsupportedManagedRequirement_FailsBeforeCodegen" storage="c:\users\yuriy\desktop\hybridcpu compilers\tests\bin\debug\net11.0\hybridcpu.compiler.tests.dll" id="46e96979-d98b-35a4-565d-f583d269beee">
+      <Execution id="3387dd91-3a99-430d-bb30-b182ce137c8a" />
+      <TestMethod codeBase="C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\bin\Debug\net11.0\HybridCPU.Compiler.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests" name="UnsupportedManagedRequirement_FailsBeforeCodegen" />
+    </UnitTest>
+    <UnitTest name="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.OneMethodNoCallObject_RemainsCanonicalWithoutRelocationExtensionBytes" storage="c:\users\yuriy\desktop\hybridcpu compilers\tests\bin\debug\net11.0\hybridcpu.compiler.tests.dll" id="7e7beb6c-d905-90bb-c971-ec70c6ccd69b">
+      <Execution id="e5a16360-1f82-4397-8e0b-e16afb748cd1" />
+      <TestMethod codeBase="C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\bin\Debug\net11.0\HybridCPU.Compiler.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests" name="OneMethodNoCallObject_RemainsCanonicalWithoutRelocationExtensionBytes" />
+    </UnitTest>
+    <UnitTest name="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.InstallerOwnsExactCompilerRuntimeSdkAndPatchSetInputs" storage="c:\users\yuriy\desktop\hybridcpu compilers\tests\bin\debug\net11.0\hybridcpu.compiler.tests.dll" id="de1cd0b4-45fb-563f-4168-ca9c17a9090e">
+      <Execution id="36870b0f-b52a-4d6b-9310-d7616923d7d2" />
+      <TestMethod codeBase="C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\bin\Debug\net11.0\HybridCPU.Compiler.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests" name="InstallerOwnsExactCompilerRuntimeSdkAndPatchSetInputs" />
+    </UnitTest>
+    <UnitTest name="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.ExactRidAndHost_AreAcceptedForValueOnlyPublish" storage="c:\users\yuriy\desktop\hybridcpu compilers\tests\bin\debug\net11.0\hybridcpu.compiler.tests.dll" id="78c085be-0d85-7b83-15fb-d7b957337cd0">
+      <Execution id="6b314a18-9860-4761-8204-0398cff1ca44" />
+      <TestMethod codeBase="C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\bin\Debug\net11.0\HybridCPU.Compiler.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests" name="ExactRidAndHost_AreAcceptedForValueOnlyPublish" />
+    </UnitTest>
+    <UnitTest name="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.PublisherRejectsUnsupportedRequirementWithoutImage" storage="c:\users\yuriy\desktop\hybridcpu compilers\tests\bin\debug\net11.0\hybridcpu.compiler.tests.dll" id="5779e75a-970c-e93d-910c-78093135e0a4">
+      <Execution id="fe1b5127-492c-4000-ab89-84371cac2941" />
+      <TestMethod codeBase="C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\bin\Debug\net11.0\HybridCPU.Compiler.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests" name="PublisherRejectsUnsupportedRequirementWithoutImage" />
+    </UnitTest>
+    <UnitTest name="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.RidOrHostMismatch_FailsClosed(hostRid: &quot;win-x64&quot;, diagnostic: &quot;HCPUB1001&quot;)" storage="c:\users\yuriy\desktop\hybridcpu compilers\tests\bin\debug\net11.0\hybridcpu.compiler.tests.dll" id="a7f2cccf-0040-9d63-bb4e-2db566ce62ee">
+      <Execution id="545b0312-06d2-4583-83f1-b3abea57875b" />
+      <TestMethod codeBase="C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\bin\Debug\net11.0\HybridCPU.Compiler.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests" name="RidOrHostMismatch_FailsClosed" />
+    </UnitTest>
+    <UnitTest name="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.PackManifest_IsClosedVersionedAndTargetSpecific" storage="c:\users\yuriy\desktop\hybridcpu compilers\tests\bin\debug\net11.0\hybridcpu.compiler.tests.dll" id="d3522552-28df-c429-8608-8f7b1973ac21">
+      <Execution id="032161e0-b389-4dc3-b467-8b41711cace4" />
+      <TestMethod codeBase="C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\bin\Debug\net11.0\HybridCPU.Compiler.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests" name="PackManifest_IsClosedVersionedAndTargetSpecific" />
+    </UnitTest>
+    <UnitTest name="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.Phase26Patch_IsExactAndAddsOnlyClosedImageModeAndSidecar" storage="c:\users\yuriy\desktop\hybridcpu compilers\tests\bin\debug\net11.0\hybridcpu.compiler.tests.dll" id="f73e230f-f9e6-9bb6-cf6e-38ec3e6a9529">
+      <Execution id="b60802f1-eaf0-4c1f-83a8-be2473b5462e" />
+      <TestMethod codeBase="C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\bin\Debug\net11.0\HybridCPU.Compiler.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests" name="Phase26Patch_IsExactAndAddsOnlyClosedImageModeAndSidecar" />
+    </UnitTest>
+    <UnitTest name="HybridCPU_ISE.Tests.CompilerTests.CompilerPhase02GoldenArtifactHarnessTests.PositivePackages_KeepEnvelopeSeparationAndRuntimeAuthorityPending" storage="c:\users\yuriy\desktop\hybridcpu compilers\tests\bin\debug\net11.0\hybridcpu.compiler.tests.dll" id="eb77692c-34be-2e78-8f7a-2ae17954d2a2">
+      <Execution id="bc58c568-f685-4457-894b-2245078067b7" />
+      <TestMethod codeBase="C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\bin\Debug\net11.0\HybridCPU.Compiler.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HybridCPU_ISE.Tests.CompilerTests.CompilerPhase02GoldenArtifactHarnessTests" name="PositivePackages_KeepEnvelopeSeparationAndRuntimeAuthorityPending" />
+    </UnitTest>
+    <UnitTest name="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.PackDescriptor_DoesNotOverclaimComponentQualificationAsPublishSupport" storage="c:\users\yuriy\desktop\hybridcpu compilers\tests\bin\debug\net11.0\hybridcpu.compiler.tests.dll" id="00f0dc3c-9516-99bc-7029-8fdd04617434">
+      <Execution id="3730e02b-3a6c-42a2-9af4-02feceed1b8d" />
+      <TestMethod codeBase="C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\bin\Debug\net11.0\HybridCPU.Compiler.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests" name="PackDescriptor_DoesNotOverclaimComponentQualificationAsPublishSupport" />
+    </UnitTest>
+    <UnitTest name="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.LinkedCrossObjectCalls_ExecuteThroughRestrictedImageAndIse(value: 5, expected: 9)" storage="c:\users\yuriy\desktop\hybridcpu compilers\tests\bin\debug\net11.0\hybridcpu.compiler.tests.dll" id="5f93c6cc-e9fc-ebd2-5def-c6b3590fdf8e">
+      <Execution id="aae1f68c-e142-4b11-a800-715b2857a0ec" />
+      <TestMethod codeBase="C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\bin\Debug\net11.0\HybridCPU.Compiler.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests" name="LinkedCrossObjectCalls_ExecuteThroughRestrictedImageAndIse" />
+    </UnitTest>
+    <UnitTest name="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.LinkedCrossObjectCalls_ExecuteThroughRestrictedImageAndIse(value: 17, expected: 33)" storage="c:\users\yuriy\desktop\hybridcpu compilers\tests\bin\debug\net11.0\hybridcpu.compiler.tests.dll" id="753e2d13-19d9-877e-ef01-2fb0459fd7fd">
+      <Execution id="88f5323e-57e9-424c-86b4-b80797e56e0b" />
+      <TestMethod codeBase="C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\bin\Debug\net11.0\HybridCPU.Compiler.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests" name="LinkedCrossObjectCalls_ExecuteThroughRestrictedImageAndIse" />
+    </UnitTest>
+    <UnitTest name="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.PublisherWithoutPostLinkEvidence_FailsClosedDeterministically" storage="c:\users\yuriy\desktop\hybridcpu compilers\tests\bin\debug\net11.0\hybridcpu.compiler.tests.dll" id="437712b2-0cd0-246e-6adb-6affaad9b370">
+      <Execution id="c3355e9d-a27d-4089-9d1c-41600ac024e3" />
+      <TestMethod codeBase="C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\bin\Debug\net11.0\HybridCPU.Compiler.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests" name="PublisherWithoutPostLinkEvidence_FailsClosedDeterministically" />
+    </UnitTest>
+    <UnitTest name="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.CheckedInManifest_EqualsProductionContract" storage="c:\users\yuriy\desktop\hybridcpu compilers\tests\bin\debug\net11.0\hybridcpu.compiler.tests.dll" id="c83b3049-3cd6-dc39-9f37-3c85fa84a327">
+      <Execution id="61e5681f-1b04-447f-9b86-1fc7075175da" />
+      <TestMethod codeBase="C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\bin\Debug\net11.0\HybridCPU.Compiler.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests" name="CheckedInManifest_EqualsProductionContract" />
+    </UnitTest>
+    <UnitTest name="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.MultiMethodLink_IsIndependentOfDiscoveryOrderAndPreservesSharedCalleeAndLoopHelper" storage="c:\users\yuriy\desktop\hybridcpu compilers\tests\bin\debug\net11.0\hybridcpu.compiler.tests.dll" id="7361a2a0-dd78-f8be-d120-6a7e20e72f58">
+      <Execution id="adcf30d2-829b-4212-bdc8-47fc6c665548" />
+      <TestMethod codeBase="C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\bin\Debug\net11.0\HybridCPU.Compiler.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests" name="MultiMethodLink_IsIndependentOfDiscoveryOrderAndPreservesSharedCalleeAndLoopHelper" />
+    </UnitTest>
+    <UnitTest name="HybridCPU_ISE.Tests.CompilerTests.CompilerPhase02GoldenArtifactHarnessTests.PositiveCompatibilityPackages_MatchSeparatedGoldenBaselines" storage="c:\users\yuriy\desktop\hybridcpu compilers\tests\bin\debug\net11.0\hybridcpu.compiler.tests.dll" id="b0a8ac67-b6e9-08b1-ba9c-3cc820a280e7">
+      <Execution id="9487ffd3-3b31-42ac-9b45-15db9b052218" />
+      <TestMethod codeBase="C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\bin\Debug\net11.0\HybridCPU.Compiler.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HybridCPU_ISE.Tests.CompilerTests.CompilerPhase02GoldenArtifactHarnessTests" name="PositiveCompatibilityPackages_MatchSeparatedGoldenBaselines" />
+    </UnitTest>
+    <UnitTest name="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.InvalidEntryAndStartupAdjustment_FailClosed" storage="c:\users\yuriy\desktop\hybridcpu compilers\tests\bin\debug\net11.0\hybridcpu.compiler.tests.dll" id="fcc082c0-2088-bb63-a229-78b7baaccffe">
+      <Execution id="4e565c8b-26c1-46bc-be0d-faa5e519a489" />
+      <TestMethod codeBase="C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\bin\Debug\net11.0\HybridCPU.Compiler.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests" name="InvalidEntryAndStartupAdjustment_FailClosed" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="1c24cb4d-2da1-d235-e4f3-37a71aca0452" executionId="9e996e36-16fa-4f61-a741-89818266c7cc" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="fcc082c0-2088-bb63-a229-78b7baaccffe" executionId="4e565c8b-26c1-46bc-be0d-faa5e519a489" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="de1cd0b4-45fb-563f-4168-ca9c17a9090e" executionId="36870b0f-b52a-4d6b-9310-d7616923d7d2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="21e9aef2-6fb0-ad60-9753-8e199eccc1ab" executionId="2f4f41fd-b21d-41ba-8634-3d7eda65ea66" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="75deeb73-4742-c2be-0ed6-b2d28d2ff3ac" executionId="aec286db-18fc-47d9-aac4-170ef44b0f0c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="00f0dc3c-9516-99bc-7029-8fdd04617434" executionId="3730e02b-3a6c-42a2-9af4-02feceed1b8d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7bbbcc21-2613-e1f3-af82-bcd69e27174b" executionId="b6538d74-cc25-4f7e-8cec-ce99060af3d5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5f93c6cc-e9fc-ebd2-5def-c6b3590fdf8e" executionId="aae1f68c-e142-4b11-a800-715b2857a0ec" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="46e96979-d98b-35a4-565d-f583d269beee" executionId="3387dd91-3a99-430d-bb30-b182ce137c8a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ae6b1d86-e28e-62c6-3e7b-f70d0d7853e4" executionId="753f190a-fdb6-4c5b-81cd-dbeac1e416f2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="eb77692c-34be-2e78-8f7a-2ae17954d2a2" executionId="bc58c568-f685-4457-894b-2245078067b7" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="78c085be-0d85-7b83-15fb-d7b957337cd0" executionId="6b314a18-9860-4761-8204-0398cff1ca44" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d3522552-28df-c429-8608-8f7b1973ac21" executionId="032161e0-b389-4dc3-b467-8b41711cace4" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="437712b2-0cd0-246e-6adb-6affaad9b370" executionId="c3355e9d-a27d-4089-9d1c-41600ac024e3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5779e75a-970c-e93d-910c-78093135e0a4" executionId="fe1b5127-492c-4000-ab89-84371cac2941" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="47251481-420e-27bb-acbe-5c1e8b1c1868" executionId="e57c73fe-4098-4cec-94f0-e82aa063b18a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a7f2cccf-0040-9d63-bb4e-2db566ce62ee" executionId="545b0312-06d2-4583-83f1-b3abea57875b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8348db99-3964-b39f-5321-5bfc2a374f5a" executionId="5027d736-b1d7-4918-8294-ead22eb3c5a0" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="753e2d13-19d9-877e-ef01-2fb0459fd7fd" executionId="88f5323e-57e9-424c-86b4-b80797e56e0b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f73e230f-f9e6-9bb6-cf6e-38ec3e6a9529" executionId="b60802f1-eaf0-4c1f-83a8-be2473b5462e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="774f7fbf-9e38-5430-00bc-292f75f3efa8" executionId="d46bc754-292f-4421-b4f8-a3a8c6b492c6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="aeffae9e-09ec-c6d0-9c4d-e689bd039f91" executionId="434e2909-5ff0-4fa0-ae08-db7b0fa061ec" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="2e046c81-488a-da24-1e52-eab5cd135961" executionId="f9948fa7-dc50-4d76-8817-ba09a4041a17" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7361a2a0-dd78-f8be-d120-6a7e20e72f58" executionId="adcf30d2-829b-4212-bdc8-47fc6c665548" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7e7beb6c-d905-90bb-c971-ec70c6ccd69b" executionId="e5a16360-1f82-4397-8e0b-e16afb748cd1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1e6730bd-3e03-3f22-8870-a117b2bb0757" executionId="2d25a8e6-7b80-4daf-89ae-f4a6d02f26c3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c83b3049-3cd6-dc39-9f37-3c85fa84a327" executionId="61e5681f-1b04-447f-9b86-1fc7075175da" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="81fe7864-57d2-b74b-e2c6-54856c79a4cd" executionId="b6f3d4cf-cff1-40fb-9b76-6a9392dd6eed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b0a8ac67-b6e9-08b1-ba9c-3cc820a280e7" executionId="9487ffd3-3b31-42ac-9b45-15db9b052218" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Список результатов" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="Все загруженные результаты" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="29" executed="29" passed="24" failed="5" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v4.0.1+0f7d528729 (64-bit .NET 11.0.0)&#xD;
+[xUnit.net 00:00:00.15]   Discovering: HybridCPU.Compiler.Tests&#xD;
+[xUnit.net 00:00:00.50]   Discovered:  HybridCPU.Compiler.Tests&#xD;
+[xUnit.net 00:00:00.55]   Starting:    HybridCPU.Compiler.Tests&#xD;
+[xUnit.net 00:00:01.14]       Assert.Equal() Failure: Strings differ&#xD;
+[xUnit.net 00:00:01.14]                                         ↓ (pos 678)&#xD;
+[xUnit.net 00:00:01.14]       Expected: ···"  "sideband_hash": "f6a6e02d69eeb093ddbd5"···&#xD;
+[xUnit.net 00:00:01.14]       Actual:   ···"  "sideband_hash": "7af392d58e9d2cea68db6"···&#xD;
+[xUnit.net 00:00:01.14]                                         ↑ (pos 678)&#xD;
+[xUnit.net 00:00:01.15]       Stack Trace:&#xD;
+[xUnit.net 00:00:01.15]         C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\CompilerTests\CompilerPhase02GoldenArtifactHarnessTests.cs(114,0): at HybridCPU_ISE.Tests.CompilerTests.CompilerPhase02GoldenArtifactHarnessTests.PositiveCompatibilityPackages_MatchSeparatedGoldenBaselines()&#xD;
+[xUnit.net 00:00:01.15]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+[xUnit.net 00:00:01.15]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:02.61]       Assert.Equal() Failure: Strings differ&#xD;
+[xUnit.net 00:00:02.61]                                         ↓ (pos 655)&#xD;
+[xUnit.net 00:00:02.61]       Expected: ···""ManagedAbiDigest":"02b21339fb63cc4361714"···&#xD;
+[xUnit.net 00:00:02.61]       Actual:   ···""ManagedAbiDigest":"f90d879a32d455bfd87f9"···&#xD;
+[xUnit.net 00:00:02.61]                                         ↑ (pos 655)&#xD;
+[xUnit.net 00:00:02.61]       Stack Trace:&#xD;
+[xUnit.net 00:00:02.61]         C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\CompilerTests\CompilerRefPlan5Phase26SdkPublishTests.cs(164,0): at HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.CheckedInManifest_EqualsProductionContract()&#xD;
+[xUnit.net 00:00:02.61]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+[xUnit.net 00:00:02.61]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:05.49]       System.InvalidOperationException : Retired store lane 4 could not publish its complete physical range.&#xD;
+[xUnit.net 00:00:05.49]       Stack Trace:&#xD;
+[xUnit.net 00:00:05.49]         C:\Users\Yuriy\Desktop\HybridCPU ISE\HybridCPU_ISE\CloseToHSL\Core\Pipeline\Retire\Evidence\CPU_Core.PipelineExecution.Retire.cs(909,0): at YAKSys_Hybrid_CPU.Processor.CPU_Core.ApplyRetireBatchMemoryEffects(RetireWindowBatch&amp; retireBatch, ReadOnlySpan`1 capturedRetireEffects, ReadOnlySpan`1 retireLanes, Span`1 atomicOutcomes, Boolean&amp; predicateStateApplied)&#xD;
+[xUnit.net 00:00:05.49]         C:\Users\Yuriy\Desktop\HybridCPU ISE\HybridCPU_ISE\CloseToHSL\Core\Pipeline\Core\CPU_Core.TestSupport.cs(1655,0): at YAKSys_Hybrid_CPU.Processor.CPU_Core.TestRunMemoryAndWriteBackStagesFromCurrentExecuteState()&#xD;
+[xUnit.net 00:00:05.49]         C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\CompilerTests\CompilerRefPlan6Phase04ObjectLinkImageTests.cs(309,0): at HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.RetireBundle(CPU_Core core, VLIW_Instruction[] bundle, UInt64 pc)&#xD;
+[xUnit.net 00:00:05.49]         C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\CompilerTests\CompilerRefPlan6Phase04ObjectLinkImageTests.cs(227,0): at HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.LinkedCrossObjectCalls_ExecuteThroughRestrictedImageAndIse(Int32 value, Int32 expected)&#xD;
+[xUnit.net 00:00:05.49]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+[xUnit.net 00:00:05.49]            at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:05.71]       System.InvalidOperationException : Retired store lane 4 could not publish its complete physical range.&#xD;
+[xUnit.net 00:00:05.71]       Stack Trace:&#xD;
+[xUnit.net 00:00:05.71]         C:\Users\Yuriy\Desktop\HybridCPU ISE\HybridCPU_ISE\CloseToHSL\Core\Pipeline\Retire\Evidence\CPU_Core.PipelineExecution.Retire.cs(909,0): at YAKSys_Hybrid_CPU.Processor.CPU_Core.ApplyRetireBatchMemoryEffects(RetireWindowBatch&amp; retireBatch, ReadOnlySpan`1 capturedRetireEffects, ReadOnlySpan`1 retireLanes, Span`1 atomicOutcomes, Boolean&amp; predicateStateApplied)&#xD;
+[xUnit.net 00:00:05.71]         C:\Users\Yuriy\Desktop\HybridCPU ISE\HybridCPU_ISE\CloseToHSL\Core\Pipeline\Core\CPU_Core.TestSupport.cs(1655,0): at YAKSys_Hybrid_CPU.Processor.CPU_Core.TestRunMemoryAndWriteBackStagesFromCurrentExecuteState()&#xD;
+[xUnit.net 00:00:05.71]         C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\CompilerTests\CompilerRefPlan6Phase04ObjectLinkImageTests.cs(309,0): at HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.RetireBundle(CPU_Core core, VLIW_Instruction[] bundle, UInt64 pc)&#xD;
+[xUnit.net 00:00:05.71]         C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\CompilerTests\CompilerRefPlan6Phase04ObjectLinkImageTests.cs(227,0): at HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.LinkedCrossObjectCalls_ExecuteThroughRestrictedImageAndIse(Int32 value, Int32 expected)&#xD;
+[xUnit.net 00:00:05.71]            at InvokeStub_CompilerRefPlan6Phase04ObjectLinkImageTests.LinkedCrossObjectCalls_ExecuteThroughRestrictedImageAndIse(Object, Span`1)&#xD;
+[xUnit.net 00:00:05.71]            at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+[xUnit.net 00:00:05.93]       System.InvalidOperationException : Retired store lane 4 could not publish its complete physical range.&#xD;
+[xUnit.net 00:00:05.93]       Stack Trace:&#xD;
+[xUnit.net 00:00:05.93]         C:\Users\Yuriy\Desktop\HybridCPU ISE\HybridCPU_ISE\CloseToHSL\Core\Pipeline\Retire\Evidence\CPU_Core.PipelineExecution.Retire.cs(909,0): at YAKSys_Hybrid_CPU.Processor.CPU_Core.ApplyRetireBatchMemoryEffects(RetireWindowBatch&amp; retireBatch, ReadOnlySpan`1 capturedRetireEffects, ReadOnlySpan`1 retireLanes, Span`1 atomicOutcomes, Boolean&amp; predicateStateApplied)&#xD;
+[xUnit.net 00:00:05.93]         C:\Users\Yuriy\Desktop\HybridCPU ISE\HybridCPU_ISE\CloseToHSL\Core\Pipeline\Core\CPU_Core.TestSupport.cs(1655,0): at YAKSys_Hybrid_CPU.Processor.CPU_Core.TestRunMemoryAndWriteBackStagesFromCurrentExecuteState()&#xD;
+[xUnit.net 00:00:05.93]         C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\CompilerTests\CompilerRefPlan6Phase04ObjectLinkImageTests.cs(309,0): at HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.RetireBundle(CPU_Core core, VLIW_Instruction[] bundle, UInt64 pc)&#xD;
+[xUnit.net 00:00:05.93]         C:\Users\Yuriy\Desktop\HybridCPU Compilers\Tests\CompilerTests\CompilerRefPlan6Phase04ObjectLinkImageTests.cs(227,0): at HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.LinkedCrossObjectCalls_ExecuteThroughRestrictedImageAndIse(Int32 value, Int32 expected)&#xD;
+[xUnit.net 00:00:05.93]            at InvokeStub_CompilerRefPlan6Phase04ObjectLinkImageTests.LinkedCrossObjectCalls_ExecuteThroughRestrictedImageAndIse(Object, Span`1)&#xD;
+[xUnit.net 00:00:05.93]            at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+[xUnit.net 00:00:07.05]   Finished:    HybridCPU.Compiler.Tests&#xD;
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="DESKTOP-4PD77ND" outcome="Error" timestamp="2026-11-10T23:43:38.3000620+03:00">
+        <Text>[xUnit.net 00:00:01.14]     HybridCPU_ISE.Tests.CompilerTests.CompilerPhase02GoldenArtifactHarnessTests.PositiveCompatibilityPackages_MatchSeparatedGoldenBaselines [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="DESKTOP-4PD77ND" outcome="Error" timestamp="2026-11-10T23:43:39.7683142+03:00">
+        <Text>[xUnit.net 00:00:02.61]     HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan5Phase26SdkPublishTests.CheckedInManifest_EqualsProductionContract [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="DESKTOP-4PD77ND" outcome="Error" timestamp="2026-11-10T23:43:42.6451013+03:00">
+        <Text>[xUnit.net 00:00:05.49]     HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.LinkedCrossObjectCalls_ExecuteThroughRestrictedImageAndIse(value: 0, expected: -1) [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="DESKTOP-4PD77ND" outcome="Error" timestamp="2026-11-10T23:43:42.8638459+03:00">
+        <Text>[xUnit.net 00:00:05.71]     HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.LinkedCrossObjectCalls_ExecuteThroughRestrictedImageAndIse(value: 17, expected: 33) [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="DESKTOP-4PD77ND" outcome="Error" timestamp="2026-11-10T23:43:43.0850366+03:00">
+        <Text>[xUnit.net 00:00:05.93]     HybridCPU_ISE.Tests.CompilerTests.CompilerRefPlan6Phase04ObjectLinkImageTests.LinkedCrossObjectCalls_ExecuteThroughRestrictedImageAndIse(value: 5, expected: 9) [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

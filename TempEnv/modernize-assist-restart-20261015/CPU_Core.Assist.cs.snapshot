@@ -1,0 +1,335 @@
+using System;
+using System.Runtime.CompilerServices;
+
+namespace YAKSys_Hybrid_CPU
+{
+    public partial struct Processor
+    {
+        public sealed partial class CPU_Core
+        {
+            private const ulong AssistCacheLineSize = 32;
+            private static readonly Core.AssistMemoryQuota DefaultAssistMemoryQuota =
+                Core.AssistMemoryQuota.Default;
+            private static readonly Core.AssistBackpressurePolicy DefaultAssistBackpressurePolicy =
+                Core.AssistBackpressurePolicy.Default;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private void ResetAssistRuntimeState()
+            {
+                _assistRuntimeEpoch = 0;
+                _lastAssistInvalidationReason = Core.AssistInvalidationReason.None;
+                Runtime.Telemetry.ClearAssist();
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private bool TryCreateAssistCandidate(
+                Core.MicroOp seed,
+                int carrierVirtualThreadId,
+                out Core.AssistMicroOp assistMicroOp)
+            {
+                assistMicroOp = null!;
+                if (seed == null || seed.IsAssist)
+                    return false;
+
+                ulong replayEpochId = _loopBuffer.CurrentReplayPhase.IsActive
+                    ? _loopBuffer.CurrentReplayPhase.EpochId
+                    : 0;
+
+                return Core.AssistMicroOp.TryCreateFromSeed(
+                    seed,
+                    carrierVirtualThreadId,
+                    replayEpochId,
+                    _assistRuntimeEpoch,
+                    out assistMicroOp);
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private void InvalidateAssistRuntime(Core.AssistInvalidationReason reason)
+            {
+                _assistRuntimeEpoch++;
+                // Recipients consult the published donor snapshot, not this core's
+                // private epoch. Revoke it before the boundary can publish new state.
+                Processor.GetPodForCore((int)CoreID)?.InvalidateAssistOwnerSnapshot(
+                    Processor.GetLocalCoreId((int)CoreID));
+                Runtime.Telemetry.AssistInvalidationCount++;
+                _lastAssistInvalidationReason = reason;
+                _fspScheduler?.InvalidateAssistNominationState(reason);
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private static Core.AssistInvalidationReason ResolveOwnerInvalidationReason(
+                Core.AssistMicroOp assistMicroOp)
+            {
+                return assistMicroOp.HasExplicitCoreOwnership ||
+                       assistMicroOp.DonorSource.HasExplicitCoreSource
+                    ? Core.AssistInvalidationReason.InterCoreOwnerDrift
+                    : Core.AssistInvalidationReason.OwnerInvalidation;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private bool TryValidateAssistMicroOp(
+                Core.AssistMicroOp assistMicroOp,
+                out Core.AssistInvalidationReason invalidationReason)
+            {
+                invalidationReason = Core.AssistInvalidationReason.None;
+                if (assistMicroOp == null)
+                    return false;
+
+                if (assistMicroOp.AssistEpochId != _assistRuntimeEpoch)
+                    return false;
+
+                ulong replayEpochId = _loopBuffer.CurrentReplayPhase.IsActive
+                    ? _loopBuffer.CurrentReplayPhase.EpochId
+                    : 0;
+                if (assistMicroOp.ReplayEpochId != replayEpochId)
+                {
+                    invalidationReason = Core.AssistInvalidationReason.Replay;
+                    return false;
+                }
+
+                if (!CanVirtualThreadIssueInForeground(assistMicroOp.CarrierVirtualThreadId))
+                {
+                    invalidationReason = ResolveOwnerInvalidationReason(assistMicroOp);
+                    return false;
+                }
+
+                PodController? pod = Processor.GetPodForCore((int)CoreID);
+                int localCoreId = Processor.GetLocalCoreId((int)CoreID);
+                if (assistMicroOp.HasExplicitCoreOwnership)
+                {
+                    if (pod == null ||
+                        pod.PodId != assistMicroOp.PodId ||
+                        assistMicroOp.CarrierCoreId != localCoreId ||
+                        assistMicroOp.TargetCoreId != localCoreId)
+                    {
+                        invalidationReason = Core.AssistInvalidationReason.InterCoreOwnerDrift;
+                        return false;
+                    }
+                }
+
+                if (!assistMicroOp.DonorSource.IsLegalFor(
+                        assistMicroOp.Kind,
+                        assistMicroOp.ExecutionMode,
+                        assistMicroOp.CarrierKind))
+                {
+                    invalidationReason = Core.AssistInvalidationReason.OwnerInvalidation;
+                    return false;
+                }
+
+                if (assistMicroOp.DonorSource.HasExplicitCoreSource)
+                {
+                    PodController? donorPod =
+                        Processor.GetPodById(assistMicroOp.DonorSource.SourcePodId);
+                    if (pod == null ||
+                        donorPod == null ||
+                        assistMicroOp.DonorSource.SourceCoreId < 0 ||
+                        assistMicroOp.DonorSource.SourceCoreId >= PodController.CORES_PER_POD ||
+                        (donorPod.Scheduler?.IsCoreStalled(assistMicroOp.DonorSource.SourceCoreId) ?? false) ||
+                        !donorPod.TryGetAssistOwnerSnapshot(
+                            assistMicroOp.DonorSource.SourceCoreId,
+                            out PodController.AssistOwnerSnapshot donorSnapshot) ||
+                        !donorSnapshot.Matches(
+                            assistMicroOp.DonorVirtualThreadId,
+                            assistMicroOp.DonorSource.OwnerContextId,
+                            assistMicroOp.DonorSource.DomainTag))
+                    {
+                        invalidationReason = Core.AssistInvalidationReason.InterCoreOwnerDrift;
+                        return false;
+                    }
+
+                    if (donorSnapshot.AssistEpochId != assistMicroOp.DonorSource.SourceAssistEpochId)
+                    {
+                        invalidationReason = Core.AssistInvalidationReason.InterCoreBoundaryDrift;
+                        return false;
+                    }
+                }
+                else if (!assistMicroOp.DonorSource.MatchesScope(
+                    assistMicroOp.OwnerContextId,
+                    assistMicroOp.Placement.DomainTag))
+                {
+                    invalidationReason = Core.AssistInvalidationReason.OwnerInvalidation;
+                    return false;
+                }
+
+                if (!assistMicroOp.DonorSource.HasExplicitCoreSource &&
+                    !CanVirtualThreadIssueInForeground(assistMicroOp.DonorVirtualThreadId))
+                {
+                    invalidationReason = Core.AssistInvalidationReason.OwnerInvalidation;
+                    return false;
+                }
+
+                if (!CanVirtualThreadIssueInForeground(assistMicroOp.TargetVirtualThreadId))
+                {
+                    invalidationReason = ResolveOwnerInvalidationReason(assistMicroOp);
+                    return false;
+                }
+
+                ulong domainTag = assistMicroOp.Placement.DomainTag;
+                if (domainTag != 0 &&
+                    CsrMemDomainCert != 0 &&
+                    (domainTag & CsrMemDomainCert) == 0)
+                {
+                    invalidationReason = Core.AssistInvalidationReason.OwnerInvalidation;
+                    return false;
+                }
+
+                return true;
+            }
+
+            internal bool ExecuteAssistMicroOp(Core.AssistMicroOp assistMicroOp)
+            {
+                ArgumentNullException.ThrowIfNull(assistMicroOp);
+
+                Runtime.Telemetry.AssistLaunchCount++;
+                if (!TryValidateAssistMicroOp(assistMicroOp, out Core.AssistInvalidationReason invalidationReason))
+                {
+                    Runtime.Telemetry.AssistKilledCount++;
+                    if (invalidationReason != Core.AssistInvalidationReason.None)
+                    {
+                        InvalidateAssistRuntime(invalidationReason);
+                    }
+                    return true;
+                }
+
+                try
+                {
+                    uint reservedPrefetchLines =
+                        assistMicroOp.ResolvePrefetchLineBudget(DefaultAssistMemoryQuota);
+                    if (TryExecuteAssistMicroOpOnCarrier(assistMicroOp, reservedPrefetchLines))
+                    {
+                        Runtime.Telemetry.AssistCompletedCount++;
+                    }
+                    else
+                    {
+                        Runtime.Telemetry.AssistKilledCount++;
+                    }
+                }
+                catch
+                {
+                    Runtime.Telemetry.AssistKilledCount++;
+                }
+
+                return true;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private bool TryExecuteAssistMicroOpOnCarrier(
+                Core.AssistMicroOp assistMicroOp,
+                uint reservedPrefetchLines)
+            {
+                return assistMicroOp.Placement.RequiredSlotClass switch
+                {
+                    Core.SlotClass.LsuClass => ExecuteLsuHostedAssistMicroOp(
+                        assistMicroOp,
+                        reservedPrefetchLines),
+                    Core.SlotClass.DmaStreamClass => ExecuteLane6HostedAssistMicroOp(
+                        assistMicroOp,
+                        reservedPrefetchLines),
+                    _ => false
+                };
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private bool ExecuteLsuHostedAssistMicroOp(
+                Core.AssistMicroOp assistMicroOp,
+                uint reservedPrefetchLines)
+            {
+                if (assistMicroOp.ExecutionMode != Core.AssistExecutionMode.CachePrefetch)
+                    return false;
+
+                return AssistPrefetchDataWindow(
+                    assistMicroOp.BaseAddress,
+                    assistMicroOp.PrefetchLength,
+                    assistMicroOp.Placement.DomainTag,
+                    assistMicroOp.CarrierKind,
+                    assistMicroOp.LocalityHint,
+                    reservedPrefetchLines);
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private static uint ResolveLane6AssistElementBudget(
+                Core.AssistMicroOp assistMicroOp,
+                uint reservedPrefetchLines)
+            {
+                if (assistMicroOp.ElementCount == 0)
+                    return 1;
+
+                ulong lineBudgetBytes = Math.Max(
+                    AssistCacheLineSize,
+                    (ulong)Math.Max(1u, reservedPrefetchLines) * AssistCacheLineSize);
+                ulong elementSize = assistMicroOp.ElementSize == 0 ? 1UL : assistMicroOp.ElementSize;
+                ulong maxElementCount = Math.Max(1UL, lineBudgetBytes / elementSize);
+                uint srfResidentBudget = YAKSys_Hybrid_CPU.Execution.StreamEngine.ResolveSrfResidentChunkBudget(
+                    (int)elementSize,
+                    maxElementCount);
+                if (srfResidentBudget == 0)
+                {
+                    return 1;
+                }
+
+                return (uint)Math.Min((ulong)assistMicroOp.ElementCount, srfResidentBudget);
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private bool ExecuteLane6HostedAssistMicroOp(
+                Core.AssistMicroOp assistMicroOp,
+                uint reservedPrefetchLines)
+            {
+                if (assistMicroOp.ExecutionMode != Core.AssistExecutionMode.StreamRegisterPrefetch)
+                    return false;
+
+                return YAKSys_Hybrid_CPU.Execution.StreamEngine.ScheduleLane6AssistPrefetch(
+                    assistMicroOp.BaseAddress,
+                    assistMicroOp.ElementSize,
+                    ResolveLane6AssistElementBudget(assistMicroOp, reservedPrefetchLines),
+                    DefaultAssistBackpressurePolicy.DmaSrfPartitionPolicy);
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private bool AssistPrefetchDataWindow(
+                ulong baseAddress,
+                ulong prefetchLength,
+                ulong domainTag,
+                Core.AssistCarrierKind carrierKind,
+                Core.LocalityHint localityHint,
+                uint prefetchedLineBudget)
+            {
+                if (L1_Data == null)
+                {
+                    L1_Data = new Cache_Data_Object[2048];
+                }
+
+                if (L1_VLIWBundles == null)
+                {
+                    L1_VLIWBundles = new Cache_VLIWBundle_Object[256];
+                }
+
+                ulong alignedBaseAddress = baseAddress & ~(AssistCacheLineSize - 1UL);
+                ulong totalLength = prefetchLength == 0 ? AssistCacheLineSize : prefetchLength;
+                uint maxLines = prefetchedLineBudget == 0
+                    ? DefaultAssistMemoryQuota.ResolveLineCap(localityHint)
+                    : prefetchedLineBudget;
+                ulong linesToPrefetch = Math.Max(1UL, (totalLength + AssistCacheLineSize - 1UL) / AssistCacheLineSize);
+                linesToPrefetch = Math.Min(linesToPrefetch, (ulong)maxLines);
+                bool prefetchedAnyLine = false;
+
+                for (ulong lineIndex = 0; lineIndex < linesToPrefetch; lineIndex++)
+                {
+                    if (TryPrefetchAssistDataLine(
+                        alignedBaseAddress + (lineIndex * AssistCacheLineSize),
+                        domainTag,
+                        carrierKind,
+                        out _))
+                    {
+                        prefetchedAnyLine = true;
+                        continue;
+                    }
+
+                    return prefetchedAnyLine;
+                }
+
+                return prefetchedAnyLine;
+            }
+        }
+    }
+}

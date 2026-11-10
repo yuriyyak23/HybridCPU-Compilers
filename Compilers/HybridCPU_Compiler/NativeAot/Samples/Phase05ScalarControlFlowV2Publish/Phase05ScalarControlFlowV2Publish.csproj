@@ -1,0 +1,20 @@
+<Project TreatAsLocalProperty="PublishAot">
+  <PropertyGroup>
+    <HybridCpuSdkPackRoot Condition="'$(HybridCpuSdkPackRoot)' == ''">..\..\Packaging\</HybridCpuSdkPackRoot>
+    <HybridCpuCompilerPath Condition="'$(HybridCpuCompilerPath)' == ''">..\..\bin\Release\net10.0\HybridCPU.Compiler.NativeAot.Adapter.dll</HybridCpuCompilerPath>
+  </PropertyGroup>
+  <Import Project="$(HybridCpuSdkPackRoot)HybridCPU.Sdk.props" />
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <HybridCpuProfile>HybridCPU.DotNetAot.ScalarControlFlowV2</HybridCpuProfile>
+    <HybridCpuEntryType>Phase05ScalarControlFlowV2Publish.EntryPoint</HybridCpuEntryType>
+    <HybridCpuEntryMethod>Root</HybridCpuEntryMethod>
+    <HybridCpuPresentedMethods>Phase05ScalarControlFlowV2Publish.EntryPoint::Root;Phase05ScalarControlFlowV2Publish.EntryPoint::Loop;Phase05ScalarControlFlowV2Publish.EntryPoint::Shared;Phase05ScalarControlFlowV2Publish.EntryPoint::Left;Phase05ScalarControlFlowV2Publish.EntryPoint::Right</HybridCpuPresentedMethods>
+  </PropertyGroup>
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+  <Import Project="$(HybridCpuSdkPackRoot)HybridCPU.Sdk.targets" />
+</Project>

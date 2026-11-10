@@ -1,0 +1,11 @@
+{
+  "schema": "hybridcpu.ise-cpu-backed-image-run/v1",
+  "image": "fixture.hcexe",
+  "status": "ExecutionFault",
+  "Reason": "provider rejected receiver; exact reason retained",
+  "FinalProgramCounter": 258,
+  "GcSafepointsObserved": 0,
+  "nearbyCodeRecords": [{"MethodIdentity":"Doom.Tick", "codeStart":256, "codeEnd":512}],
+  "managedTypes": [{"TypeId":1,"StableIdentity":"Doom.State","TypeHandle":4096,"Kind":0,"InstanceSizeBytes":16,"InstanceFields":[]}],
+  "managedObservations": [{"Operation":3,"Receiver":9,"Argument1":0,"Argument2":7,"Status":1,"Error":-3,"Value":0}]
+}

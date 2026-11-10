@@ -1,0 +1,115 @@
+using HybridCPU.ExternalRuntime.Contracts;
+
+namespace HybridCPU.ExternalRuntime;
+
+public sealed partial class HybridCpuExternalRuntime : IHybridCpuOriginalChildEventRuntimeV1
+{
+    private sealed class OriginalChildEventFact(ExternalOriginalChildEventRequest request, ChildRecord child)
+    {
+        public OriginalChildEventFact? Self;
+        public ExternalOriginalChildEventRequest Request { get; } = request;
+        public ChildRecord Child { get; } = child;
+        public DomainRecord Parent { get; } = child.ParentSource;
+        // Private external software mailbox. Retained before accepted delivery, cleared only by exact settlement.
+        public string? Payload;
+        public ExternalOriginalChildEventObservation? Observation;
+    }
+
+    private bool EventHistory(ChildRecord child)
+    {
+        if ((ulong)child.OriginalEvents.Count != child.OriginalEventsIssued) return false;
+        // Local validation sets are not another fact owner. Every inventory entry must
+        // preserve one canonical fact/request and one admitted operation/sequence.
+        var facts = new HashSet<OriginalChildEventFact>(ReferenceEqualityComparer.Instance);
+        var requests = new HashSet<ExternalOriginalChildEventRequest>(ReferenceEqualityComparer.Instance);
+        var operations = new HashSet<ExternalOperationIdentity>();
+        var sequences = new HashSet<ulong>();
+        foreach (var fact in child.OriginalEvents)
+        {
+            if (fact is null || fact.Request is null || !ReferenceEquals(fact.Self, fact) ||
+                !ReferenceEquals(fact.Child, child) || !ReferenceEquals(fact.Parent, child.ParentSource) ||
+                !facts.Add(fact) || !requests.Add(fact.Request) ||
+                !operations.Add(fact.Request.Operation) || !sequences.Add(fact.Request.Sequence)) return false;
+        }
+        return true;
+    }
+    private bool EventSource(OriginalChildEventFact fact) => EventHistory(fact.Child) && fact.Child.OriginalEvents.Contains(fact) &&
+        ReferenceEquals(fact.Child.OriginalOwner, fact.Child) && ReferenceEquals(fact.Parent.OriginalOwner, fact.Parent) &&
+        ReferenceEquals(fact.Child.OriginalAdmission, fact.Request.Admission) && fact.Request.Admission.Lease == fact.Child.Lease &&
+        fact.Request.Admission.ContractVersion == manifest.ContractVersion && fact.Request.Admission.ManifestGeneration == manifest.Generation &&
+        TryFind(fact.Parent.Lease, out var parent, out _, out _) && ReferenceEquals(parent, fact.Parent) &&
+        TryFindChild(fact.Child.Lease, out var child, out _, out _, allowOriginalClose: true) && ReferenceEquals(child, fact.Child) &&
+        fact.Parent.Children.TryGetValue(fact.Child.Lease.Handle, out var routed) && ReferenceEquals(routed, fact.Child);
+    private bool HasOriginalEventPins(ChildRecord child) => !EventHistory(child) || child.OriginalEvents.Any(f =>
+        !EventSource(f) || f.Payload is not null || f.Observation is not { NoFurtherDelivery: true } terminal || !ReferenceEquals(terminal.Request, f.Request));
+
+    public ExternalOriginalChildEventObservation? InjectOriginalChildEvent(ExternalOriginalChildEventRequest request)
+    {
+        if (request is null || request.Admission is null || string.IsNullOrWhiteSpace(request.SourceResourceId) ||
+            request.SourceResourceId.Length > 256 || request.Sequence == 0 || !Valid(request.Operation) ||
+            !TryFindChild(request.Admission.Lease, out var child, out _, out _, allowOriginalClose: true)) return null;
+        var parent = child!.ParentSource;
+        lock (parent.Sync)
+        lock (child.Sync)
+        {
+            if (!EventHistory(child) || !ReferenceEquals(child.OriginalOwner, child) || !ReferenceEquals(parent.OriginalOwner, parent) ||
+                !ReferenceEquals(child.OriginalAdmission, request.Admission) || request.Admission.ContractVersion != manifest.ContractVersion ||
+                request.Admission.ManifestGeneration != manifest.Generation || child.OriginalEventsIssued == ulong.MaxValue ||
+                child.OriginalEvents.Any(f => f.Request.Operation == request.Operation || f.Request.Sequence == request.Sequence) ||
+                !TryFind(parent.Lease, out var currentParent, out _, out _) || !ReferenceEquals(parent, currentParent) ||
+                !TryFindChild(child.Lease, out var currentChild, out _, out _, allowOriginalClose: true) || !ReferenceEquals(child, currentChild)) return null;
+            child.OriginalEvents.EnsureCapacity(child.OriginalEvents.Count + 1);
+            var fact = new OriginalChildEventFact(request, child); fact.Self = fact;
+            child.OriginalEvents.Add(fact); child.OriginalEventsIssued++;
+            if (parent.Lifecycle != Lifecycle.Ready || parent.InFlight is not null || child.OriginalClose is { Observation: not { NoEffect: true } } ||
+                !child.Authority.HasFlag(ExternalChildAuthority.EventInjection) || !Enum.IsDefined(child.State) || child.State == ExternalChildDomainState.Closed ||
+                request.Sequence <= child.LastEventSequence || !ReserveChildOperation(child, request.Operation, out _))
+            {
+                fact.Observation = new(request, null, true, true, manifest.ContractVersion, manifest.Generation);
+                return fact.Observation;
+            }
+            // Relay the already captured immutable semantic datum; no additional private byte buffer is materialized.
+            fact.Payload = request.SourceResourceId;
+            child.LastEventSequence = request.Sequence;
+            var receipt = new ExternalChildEventReceipt(child.Lease, ExternalChildEventKind.External, request.Sequence,
+                request.Operation, manifest.ContractVersion, manifest.Generation);
+            fact.Observation = new(request, receipt, false, false, manifest.ContractVersion, manifest.Generation);
+            return EventSource(fact) ? fact.Observation : null;
+        }
+    }
+
+    private ExternalOriginalChildEventObservation? SettleOriginalChildEvent(ExternalOriginalChildEventRequest request, bool consume)
+    {
+        if (request is null || request.Admission is null || !TryFindChild(request.Admission.Lease, out var child, out _, out _, allowOriginalClose: true)) return null;
+        lock (child!.ParentSource.Sync)
+        lock (child.Sync)
+        {
+            if (!EventHistory(child)) return null;
+            var fact = child.OriginalEvents.SingleOrDefault(f => ReferenceEquals(f.Request, request));
+            if (fact is null || !EventSource(fact)) return null;
+            if (fact.Observation is { NoFurtherDelivery: true } completed && ReferenceEquals(completed.Request, request) && fact.Payload is null)
+                return completed; // Completed original requires no new active permission/operation.
+            if (consume && (fact.Payload is null || fact.Observation?.Receipt is not { } receipt || receipt.Sequence != request.Sequence ||
+                !ReferenceEquals(fact.Payload, request.SourceResourceId))) return null;
+            fact.Payload = null; // Under the sole mailbox owner gate: this original can never deliver again.
+            fact.Observation = new(request, fact.Observation?.Receipt, false, true, manifest.ContractVersion, manifest.Generation);
+            return fact.Observation;
+        }
+    }
+    public ExternalOriginalChildEventObservation? ConsumeOriginalChildEvent(ExternalOriginalChildEventRequest request) => SettleOriginalChildEvent(request, true);
+    public ExternalOriginalChildEventObservation? ContainOriginalChildEvent(ExternalOriginalChildEventRequest request) => SettleOriginalChildEvent(request, false);
+    public ExternalOriginalChildEventObservation? ResolveOriginalChildEvent(ExternalOriginalChildEventRequest request)
+    {
+        if (request is null || request.Admission is null || !TryFindChild(request.Admission.Lease, out var child, out _, out _, allowOriginalClose: true)) return null;
+        lock (child!.ParentSource.Sync)
+        lock (child.Sync)
+        {
+            if (!EventHistory(child)) return null;
+            var fact = child.OriginalEvents.SingleOrDefault(f => ReferenceEquals(f.Request, request));
+            if (fact is null || !EventSource(fact) || fact.Observation is not { } raw || !ReferenceEquals(raw.Request, request) ||
+                raw.ContractVersion != manifest.ContractVersion || raw.ManifestGeneration != manifest.Generation ||
+                raw.NoFurtherDelivery && fact.Payload is not null) return null;
+            return raw;
+        }
+    }
+}

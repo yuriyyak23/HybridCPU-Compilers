@@ -1,0 +1,72 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v11.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v11.0": {
+      "HybridCPU.Compiler.NativeAot.Adapter/1.0.0": {
+        "dependencies": {
+          "HybridCPU.Compiler.Cil": "1.0.0",
+          "HybridCPU.Compiler.Core": "1.0.0"
+        },
+        "runtime": {
+          "HybridCPU.Compiler.NativeAot.Adapter.dll": {}
+        }
+      },
+      "HybridCPU.Compiler.Cil/1.0.0": {
+        "dependencies": {
+          "HybridCPU.Compiler.Core": "1.0.0"
+        },
+        "runtime": {
+          "HybridCPU.Compiler.Cil.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "HybridCPU.Compiler.Core/1.0.0": {
+        "dependencies": {
+          "HybridCPU.Platform.Contracts": "1.0.0"
+        },
+        "runtime": {
+          "HybridCPU.Compiler.Core.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "HybridCPU.Platform.Contracts/1.0.0": {
+        "runtime": {
+          "HybridCPU.Platform.Contracts.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "HybridCPU.Compiler.NativeAot.Adapter/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "HybridCPU.Compiler.Cil/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "HybridCPU.Compiler.Core/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "HybridCPU.Platform.Contracts/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

@@ -1,0 +1,144 @@
+diff --git a/src/coreclr/tools/aot/ILCompiler.RyuJit/Compiler/RyuJitCompilation.cs b/src/coreclr/tools/aot/ILCompiler.RyuJit/Compiler/RyuJitCompilation.cs
+index 98b214e..969cce4 100644
+--- a/src/coreclr/tools/aot/ILCompiler.RyuJit/Compiler/RyuJitCompilation.cs
++++ b/src/coreclr/tools/aot/ILCompiler.RyuJit/Compiler/RyuJitCompilation.cs
+@@ -6,0 +7,2 @@ using System.Diagnostics;
++using System.IO;
++using System.Linq;
+@@ -31,0 +34,3 @@ namespace ILCompiler
++        private readonly HybridCpuSeamConfiguration _hybridCpuSeam;
++        private byte[] _hybridCpuCode;
++        private int _hybridCpuCompiledMethodCount;
+@@ -51 +56,2 @@ namespace ILCompiler
+-            string orderFile)
++            string orderFile,
++            HybridCpuSeamConfiguration hybridCpuSeam)
+@@ -63,0 +70 @@ namespace ILCompiler
++            _hybridCpuSeam = hybridCpuSeam;
+@@ -108,0 +116,8 @@ namespace ILCompiler
++            if (_hybridCpuSeam != null)
++            {
++                if (_hybridCpuCompiledMethodCount != 1 || _hybridCpuCode == null)
++                    throw new InvalidOperationException($"HybridCPU seam requires exactly one compiled method; observed {_hybridCpuCompiledMethodCount}.");
++                File.WriteAllBytes(outputFile, _hybridCpuCode);
++                return;
++            }
++
+@@ -197,0 +213,6 @@ namespace ILCompiler
++            if (_hybridCpuSeam != null)
++            {
++                CompileHybridCpuMethod(methodCodeNodeNeedingCode);
++                return;
++            }
++
+@@ -231,0 +253,88 @@ namespace ILCompiler
++
++        private void CompileHybridCpuMethod(MethodCodeNode methodNode)
++        {
++            MethodDesc method = methodNode.Method;
++            if (!string.Equals(method.Name, _hybridCpuSeam.MethodName, StringComparison.Ordinal) ||
++                method.OwningType is not MetadataType metadataType ||
++                !string.Equals($"{metadataType.Namespace}.{metadataType.Name}", _hybridCpuSeam.TypeName, StringComparison.Ordinal))
++                throw new InvalidOperationException($"HybridCPU seam rejected unexpected dependency-graph method '{method}'.");
++            if (Interlocked.Increment(ref _hybridCpuCompiledMethodCount) != 1)
++                throw new InvalidOperationException("HybridCPU Phase 23 seam supports one dependency-graph method only.");
++
++            string temporaryCode = Path.Combine(Path.GetTempPath(), $"hybridcpu-naot-{Guid.NewGuid():N}.bin");
++            try
++            {
++                var start = new ProcessStartInfo(_hybridCpuSeam.DotNetHost)
++                {
++                    RedirectStandardOutput = true,
++                    RedirectStandardError = true,
++                    UseShellExecute = false,
++                };
++                start.ArgumentList.Add(_hybridCpuSeam.AdapterAssembly);
++                start.ArgumentList.Add("compile");
++                AddPair(start, "--assembly", _hybridCpuSeam.InputAssembly);
++                AddPair(start, "--type", _hybridCpuSeam.TypeName);
++                AddPair(start, "--method", _hybridCpuSeam.MethodName);
++                AddPair(start, "--out", temporaryCode);
++                AddPair(start, "--source-commit", _hybridCpuSeam.SourceCommit);
++                AddPair(start, "--patch-digest", _hybridCpuSeam.PatchDigest);
++                using Process process = Process.Start(start) ?? throw new InvalidOperationException("Unable to start HybridCPU adapter.");
++                var stdoutRead = process.StandardOutput.ReadToEndAsync();
++                var stderrRead = process.StandardError.ReadToEndAsync();
++                process.WaitForExit();
++                string stdout = stdoutRead.GetAwaiter().GetResult();
++                string stderr = stderrRead.GetAwaiter().GetResult();
++                if (process.ExitCode != 0)
++                    throw new InvalidOperationException($"HybridCPU adapter failed with exit {process.ExitCode}: {stderr}{stdout}");
++
++                byte[] code = File.ReadAllBytes(temporaryCode);
++                if (code.Length == 0 || code.Length % 32 != 0)
++                    throw new InvalidOperationException("HybridCPU adapter returned an empty or non-bundle-aligned method body.");
++                _hybridCpuCode = code;
++                methodNode.SetCode(new ObjectNode.ObjectData(code, Array.Empty<Relocation>(), 32, new ISymbolDefinitionNode[] { methodNode }));
++            }
++            finally
++            {
++                if (File.Exists(temporaryCode)) File.Delete(temporaryCode);
++                if (File.Exists(temporaryCode + ".json")) File.Delete(temporaryCode + ".json");
++            }
++        }
++
++        private static void AddPair(ProcessStartInfo start, string name, string value)
++        {
++            start.ArgumentList.Add(name);
++            start.ArgumentList.Add(value);
++        }
++    }
++
++    internal sealed class HybridCpuSeamConfiguration
++    {
++        public string DotNetHost { get; private init; }
++        public string AdapterAssembly { get; private init; }
++        public string InputAssembly { get; private init; }
++        public string TypeName { get; private init; }
++        public string MethodName { get; private init; }
++        public string SourceCommit { get; private init; }
++        public string PatchDigest { get; private init; }
++
++        public static HybridCpuSeamConfiguration Parse(IReadOnlyDictionary<string, string> options)
++        {
++            string[] required = ["HybridCpuDotNetHost", "HybridCpuAdapter", "HybridCpuAssembly", "HybridCpuType", "HybridCpuMethod", "HybridCpuSourceCommit", "HybridCpuPatchDigest"];
++            if (options.Count != required.Length || required.Any(name => !options.TryGetValue(name, out string value) || string.IsNullOrWhiteSpace(value)))
++                throw new InvalidOperationException($"HybridCPU seam requires exactly: {string.Join(", ", required)}.");
++            if (options["HybridCpuSourceCommit"] != "94ea82652cdd4e0f8046b5bd5becbd11461482ca")
++                throw new InvalidOperationException("HCNAOT1001: unsupported dotnet/runtime source commit.");
++            if (options["HybridCpuPatchDigest"].Length != 64 || !options["HybridCpuPatchDigest"].All(Uri.IsHexDigit))
++                throw new InvalidOperationException("HCNAOT1002: patch digest must be 64 hexadecimal characters.");
++
++            return new HybridCpuSeamConfiguration
++            {
++                DotNetHost = options["HybridCpuDotNetHost"],
++                AdapterAssembly = options["HybridCpuAdapter"],
++                InputAssembly = options["HybridCpuAssembly"],
++                TypeName = options["HybridCpuType"],
++                MethodName = options["HybridCpuMethod"],
++                SourceCommit = options["HybridCpuSourceCommit"],
++                PatchDigest = options["HybridCpuPatchDigest"],
++            };
++        }
+diff --git a/src/coreclr/tools/aot/ILCompiler.RyuJit/Compiler/RyuJitCompilationBuilder.cs b/src/coreclr/tools/aot/ILCompiler.RyuJit/Compiler/RyuJitCompilationBuilder.cs
+index d4c69d5..fd3d035 100644
+--- a/src/coreclr/tools/aot/ILCompiler.RyuJit/Compiler/RyuJitCompilationBuilder.cs
++++ b/src/coreclr/tools/aot/ILCompiler.RyuJit/Compiler/RyuJitCompilationBuilder.cs
+@@ -25,0 +26 @@ namespace ILCompiler
++        private HybridCpuSeamConfiguration _hybridCpuSeam;
+@@ -60,0 +62 @@ namespace ILCompiler
++            var hybridCpuOptions = new Dictionary<string, string>(StringComparer.Ordinal);
+@@ -74,0 +77,6 @@ namespace ILCompiler
++                if (name.StartsWith("HybridCpu", StringComparison.Ordinal))
++                {
++                    if (!hybridCpuOptions.TryAdd(name, value))
++                        throw new InvalidOperationException($"Duplicate HybridCPU seam option '{name}'.");
++                    continue;
++                }
+@@ -78,0 +87,2 @@ namespace ILCompiler
++            if (hybridCpuOptions.Count != 0)
++                _hybridCpuSeam = HybridCpuSeamConfiguration.Parse(hybridCpuOptions);
+@@ -165 +175,2 @@ namespace ILCompiler
+-                _orderFile);
++                _orderFile,
++                _hybridCpuSeam);

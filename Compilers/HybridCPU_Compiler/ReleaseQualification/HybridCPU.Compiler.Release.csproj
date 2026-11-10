@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net11.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>HybridCPU.Compiler.Release</AssemblyName>
+    <RootNamespace>HybridCPU.Compiler.Release</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AssemblyMetadata Include="CompilerBuildSdkVersion" Value="$(NETCoreSdkVersion)" />
+    <ProjectReference Include="..\Core\HybridCPU.Compiler.Core.csproj" />
+    <ProjectReference Include="..\Native\HybridCPU.Compiler.Native.csproj" />
+    <ProjectReference Include="..\Cil\HybridCPU.Compiler.Cil.csproj" />
+    <ProjectReference Include="..\LLVM\HybridCPU.Compiler.Llvm.csproj" />
+    <ProjectReference Include="..\NativeAot\HybridCPU.Compiler.NativeAot.Adapter.csproj" />
+    <ProjectReference Include="..\Oracle\HybridCPU.Compiler.Oracle.csproj" />
+  </ItemGroup>
+
+  <Target Name="RequireCompilerBuildSdkIdentity" BeforeTargets="GenerateAssemblyInfo">
+    <Error Condition="'$(NETCoreSdkVersion)' == ''" Text="HCRL1104: compiler build SDK identity is missing." />
+  </Target>
+
+</Project>

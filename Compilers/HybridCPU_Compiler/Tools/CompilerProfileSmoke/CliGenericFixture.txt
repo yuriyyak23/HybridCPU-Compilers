@@ -1,0 +1,1 @@
+public static class CliFixture { public static T Identity<T>(T value) => value; }

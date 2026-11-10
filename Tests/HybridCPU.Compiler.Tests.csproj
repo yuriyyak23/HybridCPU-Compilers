@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net11.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <DefineTestSupport Condition="'$(Configuration)' != 'Release'">true</DefineTestSupport>
+    <AssemblyName>HybridCPU.Compiler.Tests</AssemblyName>
+    <NoWarn>$(NoWarn);CS0612;CS0618</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="4.0.1" PrivateAssets="all" />
+    <Using Include="Xunit" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Compilers/HybridCPU_Compiler/HybridCPU_Compiler.csproj" />
+    <ProjectReference Include="../Compilers/HybridCPU_Compiler/Cil/HybridCPU.Compiler.Cil.csproj" />
+    <ProjectReference Include="../Compilers/HybridCPU_Compiler/Native/HybridCPU.Compiler.Native.csproj" />
+    <ProjectReference Include="../Compilers/HybridCPU_Compiler/NativeAot/HybridCPU.Compiler.NativeAot.Adapter.csproj" />
+    <ProjectReference Include="../Compilers/HybridCPU_Compiler/LLVM/HybridCPU.Compiler.Llvm.csproj" />
+    <ProjectReference Include="../Compilers/HybridCPU_Compiler/Oracle/HybridCPU.Compiler.Oracle.csproj" />
+    <ProjectReference Include="../Compilers/HybridCPU_Compiler/ReleaseQualification/HybridCPU.Compiler.Release.csproj" />
+    <ProjectReference Include="../Compilers/CpuInterfaceBridge/HybridCpu_InterfaceBridge.csproj" />
+    <ProjectReference Include="../Compilers/HybridCPU_ManagedRuntime/HybridCPU.ManagedRuntime.csproj" />
+    <ProjectReference Include="../corpus/ScalarControlFlowV2.Corpus/ScalarControlFlowV2.Corpus.csproj" />
+    <ProjectReference Include="../corpus/corpus/Phase00.Conformance.Corpus/Phase00.Conformance.Corpus.csproj" />
+    <ProjectReference Include="../../HybridCPU ISE/HybridCPU_ISE/HybridCPU_ISE.csproj"
+                      AdditionalProperties="DefineTestSupport=true;EnableInternalTestHooks=true;BaseIntermediateOutputPath=obj\testsupport\;MSBuildProjectExtensionsPath=obj\;OutputPath=bin\$(Configuration)\testsupport\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../HybridCPU ISE/HybridCPU_ISE.Tests/Architecture/Rf066CompilerParityTests.cs" Link="Shared/Rf066CompilerParityTests.cs" />
+    <Compile Include="../../HybridCPU ISE/HybridCPU_ISE.Tests/TestHelpers/*.cs" Link="TestHelpers/%(Filename)%(Extension)" />
+    <Compile Include="../../HybridCPU ISE/HybridCPU_ISE.Tests/tests/L7SdcOpcodeSurfaceTests.cs" Link="Shared/L7SdcOpcodeSurfaceTests.cs" />
+    <Compile Include="../../HybridCPU ISE/HybridCPU_ISE.Tests/tests/Phase05PipelineFsmTests.cs" Link="Shared/Phase05PipelineFsmTests.cs" />
+    <Compile Include="../../HybridCPU ISE/HybridCPU_ISE.Tests/tests/DmaStreamComputeTelemetryTests.cs" Link="Shared/DmaStreamComputeTelemetryTests.cs" />
+  </ItemGroup>
+</Project>

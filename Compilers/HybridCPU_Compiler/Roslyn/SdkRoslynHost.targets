@@ -1,0 +1,21 @@
+<Project>
+  <!-- The optional companion and its consumer must bind the same actual SDK compiler. -->
+  <Target Name="BindCompanionSdkRoslynHost" BeforeTargets="ResolveAssemblyReferences"
+          Condition="'$(UseSdkRoslynForCompanion)' == 'true'">
+    <ItemGroup>
+      <_CompanionSdkCompilerFile Include="$(MSBuildSDKsPath)/../Roslyn/bincore/Microsoft.CodeAnalysis.dll" />
+      <_CompanionSdkCompilerFile Include="$(MSBuildSDKsPath)/../Roslyn/bincore/Microsoft.CodeAnalysis.CSharp.dll" />
+    </ItemGroup>
+    <Error Condition="'$(NETCoreSdkVersion)' == ''" Text="Companion SDK Roslyn host requires build-derived NETCoreSdkVersion." />
+    <GetAssemblyIdentity AssemblyFiles="@(_CompanionSdkCompilerFile)">
+      <Output TaskParameter="Assemblies" ItemName="_CompanionSdkCompilerIdentity" />
+    </GetAssemblyIdentity>
+    <ItemGroup>
+      <Reference Include="@(_CompanionSdkCompilerIdentity)">
+        <HintPath>%(_CompanionSdkCompilerIdentity.OriginalItemSpec)</HintPath>
+        <SpecificVersion>true</SpecificVersion>
+        <Private>true</Private>
+      </Reference>
+    </ItemGroup>
+  </Target>
+</Project>

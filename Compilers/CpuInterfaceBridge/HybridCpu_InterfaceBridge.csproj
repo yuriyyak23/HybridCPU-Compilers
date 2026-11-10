@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net11.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <HybridCpuIseProjectReferenceProperties>DefineTestSupport=$(DefineTestSupport)</HybridCpuIseProjectReferenceProperties>
+    <HybridCpuIseProjectReferenceProperties Condition="'$(DefineTestSupport)' == 'true'">DefineTestSupport=$(DefineTestSupport);BaseIntermediateOutputPath=obj\testsupport\;MSBuildProjectExtensionsPath=obj\;OutputPath=bin\$(Configuration)\testsupport\</HybridCpuIseProjectReferenceProperties>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Validation\**\*.cs;.artifacts\**\*.cs" />
+    <ProjectReference Include="..\HybridCPU_Compiler\HybridCPU_Compiler.csproj">
+      <AdditionalProperties>DefineTestSupport=$(DefineTestSupport)</AdditionalProperties>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\HybridCPU ISE\HybridCPU_ISE\HybridCPU_ISE.csproj">
+      <AdditionalProperties>$(HybridCpuIseProjectReferenceProperties)</AdditionalProperties>
+    </ProjectReference>
+  </ItemGroup>
+
+</Project>

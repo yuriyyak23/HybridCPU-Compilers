@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "dependencies": {
+    "net11.0": {
+      "HybridCPU.ExternalRuntime": {
+        "type": "Direct",
+        "requested": "[1.25.2-virtualization.eventlineage.20261015.3, 1.25.2-virtualization.eventlineage.20261015.3]",
+        "resolved": "1.25.2-virtualization.eventlineage.20261015.3",
+        "contentHash": "lDj+H7ZqID9msfiCD76BlpG/Qr53e/Q388bnDO2ESDh6oJ/UyJFm2ajFdba+d40EN4I7JDphREHyEqwE1ED+Vg==",
+        "dependencies": {
+          "HybridCPU.ExternalRuntime.Contracts": "[1.36.1]"
+        }
+      },
+      "HybridCPU.ExternalRuntime.Contracts": {
+        "type": "Direct",
+        "requested": "[1.36.1, 1.36.1]",
+        "resolved": "1.36.1",
+        "contentHash": "RG9rvqlx9S5/s1qRjkF7AENnfh13DPOUK8pmQbRQgoKxdcS9FTLJOI0KuLybYGykVacWi+BN1yfbry3DII2akA=="
+      },
+      "hybridcpu.boot.contracts": {
+        "type": "Project"
+      },
+      "hybridcpu_neutralruntime.contracts": {
+        "type": "Project"
+      },
+      "singplus.contracts": {
+        "type": "Project"
+      }
+    }
+  }
+}

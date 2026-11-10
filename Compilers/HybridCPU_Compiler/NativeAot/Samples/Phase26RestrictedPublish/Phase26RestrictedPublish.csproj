@@ -1,0 +1,18 @@
+<Project TreatAsLocalProperty="PublishAot">
+  <PropertyGroup>
+    <HybridCpuSdkPackRoot Condition="'$(HybridCpuSdkPackRoot)' == ''">..\..\Packaging\</HybridCpuSdkPackRoot>
+    <HybridCpuCompilerPath Condition="'$(HybridCpuCompilerPath)' == ''">..\..\bin\Release\net10.0\HybridCPU.Compiler.NativeAot.Adapter.dll</HybridCpuCompilerPath>
+  </PropertyGroup>
+  <Import Project="$(HybridCpuSdkPackRoot)HybridCPU.Sdk.props" />
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <HybridCpuEntryType>Phase26RestrictedPublish.EntryPoint</HybridCpuEntryType>
+    <HybridCpuEntryMethod>Add</HybridCpuEntryMethod>
+  </PropertyGroup>
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+  <Import Project="$(HybridCpuSdkPackRoot)HybridCPU.Sdk.targets" />
+</Project>

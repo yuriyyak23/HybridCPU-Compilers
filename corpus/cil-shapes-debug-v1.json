@@ -1,0 +1,15 @@
+{
+  "schema": "HybridCPU.RefPlan6.CilShapeCorpusV1",
+  "configuration": "Debug",
+  "sdk": "10.0.204",
+  "roslyn": "5.3.0-2.26230.114+e7aa4b537d95ae955b5c98c25fa9b9220e7eb71e",
+  "assemblySha256": "4b7c4c02e899e0c029baabf5bcc3a96896b992fc6d59b87d515f408c295d6f22",
+  "methods": [
+    {"name":"ConditionalExit","token":"0x06000006","maxStack":2,"initLocals":true,"localSignatureToken":"0x11000005","exceptionRegionCount":0,"ilBytes":57,"ilSha256":"571c61c3e5a4065b4057d36bef01064316f60314120d4629df22c575bbe5997a","ilHex":"00160a160b2b20000703fe010c082c022b1f07175f16fe010d092c022b050607580a000717580b0702fe04130411042dd60613052b0011052a"},
+    {"name":"DoWhileAccumulator","token":"0x06000004","maxStack":2,"initLocals":true,"localSignatureToken":"0x11000003","exceptionRegionCount":0,"ilBytes":46,"ilSha256":"f0ef2725e3b987f56b04c5ef20ec5f4bdda31d651c8be8d63124c9f6b9bc5e61","ilHex":"00160a160b0216fe0216fe010c082c04060d2b18000607580a0717580b000702fe04130411042dec060d2b00092a"},
+    {"name":"ForAccumulator","token":"0x06000002","maxStack":2,"initLocals":true,"localSignatureToken":"0x11000002","exceptionRegionCount":0,"ilBytes":29,"ilSha256":"cdd1b20f8dc34e11285c37ade599ad3521db6e74df908553839e1717f942c9d1","ilHex":"00160a160b2b080607580a0717580b0702fe040c082df0060d2b00092a"},
+    {"name":"NestedIfElse","token":"0x06000001","maxStack":2,"initLocals":true,"localSignatureToken":"0x11000001","exceptionRegionCount":0,"ilBytes":39,"ilSha256":"b66bc452a7d92a310386a8f785d444c421bf54aa890e0e39c6be01de2035e574","ilHex":"000216fe020a062c0f031630050203592b030203580b2b0d03163203162b030302590b2b00072a"},
+    {"name":"NestedLoops","token":"0x06000005","maxStack":3,"initLocals":true,"localSignatureToken":"0x11000004","exceptionRegionCount":0,"ilBytes":51,"ilSha256":"7228065e26c73da5c6470a8762dee7d445044e27d1ff71bc7ac3d52a0289881e","ilHex":"00160a160b2b1a160c2b0a06070858580a0817580c0803fe040d092dee0717580b0702fe04130411042ddc0613052b0011052a"},
+    {"name":"WhileAccumulator","token":"0x06000003","maxStack":2,"initLocals":true,"localSignatureToken":"0x11000002","exceptionRegionCount":0,"ilBytes":31,"ilSha256":"1691a202b14d406bec69d2f3ba3361b1866940a2113a89c97adfe7354345500c","ilHex":"00160a160b2b0a000607580a0717580b000702fe040c082dee060d2b00092a"}
+  ]
+}

@@ -1,0 +1,31 @@
+<Project>
+  <Target Name="HybridCpuValidatePublish" BeforeTargets="PrepareForBuild" Condition="'$(RuntimeIdentifier)' == 'hybridcpu'">
+    <Error Code="HCPUB1101" Condition="'$(_HybridCpuPublishAotRequested)' != 'true'" Text="HybridCPU publication requires -p:PublishAot=true." />
+    <Error Code="HCPUB1102" Condition="'$(HybridCpuCompilerPath)' == '' or !Exists('$(HybridCpuCompilerPath)')" Text="HybridCpuCompilerPath must name the installed HybridCPU.Compiler.NativeAot.Adapter.dll." />
+    <Error Code="HCPUB1103" Condition="'$(HybridCpuRuntimePackManifest)' == '' or !Exists('$(HybridCpuRuntimePackManifest)')" Text="The exact HybridCPU runtime-pack manifest is missing." />
+    <Error Code="HCPUB1104" Condition="'$(HybridCpuEntryType)' == '' or '$(HybridCpuEntryMethod)' == ''" Text="HybridCpuEntryType and HybridCpuEntryMethod must select one restricted static method." />
+    <Error Code="HCPUB1105" Condition="'$(HybridCpuHostRid)' == ''" Text="The current cross-compilation host RID is not qualified." />
+    <Error Code="HCPUB1106" Condition="'$(HybridCpuDotNetHostPath)' == '' or !Exists('$(HybridCpuDotNetHostPath)')" Text="HybridCpuDotNetHostPath must name the explicit dotnet host used for pinned ILCompiler." />
+    <Error Code="HCPUB1107" Condition="'$(HybridCpuIlCompilerPath)' == '' or !Exists('$(HybridCpuIlCompilerPath)')" Text="The exact patched ILCompiler pack is missing." />
+    <Error Code="HCPUB1108" Condition="'$(HybridCpuRuntimeReferenceDirectory)' == '' or !Exists('$(HybridCpuRuntimeReferenceDirectory)')" Text="The exact runtime reference pack is missing." />
+    <Error Code="HCPUB1109" Condition="'$(HybridCpuUsePinnedGraph)' != 'true'" Text="HybridCPU SDK publication cannot bypass the pinned ILCompiler dependency graph." />
+    <Error Code="HCPUB1110" Condition="'$(HybridCpuInstalledPackFilesManifest)' == '' or !Exists('$(HybridCpuInstalledPackFilesManifest)')" Text="The installed pack file-digest manifest is missing." />
+    <Error Code="HCPUB1111" Condition="'$(HybridCpuProfile)' != 'LegacyRestrictedSingleMethod' and '$(HybridCpuProfile)' != 'HybridCPU.DotNetAot.ScalarControlFlowV2'" Text="HybridCpuProfile must select an explicitly supported compiler profile." />
+    <Error Code="HCPUB1113" Condition="('$(HybridCpuMaximumRecursionDepth)' == '' and '$(HybridCpuMaximumRecursionStackBytes)' != '') or ('$(HybridCpuMaximumRecursionDepth)' != '' and '$(HybridCpuMaximumRecursionStackBytes)' == '')" Text="Bounded recursion requires paired HybridCpuMaximumRecursionDepth and HybridCpuMaximumRecursionStackBytes V1 properties." />
+    <Error Code="HCPUB1114" Condition="'$(HybridCpuMaximumRecursionDepth)' != '' and '$(HybridCpuProfile)' != 'HybridCPU.DotNetAot.ScalarControlFlowV2'" Text="Bounded recursion is only available in the ScalarControlFlowV2 V1 profile." />
+  </Target>
+
+  <Target Name="HybridCpuPublishImage" AfterTargets="Publish" DependsOnTargets="HybridCpuValidatePublish" Condition="'$(RuntimeIdentifier)' == 'hybridcpu'">
+    <PropertyGroup>
+      <HybridCpuImagePath>$(PublishDir)$(AssemblyName).hcexe</HybridCpuImagePath>
+      <_HybridCpuPresentedMethodsArg Condition="'$(HybridCpuProfile)' == 'HybridCPU.DotNetAot.ScalarControlFlowV2' and '$(HybridCpuPresentedMethods)' != ''"> --presented-methods &quot;$(HybridCpuPresentedMethods)&quot;</_HybridCpuPresentedMethodsArg>
+      <_HybridCpuRecursionArgs Condition="'$(HybridCpuMaximumRecursionDepth)' != ''"> --recursion-depth &quot;$(HybridCpuMaximumRecursionDepth)&quot; --recursion-stack-bytes &quot;$(HybridCpuMaximumRecursionStackBytes)&quot;</_HybridCpuRecursionArgs>
+      <_HybridCpuRejectedEvidenceArg Condition="'$(HybridCpuRejectedEvidencePath)' != ''"> --rejected-evidence-out &quot;$(HybridCpuRejectedEvidencePath)&quot;</_HybridCpuRejectedEvidenceArg>
+    </PropertyGroup>
+    <Exec Command="&quot;$(HybridCpuDotNetHostPath)&quot; &quot;$(HybridCpuCompilerPath)&quot; publish-graph --assembly &quot;$(TargetPath)&quot; --type &quot;$(HybridCpuEntryType)&quot; --method &quot;$(HybridCpuEntryMethod)&quot; --out &quot;$(HybridCpuImagePath)&quot; --manifest &quot;$(HybridCpuRuntimePackManifest)&quot; --target-rid &quot;$(HybridCpuTargetRid)&quot; --host-rid &quot;$(HybridCpuHostRid)&quot; --sdk-version &quot;$(NETCoreSdkVersion)&quot; --requirements &quot;$(HybridCpuManagedRequirements)&quot; --dotnet-host &quot;$(HybridCpuDotNetHostPath)&quot; --ilcompiler &quot;$(HybridCpuIlCompilerPath)&quot; --runtime-refs &quot;$(HybridCpuRuntimeReferenceDirectory)&quot; --adapter &quot;$(HybridCpuCompilerPath)&quot; --pack-files &quot;$(HybridCpuInstalledPackFilesManifest)&quot;$(_HybridCpuPresentedMethodsArg)$(_HybridCpuRecursionArgs)$(_HybridCpuRejectedEvidenceArg)" />
+    <ItemGroup>
+      <FileWrites Include="$(HybridCpuImagePath);$(HybridCpuImagePath).json;$(HybridCpuImagePath).provenance.json" />
+    </ItemGroup>
+    <Message Importance="high" Text="HybridCPU deterministic image: $(HybridCpuImagePath)" />
+  </Target>
+</Project>

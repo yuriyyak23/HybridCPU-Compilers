@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net11.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../../../HybridCPU ISE/Tools/HybridCpuIseImageRunner/ReportCommand.cs" Link="Runner/ReportCommand.cs" />
+    <Compile Include="../Diagnostics/*.cs;../CompilationContracts.cs;../EmulationContracts.cs;../ICpuInterfaceBridgeServices.cs;../LegacyCompilerService.cs;../LegacyEmulatorService.cs;*.cs" />
+    <Compile Remove="../Diagnostics/IseHostObservationAdapter.cs" />
+    <None Include="Fixtures/*.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

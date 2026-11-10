@@ -1,0 +1,1 @@
+public static class Fixture { public static int Read() { outer: for(int i=0;i<2;i++) { continue missing; } return 42; } }

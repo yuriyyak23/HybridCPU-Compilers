@@ -1,0 +1,6 @@
+using HybridCPU.Compiler.Profiles;
+[HybridCpuKernelNoHeap] public static class StaticPropertyFixture
+{
+    public static int Value { get; } = 42;
+    public static int Read() => Value;
+}

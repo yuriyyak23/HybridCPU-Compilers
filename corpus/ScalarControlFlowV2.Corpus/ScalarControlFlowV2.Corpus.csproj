@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net11.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <AssemblyName>HybridCPU.RefPlan6.ScalarControlFlowV2.Corpus</AssemblyName>
+    <RootNamespace>HybridCPU.RefPlan6.Corpus</RootNamespace>
+  </PropertyGroup>
+</Project>

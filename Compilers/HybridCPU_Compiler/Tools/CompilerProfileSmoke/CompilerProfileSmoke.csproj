@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net11.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Roslyn\HybridCPU.Compiler.Roslyn.csproj" />
+    <ProjectReference Include="..\..\Cil\HybridCPU.Compiler.Cil.csproj" />
+    <ProjectReference Include="..\..\Analyzers\HybridCPU.Compiler.Analyzers.csproj" />
+    <ProjectReference Include="..\..\Generators\HybridCPU.Compiler.Generators.csproj" />
+    <ProjectReference Include="..\..\Profiles\HybridCPU.Compiler.Profiles.csproj" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" PrivateAssets="all" Condition="'$(UseSdkRoslynForCompanion)' != 'true'" />
+  </ItemGroup>
+  <Import Project="..\..\Roslyn\SdkRoslynHost.targets" />
+  <ItemGroup>
+    <None Update="CliFixture.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="CliErrorFixture.txt;CliNoHeapFixture.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="CliReferenceFixture.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="CliGenericFixture.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="CliGenericTypeFixture.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="CliLanguage*.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="CliStaticPropertyFixture.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="CliClosedCallFixture.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="CliExternalConstructionFixture.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

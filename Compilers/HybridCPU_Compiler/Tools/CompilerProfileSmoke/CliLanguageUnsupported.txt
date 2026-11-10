@@ -1,0 +1,1 @@
+public static class Fixture { public static int Read() { int sum=0; outer: for(int i=0;i<2;i++) { sum+=i; continue outer; } return (int)((double)sum+0.5); } }

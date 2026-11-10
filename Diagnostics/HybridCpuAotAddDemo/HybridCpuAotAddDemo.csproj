@@ -1,0 +1,66 @@
+<Project TreatAsLocalProperty="PublishAot">
+  <PropertyGroup>
+    <!-- A source checkout does not contain an SDK pack.  Use the host-only
+         showcase until the explicit pack installer has created one. -->
+    <DemoMode Condition="'$(DemoMode)' == '' and Exists('.hybridcpu-pack-refplan7\HybridCPU.Sdk.props')">RestrictedAot</DemoMode>
+    <DemoMode Condition="'$(DemoMode)' == ''">ComponentShowcase</DemoMode>
+    <DemoCorpus Condition="'$(DemoCorpus)' == ''">ControlFlow</DemoCorpus>
+    <HybridCpuSdkPackRoot Condition="'$(HybridCpuSdkPackRoot)' == ''">.hybridcpu-pack-refplan7\</HybridCpuSdkPackRoot>
+    <HybridCpuCompilerPath Condition="'$(HybridCpuCompilerPath)' == ''">$(HybridCpuSdkPackRoot)HybridCPU.Compiler.NativeAot.Adapter.dll</HybridCpuCompilerPath>
+    <HybridCpuDotNetHostPath Condition="'$(HybridCpuDotNetHostPath)' == '' and Exists('C:\Program Files\dotnet\dotnet.exe')">C:\Program Files\dotnet\dotnet.exe</HybridCpuDotNetHostPath>
+    <HybridCpuProfile Condition="'$(DemoMode)' == 'RestrictedAot' and '$(HybridCpuProfile)' == ''">HybridCPU.DotNetAot.ScalarControlFlowV2</HybridCpuProfile>
+    <PublishAot Condition="'$(DemoMode)' == 'RestrictedAot'">true</PublishAot>
+    <PublishAot Condition="'$(DemoMode)' == 'ComponentShowcase'">false</PublishAot>
+  </PropertyGroup>
+
+  <Import Project="$(HybridCpuSdkPackRoot)HybridCPU.Sdk.props" Condition="'$(DemoMode)' == 'RestrictedAot'" />
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+
+  <PropertyGroup>
+    <OutputType Condition="'$(DemoMode)' == 'RestrictedAot'">Library</OutputType>
+    <OutputType Condition="'$(DemoMode)' == 'ComponentShowcase'">Exe</OutputType>
+    <TargetFramework>net11.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <HybridCpuEntryType Condition="'$(HybridCpuEntryType)' == ''">HybridCpuAotAddDemo.EntryPoint</HybridCpuEntryType>
+    <HybridCpuEntryMethod Condition="'$(HybridCpuEntryMethod)' == '' and '$(DemoCorpus)' == 'Loop'">LoopRoot</HybridCpuEntryMethod>
+    <HybridCpuPresentedMethods Condition="'$(HybridCpuPresentedMethods)' == '' and '$(DemoCorpus)' == 'Loop'">HybridCpuAotAddDemo.EntryPoint::LoopRoot;HybridCpuAotAddDemo.EntryPoint::SumFor;HybridCpuAotAddDemo.EntryPoint::SumWhile;HybridCpuAotAddDemo.EntryPoint::SumDoWhile;HybridCpuAotAddDemo.EntryPoint::SumWithBreakContinue</HybridCpuPresentedMethods>
+    <HybridCpuEntryMethod Condition="'$(HybridCpuEntryMethod)' == '' and '$(DemoCorpus)' == 'CallGraph'">CallGraphRoot</HybridCpuEntryMethod>
+    <HybridCpuPresentedMethods Condition="'$(HybridCpuPresentedMethods)' == '' and '$(DemoCorpus)' == 'CallGraph'">HybridCpuAotAddDemo.EntryPoint::CallGraphRoot;HybridCpuAotAddDemo.EntryPoint::SharedCallGraph;HybridCpuAotAddDemo.EntryPoint::Left;HybridCpuAotAddDemo.EntryPoint::Right;HybridCpuAotAddDemo.EntryPoint::Shared</HybridCpuPresentedMethods>
+    <HybridCpuEntryMethod Condition="'$(HybridCpuEntryMethod)' == '' and '$(DemoCorpus)' == 'DirectRecursion'">DirectRecursionRoot</HybridCpuEntryMethod>
+    <HybridCpuPresentedMethods Condition="'$(HybridCpuPresentedMethods)' == '' and '$(DemoCorpus)' == 'DirectRecursion'">HybridCpuAotAddDemo.EntryPoint::DirectRecursionRoot;HybridCpuAotAddDemo.EntryPoint::Countdown</HybridCpuPresentedMethods>
+    <HybridCpuEntryMethod Condition="'$(HybridCpuEntryMethod)' == '' and '$(DemoCorpus)' == 'MutualRecursion'">MutualRecursionRoot</HybridCpuEntryMethod>
+    <HybridCpuPresentedMethods Condition="'$(HybridCpuPresentedMethods)' == '' and '$(DemoCorpus)' == 'MutualRecursion'">HybridCpuAotAddDemo.EntryPoint::MutualRecursionRoot;HybridCpuAotAddDemo.EntryPoint::MutualA;HybridCpuAotAddDemo.EntryPoint::MutualB</HybridCpuPresentedMethods>
+    <HybridCpuEntryMethod Condition="'$(HybridCpuEntryMethod)' == '' and '$(DemoCorpus)' == 'Generics'">GenericRoot</HybridCpuEntryMethod>
+    <HybridCpuPresentedMethods Condition="'$(HybridCpuPresentedMethods)' == '' and '$(DemoCorpus)' == 'Generics'">HybridCpuAotAddDemo.EntryPoint::GenericRoot;HybridCpuAotAddDemo.EntryPoint::NestedGeneric;HybridCpuAotAddDemo.EntryPoint::Identity</HybridCpuPresentedMethods>
+    <HybridCpuEntryMethod Condition="'$(HybridCpuEntryMethod)' == ''">ControlFlowRoot</HybridCpuEntryMethod>
+    <HybridCpuPresentedMethods Condition="'$(HybridCpuPresentedMethods)' == ''">HybridCpuAotAddDemo.EntryPoint::ControlFlowRoot;HybridCpuAotAddDemo.EntryPoint::Add;HybridCpuAotAddDemo.EntryPoint::Compute;HybridCpuAotAddDemo.EntryPoint::NestedBranch</HybridCpuPresentedMethods>
+    <HybridCpuMaximumRecursionDepth Condition="'$(HybridCpuMaximumRecursionDepth)' == ''">8</HybridCpuMaximumRecursionDepth>
+    <HybridCpuMaximumRecursionStackBytes Condition="'$(HybridCpuMaximumRecursionStackBytes)' == ''">1048576</HybridCpuMaximumRecursionStackBytes>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(DemoMode)' == 'RestrictedAot'">
+    <Compile Remove="ComponentShowcase.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(DemoMode)' == 'ComponentShowcase'">
+    <ProjectReference Include="..\..\Compilers\HybridCPU_Platform.Contracts\HybridCPU.Platform.Contracts.csproj" />
+    <ProjectReference Include="..\..\Compilers\HybridCPU_RuntimeKernel\HybridCPU.RuntimeKernel.csproj" />
+    <ProjectReference Include="..\..\Compilers\HybridCPU_ManagedRuntime\HybridCPU.ManagedRuntime.csproj" />
+    <ProjectReference Include="..\..\Compilers\HybridCPU_Compiler\Core\HybridCPU.Compiler.Core.csproj" />
+    <ProjectReference Include="..\..\Compilers\HybridCPU_Compiler\Cil\HybridCPU.Compiler.Cil.csproj" />
+    <ProjectReference Include="..\..\Compilers\HybridCPU_Compiler\NativeAot\HybridCPU.Compiler.NativeAot.Adapter.csproj" />
+    <ProjectReference Include="..\..\Compilers\HybridCPU_Compiler\ReleaseQualification\HybridCPU.Compiler.Release.csproj" />
+  </ItemGroup>
+
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+  <Import Project="$(HybridCpuSdkPackRoot)HybridCPU.Sdk.targets" Condition="'$(DemoMode)' == 'RestrictedAot'" />
+
+  <Target Name="ValidateDemoConfiguration" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(DemoMode)' != 'RestrictedAot' and '$(DemoMode)' != 'ComponentShowcase'"
+           Text="DemoMode must be RestrictedAot or ComponentShowcase." />
+    <Error Condition="'$(DemoMode)' == 'RestrictedAot' and '$(DemoCorpus)' != 'ControlFlow' and '$(DemoCorpus)' != 'Loop' and '$(DemoCorpus)' != 'CallGraph' and '$(DemoCorpus)' != 'DirectRecursion' and '$(DemoCorpus)' != 'MutualRecursion' and '$(DemoCorpus)' != 'Generics'"
+           Text="DemoCorpus must be ControlFlow, Loop, CallGraph, DirectRecursion, MutualRecursion, or Generics." />
+  </Target>
+</Project>

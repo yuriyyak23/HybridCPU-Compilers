@@ -1,0 +1,15 @@
+{
+  "schema": "HybridCPU.RefPlan6.CilShapeCorpusV1",
+  "configuration": "Release",
+  "sdk": "10.0.204",
+  "roslyn": "5.3.0-2.26230.114+e7aa4b537d95ae955b5c98c25fa9b9220e7eb71e",
+  "assemblySha256": "e13d6d007de8ccfe0ecbefd08ff8354a0895848c6145ef9d79a7cd2e84346392",
+  "methods": [
+    {"name":"ConditionalExit","token":"0x06000006","maxStack":2,"initLocals":true,"localSignatureToken":"0x11000001","exceptionRegionCount":0,"ilBytes":29,"ilSha256":"ac622cd3e8150ea6b7ebcd38b8d4113dd299dc7bc32a00a9b0314a36e22817f2","ilHex":"160a160b2b1107032e1107175f2c040607580a0717580b070232eb062a"},
+    {"name":"DoWhileAccumulator","token":"0x06000004","maxStack":2,"initLocals":true,"localSignatureToken":"0x11000001","exceptionRegionCount":0,"ilBytes":24,"ilSha256":"8eeca59b25a2624929effce48bc8a8b482bd19b02bc44f19e93b7376d0fb7b7a","ilHex":"160a160b02163002062a0607580a0717580b070232f4062a"},
+    {"name":"ForAccumulator","token":"0x06000002","maxStack":2,"initLocals":true,"localSignatureToken":"0x11000001","exceptionRegionCount":0,"ilBytes":20,"ilSha256":"20335cf417f213ac09d1ca36072642d772164ef0284e18e2b692a0246268d099","ilHex":"160a160b2b080607580a0717580b070232f4062a"},
+    {"name":"NestedIfElse","token":"0x06000001","maxStack":8,"initLocals":false,"localSignatureToken":null,"exceptionRegionCount":0,"ilBytes":26,"ilSha256":"b4c2ade0c66fe947213e10634fde7494747edeb55223b9b465d37a218b8c5062","ilHex":"0216310c031630040203592a0203582a03163202162a0302592a"},
+    {"name":"NestedLoops","token":"0x06000005","maxStack":3,"initLocals":true,"localSignatureToken":"0x11000002","exceptionRegionCount":0,"ilBytes":34,"ilSha256":"eef2d6f5c38a7aa51fa0b3f0fd9e1493e2f4ced52a6fab2af2059116259507c0","ilHex":"160a160b2b16160c2b0a06070858580a0817580c080332f20717580b070232e6062a"},
+    {"name":"WhileAccumulator","token":"0x06000003","maxStack":2,"initLocals":true,"localSignatureToken":"0x11000001","exceptionRegionCount":0,"ilBytes":20,"ilSha256":"20335cf417f213ac09d1ca36072642d772164ef0284e18e2b692a0246268d099","ilHex":"160a160b2b080607580a0717580b070232f4062a"}
+  ]
+}

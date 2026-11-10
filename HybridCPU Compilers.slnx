@@ -1,0 +1,123 @@
+<Solution>
+  <Folder Name="/Compilers/" />
+  <Folder Name="/Compilers/ConsoleNetCompiler/">
+    <Project Path="Compilers/ConsoleNetCompiler/ConsoleNetCompiler.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/CpuInterfaceBridge/">
+    <Project Path="Compilers/CpuInterfaceBridge/HybridCpu_InterfaceBridge.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/CpuInterfaceBridge/Validation/">
+    <Project Path="Compilers/CpuInterfaceBridge/Validation/Bridge.Diagnostics.Validation.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/CpuInterfaceBridge/Validation/RealHostAdapter/">
+    <Project Path="Compilers/CpuInterfaceBridge/Validation/RealHostAdapter/RealHostAdapter.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/">
+    <Project Path="Compilers/HybridCPU_Compiler/HybridCPU_Compiler.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/Analyzers/">
+    <Project Path="Compilers/HybridCPU_Compiler/Analyzers/HybridCPU.Compiler.Analyzers.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/Cil/">
+    <Project Path="Compilers/HybridCPU_Compiler/Cil/HybridCPU.Compiler.Cil.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/Core/">
+    <Project Path="Compilers/HybridCPU_Compiler/Core/HybridCPU.Compiler.Core.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/Generators/">
+    <Project Path="Compilers/HybridCPU_Compiler/Generators/HybridCPU.Compiler.Generators.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/" />
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/CompilerFacts/" />
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/Docs/" />
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/GoldenOracle/" />
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/SourceSnapshot/" />
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/" />
+  <Folder Name="/Compilers/HybridCPU_Compiler/LLVM/">
+    <Project Path="Compilers/HybridCPU_Compiler/LLVM/HybridCPU.Compiler.Llvm.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/Native/">
+    <Project Path="Compilers/HybridCPU_Compiler/Native/HybridCPU.Compiler.Native.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/NativeAot/">
+    <Project Path="Compilers/HybridCPU_Compiler/NativeAot/HybridCPU.Compiler.NativeAot.Adapter.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/NativeAot/Samples/" />
+  <Folder Name="/Compilers/HybridCPU_Compiler/NativeAot/Samples/Phase05ScalarControlFlowV2Publish/">
+    <Project Path="Compilers/HybridCPU_Compiler/NativeAot/Samples/Phase05ScalarControlFlowV2Publish/Phase05ScalarControlFlowV2Publish.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/NativeAot/Samples/Phase07BoundedRecursionPublish/">
+    <Project Path="Compilers/HybridCPU_Compiler/NativeAot/Samples/Phase07BoundedRecursionPublish/Phase07BoundedRecursionPublish.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/NativeAot/Samples/Phase26RestrictedPublish/">
+    <Project Path="Compilers/HybridCPU_Compiler/NativeAot/Samples/Phase26RestrictedPublish/Phase26RestrictedPublish.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/Oracle/">
+    <Project Path="Compilers/HybridCPU_Compiler/Oracle/HybridCPU.Compiler.Oracle.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/Profiles/">
+    <Project Path="Compilers/HybridCPU_Compiler/Profiles/HybridCPU.Compiler.Profiles.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/ReleaseQualification/">
+    <Project Path="Compilers/HybridCPU_Compiler/ReleaseQualification/HybridCPU.Compiler.Release.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/Roslyn/">
+    <Project Path="Compilers/HybridCPU_Compiler/Roslyn/HybridCPU.Compiler.Roslyn.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/Tools/" />
+  <Folder Name="/Compilers/HybridCPU_Compiler/Tools/CompilerProfileSmoke/">
+    <Project Path="Compilers/HybridCPU_Compiler/Tools/CompilerProfileSmoke/CompilerProfileSmoke.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/Tools/ManagedPortSmoke.Dependency/">
+    <Project Path="Compilers/HybridCPU_Compiler/Tools/ManagedPortSmoke.Dependency/ManagedPortSmoke.Dependency.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/Tools/ManagedPortSmoke/">
+    <Project Path="Compilers/HybridCPU_Compiler/Tools/ManagedPortSmoke/ManagedPortSmoke.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/Tools/Phase00Baseline/">
+    <Project Path="Compilers/HybridCPU_Compiler/Tools/Phase00Baseline/HybridCPU.Compiler.Phase00Baseline.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/Tools/Phase00RuntimeControls/">
+    <Project Path="Compilers/HybridCPU_Compiler/Tools/Phase00RuntimeControls/HybridCPU.Compiler.Phase00RuntimeControls.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/Tools/SchedulerBenchmark/">
+    <Project Path="Compilers/HybridCPU_Compiler/Tools/SchedulerBenchmark/SchedulerBenchmark.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_ManagedRuntime/">
+    <Project Path="Compilers/HybridCPU_ManagedRuntime/HybridCPU.ManagedRuntime.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Platform.Contracts/">
+    <Project Path="Compilers/HybridCPU_Platform.Contracts/HybridCPU.Platform.Contracts.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_RuntimeKernel/">
+    <Project Path="Compilers/HybridCPU_RuntimeKernel/HybridCPU.RuntimeKernel.csproj" />
+  </Folder>
+  <Folder Name="/Diagnostics/" />
+  <Folder Name="/Diagnostics/HybridCpuAotAddDemo/">
+    <Project Path="Diagnostics/HybridCpuAotAddDemo/HybridCpuAotAddDemo.csproj" />
+  </Folder>
+  <Folder Name="/Diagnostics/MinimalAsmApp/">
+    <Project Path="Diagnostics/MinimalAsmApp/MinimalAsmApp.csproj" />
+  </Folder>
+  <Folder Name="/Diagnostics/TestAssemblerConsoleApps/">
+    <Project Path="Diagnostics/TestAssemblerConsoleApps/TestAssemblerConsoleApps.csproj" />
+  </Folder>
+  <Folder Name="/Documentation/">
+    <Project Path="Documentation/Documentation.csproj" />
+  </Folder>
+  <Folder Name="/Tools/" />
+  <Folder Name="/Tools/OriginalEntryEncodingProbe/">
+    <Project Path="Tools/OriginalEntryEncodingProbe/OriginalEntryEncodingProbe.csproj" />
+  </Folder>
+  <Folder Name="/corpus/" />
+  <Folder Name="/corpus/corpus/" />
+  <Folder Name="/corpus/corpus/Phase00.Conformance.Corpus/">
+    <Project Path="corpus/corpus/Phase00.Conformance.Corpus/Phase00.Conformance.Corpus.csproj" />
+  </Folder>
+  <Folder Name="/corpus/ScalarControlFlowV2.Corpus/">
+    <Project Path="corpus/ScalarControlFlowV2.Corpus/ScalarControlFlowV2.Corpus.csproj" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="Tests/HybridCPU.Compiler.Tests.csproj" />
+  </Folder>
+</Solution>

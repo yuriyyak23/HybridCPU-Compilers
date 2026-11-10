@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net11.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyName>HybridCPU.Compiler.Llvm</AssemblyName>
+    <RootNamespace>HybridCPU.Compiler.Llvm</RootNamespace>
+    <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LLVMSharp" Version="22.1.8" />
+    <PackageReference Include="LLVMSharp.Interop" Version="22.1.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\HybridCPU.Compiler.Core.csproj" GlobalPropertiesToRemove="DefineTestSupport;BuildRuntimeDiagnosticConsole;HybridCpuIseProjectReferenceProperties" />
+  </ItemGroup>
+
+</Project>
