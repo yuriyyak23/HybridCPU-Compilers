@@ -95,9 +95,11 @@ internal static class BridgeSelfTests
                 "Signed extension lost exact bits.");
             Require(trusted.Observe("arbitrary-json-named-adapter", vectors).Status == "Blocked",
                 "Unknown adapter executed.");
-            Require(trusted.Observe(TrustedAddWordOracleV1.AllowlistedAdapterId,
-                new[] { new GoldenVectorV1(new(32, true, 0x0000000100000000), new(32, true, 1)) })
-                .Status == "Blocked", "High 32-bit input silently truncated.");
+            GoldenObservationV1 highHalfBlocked = trusted.Observe(TrustedAddWordOracleV1.AllowlistedAdapterId,
+                new[] { new GoldenVectorV1(new(32, true, 0x0000000100000000), new(32, true, 1)) });
+            Require(highHalfBlocked.Status == "Blocked", "High 32-bit input silently truncated.");
+            using (JsonDocumentHolder blockedReader = new(BridgeSidecarCodecV1.ReadAndValidate(
+                BridgeSidecarCodecV1.Write(snapshot, oracle: highHalfBlocked), digest))) { }
             Require(trusted.Observe(TrustedAddWordOracleV1.AllowlistedAdapterId,
                 new[] { new GoldenVectorV1(new(32, false, 1), new(32, false, 1)) })
                 .Status == "Blocked", "Unsigned input accepted by signed contract.");
@@ -147,21 +149,26 @@ internal static class BridgeSelfTests
                 "Wrong PE/PDB pair was not rejected.");
             Require(CompanionBridgeProjectionV1.Project(export.Source, raw with { Compilation = null }).Status == "Rejected",
                 "Missing call graph silently passed.");
-            BridgeSourceSnapshotV1 mismatchedRoot = export.Source with
-            {
-                Roots = Array.AsReadOnly(new[] { new BridgeRootSelectorV1(
-                    "Fixture", "AddWord", 0x06000099, Array.Empty<string>(), Array.Empty<string>()) })
-            };
-            Require(!mismatchedRoot.HasConsistentDigest() &&
+            BridgeSourceSnapshotV1 RootSnapshot(BridgeRootSelectorV1 exact) =>
+                BridgeSourceSnapshotV1.Capture(new BridgeSourceRequestV1(
+                    request.AssemblyName, export.Source.LanguageHostMode,
+                    request.Documents.Select(d => new BridgeSourceTextV1(d.VirtualPath, d.Text)).ToArray(),
+                    request.ReferenceImages, new[] { exact }, Array.Empty<int>(), Array.Empty<int>()),
+                    export.Source.AdmissionPolicy, export.Source.CompilerVersion, export.Source.RoslynVersion);
+            BridgeSourceSnapshotV1 mismatchedRoot = RootSnapshot(new BridgeRootSelectorV1(
+                "Fixture", "AddWord", 0x06000099, Array.Empty<string>(), Array.Empty<string>()));
+            Require(mismatchedRoot.HasConsistentDigest() &&
                 CompanionBridgeProjectionV1.Project(mismatchedRoot, raw).Status == "Rejected",
-                "Stale or mismatched selector identity admitted.");
-            BridgeSourceSnapshotV1 badGeneric = export.Source with
-            {
-                Roots = Array.AsReadOnly(new[] { new BridgeRootSelectorV1(
-                    "Fixture", "AddWord", null, new[] { "System.Int64:Int64" }, Array.Empty<string>()) })
-            };
-            Require(CompanionBridgeProjectionV1.Project(badGeneric, raw).Status == "Rejected",
+                "Incorrect exact method token admitted.");
+            BridgeSourceSnapshotV1 badGeneric = RootSnapshot(new BridgeRootSelectorV1(
+                "Fixture", "AddWord", null, new[] { "System.Int64:Int64" }, Array.Empty<string>()));
+            Require(badGeneric.HasConsistentDigest() &&
+                CompanionBridgeProjectionV1.Project(badGeneric, raw).Status == "Rejected",
                 "Generic argument mismatch admitted.");
+            BridgeSourceSnapshotV1 missingOverload = RootSnapshot(new BridgeRootSelectorV1(
+                "Fixture", "AddWord", null, Array.Empty<string>(), new[] { "System.Int64:Int64" }));
+            Require(CompanionBridgeProjectionV1.Project(missingOverload, raw).Status == "Rejected",
+                "Overload/method-instantiation mismatch admitted.");
             BridgeSourceSnapshotV1 wrongRole = export.Source with
             {
                 References = Array.AsReadOnly(export.Source.References.Select(r =>
