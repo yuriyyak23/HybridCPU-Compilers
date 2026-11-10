@@ -21,11 +21,8 @@ public static class BridgeSidecarCodecV1
     {
         ArgumentNullException.ThrowIfNull(source);
         if (!source.HasConsistentDigest() ||
-            facts is not null && (facts.Schema != BridgeCompilerFactsV1.SchemaId ||
-                facts.SnapshotDigest != source.SnapshotDigest ||
-                facts.Status is not ("Candidate" or "Rejected")) ||
-            oracle is not null && (oracle.Schema != GoldenObservationV1.SchemaId ||
-                oracle.Status is not ("Observed" or "Blocked")))
+            facts is not null && (facts.SnapshotDigest != source.SnapshotDigest || !ValidFacts(facts)) ||
+            oracle is not null && !ValidOracle(oracle))
             throw new ArgumentException("Unknown/stale candidate sidecar component.");
         byte[] payload = JsonSerializer.SerializeToUtf8Bytes(new
         {
@@ -86,13 +83,15 @@ public static class BridgeSidecarCodecV1
                  !TryString(facts, "SnapshotDigest", out string? factsDigest) ||
                  factsDigest != sourceDigest ||
                  !TryString(facts, "Status", out string? status) ||
-                 status is not ("Candidate" or "Rejected")))
+                 status is not ("Candidate" or "Rejected") ||
+                 !ValidFacts(JsonSerializer.Deserialize<BridgeCompilerFactsV1>(facts.GetRawText()))))
                 throw new ArgumentException("Stale or invalid facts payload.");
             if (oracle.ValueKind != JsonValueKind.Null &&
                 (!TryString(oracle, "Schema", out string? oracleSchema) ||
                  oracleSchema != GoldenObservationV1.SchemaId ||
                  !TryString(oracle, "Status", out string? observationStatus) ||
-                 observationStatus is not ("Observed" or "Blocked")))
+                 observationStatus is not ("Observed" or "Blocked") ||
+                 !ValidOracle(JsonSerializer.Deserialize<GoldenObservationV1>(oracle.GetRawText()))))
                 throw new ArgumentException("Invalid oracle observation payload.");
             cancellationToken.ThrowIfCancellationRequested();
             return document;
@@ -103,6 +102,35 @@ public static class BridgeSidecarCodecV1
             throw;
         }
     }
+
+    private static bool ValidFacts(BridgeCompilerFactsV1? facts) =>
+        facts is not null && facts.Schema == BridgeCompilerFactsV1.SchemaId &&
+        (facts.Status is "Candidate" or "Rejected") && facts.Methods is not null &&
+        facts.RootIdentities is not null && facts.Edges is not null && facts.SourceMaps is not null &&
+        facts.Diagnostics is not null &&
+        (facts.Status != "Candidate" ||
+            (facts.ImportStatus == "Success" &&
+             IsHexHash(facts.SourceInputDigest) && IsHexHash(facts.PeSha256) &&
+             IsHexHash(facts.PdbSha256) && !string.IsNullOrWhiteSpace(facts.GraphDigest) &&
+             !string.IsNullOrWhiteSpace(facts.GraphContractDigest) &&
+             facts.Methods.Count > 0 && facts.RootIdentities.Count > 0));
+
+    private static bool ValidOracle(GoldenObservationV1? observation) =>
+        observation is not null && observation.Schema == GoldenObservationV1.SchemaId &&
+        observation.AdapterId == TrustedAddWordOracleV1.AllowlistedAdapterId &&
+        !string.IsNullOrWhiteSpace(observation.TrustedSourceLabel) &&
+        observation.Cases is { Count: >= 1 and <= 512 } &&
+        observation.Cases.All(c => c is not null && c.A is not null && c.B is not null &&
+            (c.Status == "Blocked" && c.Output is null ||
+             c.Status == "Observed" && c.A.IsCanonical && c.B.IsCanonical &&
+             c.A.Width == 32 && c.B.Width == 32 && c.A.Signed == c.B.Signed &&
+             c.Output is { Width: 32 } output && output.IsCanonical &&
+             output.Signed == c.A.Signed)) &&
+        (observation.Status == "Observed" && observation.Cases.All(c => c.Status == "Observed") ||
+         observation.Status == "Blocked" && observation.Cases.Any(c => c.Status == "Blocked"));
+
+    private static bool IsHexHash(string? value) =>
+        value is { Length: 64 } && value.All(Uri.IsHexDigit);
 
     private static bool TryString(JsonElement value, string name, out string? text)
     {
