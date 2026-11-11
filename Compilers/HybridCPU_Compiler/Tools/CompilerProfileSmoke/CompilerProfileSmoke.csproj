@@ -11,7 +11,7 @@
     <ProjectReference Include="..\..\Analyzers\HybridCPU.Compiler.Analyzers.csproj" />
     <ProjectReference Include="..\..\Generators\HybridCPU.Compiler.Generators.csproj" />
     <ProjectReference Include="..\..\Profiles\HybridCPU.Compiler.Profiles.csproj" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" PrivateAssets="all" Condition="'$(UseSdkRoslynForCompanion)' != 'true'" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" PrivateAssets="all" Condition="'$(UseSdkRoslynForCompanion)' != 'true'" />
   </ItemGroup>
   <Import Project="..\..\Roslyn\SdkRoslynHost.targets" />
   <ItemGroup>
