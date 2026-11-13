@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net11.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <DefineConstants>$(DefineConstants);HARDWAREBRIDGE_HWIR</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="BridgeHwirAddWordCompiler.cs" />
+    <Compile Include="BridgeHwirModelInventory.cs" />
+    <Compile Include="BridgeHwirWordDispatch.cs" />
+    <Compile Include="BridgeHwirSchedulerCounterCall.cs" />
+    <Compile Include="BridgeHwirRawSlot.cs" />
+    <Compile Include="BridgeHwirOpcodeLookup.cs" />
+    <Compile Include="..\SourceSnapshot\BridgeSourceSnapshotV1.cs" Link="BridgeSourceSnapshotV1.cs" />
+    <ProjectReference Include="..\..\..\..\..\CircuitWeave-main\src\CircuitWeave.Frontend.Roslyn\CircuitWeave.Frontend.Roslyn.csproj" />
+    <Reference Include="Microsoft.CodeAnalysis"><HintPath>$(MSBuildSDKsPath)/../Roslyn/bincore/Microsoft.CodeAnalysis.dll</HintPath><Private>true</Private></Reference>
+    <Reference Include="Microsoft.CodeAnalysis.CSharp"><HintPath>$(MSBuildSDKsPath)/../Roslyn/bincore/Microsoft.CodeAnalysis.CSharp.dll</HintPath><Private>true</Private></Reference>
+  </ItemGroup>
+</Project>

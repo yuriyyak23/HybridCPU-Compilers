@@ -1,7 +1,7 @@
-<!-- Keep generated assembly metadata outside HardwareBridge: parent project compiles its subtree recursively. -->
+<!-- Intermediate output is outside the parent compiler source glob and inside the authorized Studio workspace. -->
 <Project>
   <PropertyGroup>
-    <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)..\obj\HardwareBridge\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
-    <OutputPath>$(MSBuildThisFileDirectory)..\bin\HardwareBridge\$(MSBuildProjectName)\</OutputPath>
+    <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)..\..\..\..\CircuitWeave-Studio-main\eng\HardwareBridgeBuild\obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
+    <OutputPath>$(MSBuildThisFileDirectory)..\..\..\..\CircuitWeave-Studio-main\eng\HardwareBridgeBuild\bin\$(MSBuildProjectName)\</OutputPath>
   </PropertyGroup>
 </Project>

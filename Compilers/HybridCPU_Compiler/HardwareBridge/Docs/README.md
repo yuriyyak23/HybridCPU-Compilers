@@ -9,3 +9,9 @@ Build boundary: `HybridCPU_Compiler.csproj` does not directly reference Roslyn/C
 Compiler-facts projection becomes available to hosts referencing the opt-in project, **not** automatically via the parent HybridCPU_Compiler assembly. The parent project itself also references an external sibling `HybridCPU ISE` project; a standalone checkout may not build it.
 
 The external CircuitWeave consumer must validate the source closure, qualify Bindings/target semantics, independently verify source-to-HWIR-to-RTL evidence and reject stale/missing artifacts. Studio consumes only separately published read-only artifacts, not this bridge directly.
+
+
+The separate opt-in [bounded AddWord HWIR adapter](../HWIR/README.md) now
+connects the existing source snapshot to CircuitWeave's pinned Roslyn scalar
+compiler. The `CompilerFacts` sidecar remains a software-only path and does not
+provide general HWIR or full Processor elaboration.
