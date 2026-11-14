@@ -58,9 +58,10 @@ It freezes original source and runtime CoreLib bytes, invokes the existing pinne
 source/root identity, and revalidates the returned scalar HWIR. CircuitWeave CLI
 uses this path for both `candidate addword` and `studio publish-addword`.
 
-The source snapshot v1 has a 16 MiB/reference limit; the current CoreLib is larger,
-so its SHA-256 is recorded separately and the exact frozen image is passed to the
-frontend. The source snapshot itself does not contain that reference. The compiler
+The source snapshot v1 bounds each reference image at 32 MiB and aggregate capture
+at 64 MiB. The current CoreLib also has an independent SHA-256 recorded by the
+bounded AddWord adapter; the source snapshot itself does not contain that reference,
+while the exact frozen image is passed to the frontend. The compiler
 checks the pinned Golden Git blob, binding, selected methods, owned closure and
 metadata against the loaded CoreLib. The bridge snapshot and metadata hashes are
 published in a `bridgeProvenance` artifact as producer-reported candidate data.

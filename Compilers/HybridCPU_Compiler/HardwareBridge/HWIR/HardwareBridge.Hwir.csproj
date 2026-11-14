@@ -11,8 +11,27 @@
     <Compile Include="BridgeHwirModelInventory.cs" />
     <Compile Include="BridgeHwirWordDispatch.cs" />
     <Compile Include="BridgeHwirSchedulerCounterCall.cs" />
+    <Compile Include="BridgeHwirSchedulerCycleCounter.cs" />
+    <Compile Include="BridgeHwirSchedulerTdmPhase.cs" />
     <Compile Include="BridgeHwirRawSlot.cs" />
     <Compile Include="BridgeHwirOpcodeLookup.cs" />
+    <Compile Include="BridgeHwirSlotClassMask.cs" />
+    <Compile Include="BridgeHwirLaneChooser.cs" />
+    <Compile Include="BridgeHwirLaneMaterialization.cs" />
+    <Compile Include="BridgeHwirClassAdmission.cs" />
+    <Compile Include="BridgeHwirClassCapacity.cs" />
+    <Compile Include="BridgeHwirAdmissionDecision.cs" />
+    <Compile Include="BridgeHwirTwoCandidateAdmission.cs" />
+    <Compile Include="BridgeHwirPressureOrder.cs" />
+    <Compile Include="BridgeHwirBankPressure.cs" />
+    <Compile Include="BridgeHwirCandidateCollection.cs" />
+    <Compile Include="BridgeHwirSmtRanking.cs" />
+    <Compile Include="BridgeHwirFairnessUpdate.cs" />
+    <Compile Include="BridgeHwirOrderedAdmission.cs" />
+    <Compile Include="BridgeHwirExplicitScalarLoadLogicalEvent.cs" />
+    <Compile Include="BridgeHwirPipelineMemoryLogicalEvent.cs" />
+    <Compile Include="BridgeHwirPowerControlCsr.cs" />
+    <Compile Include="BridgeHwirCsrAccess.cs" />
     <Compile Include="..\SourceSnapshot\BridgeSourceSnapshotV1.cs" Link="BridgeSourceSnapshotV1.cs" />
     <ProjectReference Include="..\..\..\..\..\CircuitWeave-main\src\CircuitWeave.Frontend.Roslyn\CircuitWeave.Frontend.Roslyn.csproj" />
     <Reference Include="Microsoft.CodeAnalysis"><HintPath>$(MSBuildSDKsPath)/../Roslyn/bincore/Microsoft.CodeAnalysis.dll</HintPath><Private>true</Private></Reference>

@@ -82,8 +82,7 @@ public sealed class BridgeHwirAddWordCompiler
         var sourceSha = Convert.ToHexString(SHA256.HashData(source));
         if (!capture.HasConsistentDigest() || capture.Documents.Single().Sha256 != sourceSha)
             throw new InvalidOperationException("Bridge capture does not match original source bytes.");
-        // Snapshot v1 has a 16 MiB/reference budget; current CoreLib exceeds it.
-        // Freeze and report its independent digest rather than silently omitting it.
+        // Freeze and report the runtime CoreLib identity separately from source/root capture.
         var replay = new ScalarCombinationalHardwareIrValidator().Validate(candidate.ValidatedHwir.Design, cancellationToken);
         if (!replay.Accepted || replay.Validated is null ||
             replay.Validated.CanonicalDigest != candidate.ValidatedHwir.CanonicalDigest)

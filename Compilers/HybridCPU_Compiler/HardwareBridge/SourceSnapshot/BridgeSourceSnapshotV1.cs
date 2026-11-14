@@ -42,7 +42,7 @@ public sealed record BridgeSourceSnapshotV1(
 {
     public const string SchemaId = "hybridcpu.hardwarebridge.source-snapshot/v1";
     public const int MaxDocuments = 128, MaxReferences = 128, MaxRoots = 32;
-    public const int MaxDocumentUtf8Bytes = 1_048_576, MaxReferenceBytes = 16_777_216;
+    public const int MaxDocumentUtf8Bytes = 1_048_576, MaxReferenceBytes = 33_554_432;
     public const long MaxTotalBytes = 67_108_864;
 
     public byte[] ToJsonUtf8() => JsonSerializer.SerializeToUtf8Bytes(this);

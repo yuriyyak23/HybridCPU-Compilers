@@ -1,7 +1,8 @@
-<!-- Intermediate output is outside the parent compiler source glob and inside the authorized Studio workspace. -->
+<!-- Keep every companion build artifact within HardwareBridge. Studio is a read-only consumer. -->
 <Project>
   <PropertyGroup>
-    <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)..\..\..\..\CircuitWeave-Studio-main\eng\HardwareBridgeBuild\obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
-    <OutputPath>$(MSBuildThisFileDirectory)..\..\..\..\CircuitWeave-Studio-main\eng\HardwareBridgeBuild\bin\$(MSBuildProjectName)\</OutputPath>
+    <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory).artifacts\obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
+    <OutputPath>$(MSBuildThisFileDirectory).artifacts\bin\$(MSBuildProjectName)\</OutputPath>
+    <DefaultItemExcludes>$(DefaultItemExcludes);$(MSBuildThisFileDirectory).artifacts\**</DefaultItemExcludes>
   </PropertyGroup>
 </Project>

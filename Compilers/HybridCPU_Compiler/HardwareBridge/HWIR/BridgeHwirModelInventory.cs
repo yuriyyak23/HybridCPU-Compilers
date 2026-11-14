@@ -6,7 +6,8 @@ namespace HybridCPU.Compiler.HardwareBridge.Hwir;
 
 /// <summary>Identity and coverage of an observed source inventory, never an elaborated HWIR design.</summary>
 public sealed record BridgeHwirModelInventorySummary(string Schema, string Disposition, string SourceIndexSha256,
-    string SemanticReportSha256, int Types, int Classes, int Structs, int Declarations, int Members);
+    string SemanticReportSha256, int Types, int Classes, int Structs, int Interfaces, int Enums, int Delegates,
+    int Declarations, int Members);
 
 /// <summary>
 /// Admits the complete source-index projection to the HWIR bridge as source-only metadata.
@@ -32,7 +33,8 @@ public static class BridgeHwirModelInventory
         if (symbols.ValueKind != JsonValueKind.Array || symbols.GetArrayLength() > 100_000)
             throw new InvalidDataException("Invalid source symbol count.");
         var identities = new HashSet<(string Assembly, string Symbol)>();
-        var classes = 0; var structs = 0; var declarations = 0; var members = 0;
+        var classes = 0; var structs = 0; var interfaces = 0; var enums = 0; var delegates = 0;
+        var declarations = 0; var members = 0;
         foreach (var type in symbols.EnumerateArray())
         {
             var assembly = Required(type, "assembly"); var symbol = Required(type, "symbol");
@@ -41,6 +43,9 @@ public static class BridgeHwirModelInventory
             {
                 case "Class": classes++; break;
                 case "Struct": structs++; break;
+                case "Interface": interfaces++; break;
+                case "Enum": enums++; break;
+                case "Delegate": delegates++; break;
                 default: throw new InvalidDataException("Unsupported source type kind.");
             }
             var memberArray = type.GetProperty("members"); var parts = type.GetProperty("declarations");
@@ -75,7 +80,7 @@ public static class BridgeHwirModelInventory
         }
         return new("hardwarebridge.model-inventory/v1", "source-only-unqualified",
             Convert.ToHexString(SHA256.HashData(indexBytes.Span)).ToLowerInvariant(), reportSha,
-            identities.Count, classes, structs, declarations, members);
+            identities.Count, classes, structs, interfaces, enums, delegates, declarations, members);
     }
 
     private static string Required(JsonElement item, string property)

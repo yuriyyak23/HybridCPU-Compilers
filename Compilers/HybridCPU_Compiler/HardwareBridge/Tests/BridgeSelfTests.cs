@@ -39,8 +39,9 @@ internal static class BridgeSelfTests
     {
         try
         {
-            // An explicit, known runtime reference is a test fixture, not filesystem discovery by the bridge.
-            byte[] reference = File.ReadAllBytes(typeof(object).Assembly.Location);
+            // Snapshot tests hash opaque caller bytes; use a bounded deterministic image rather than
+            // assuming the current runtime CoreLib fits the bridge's 16 MiB reference budget.
+            byte[] reference = Enumerable.Range(0, 4096).Select(i => (byte)(i * 31)).ToArray();
             BridgeSourceRequestV1 source = Request(reference);
             BridgeSourceSnapshotV1 snapshot = Capture(source);
             byte[] json = snapshot.ToJsonUtf8();
@@ -69,6 +70,9 @@ internal static class BridgeSelfTests
             Throws<ArgumentException>(() => Capture(badRoot), "Empty generic argument");
             Throws<ArgumentException>(() => Capture(Request(reference, text:
                 new string('z', BridgeSourceSnapshotV1.MaxDocumentUtf8Bytes + 1))), "Source budget");
+            Throws<ArgumentException>(() => Capture(Request(Array.Empty<byte>())), "Empty reference image");
+            Throws<ArgumentException>(() => Capture(Request(
+                new byte[BridgeSourceSnapshotV1.MaxReferenceBytes + 1])), "Reference byte budget");
             using var cancelled = new CancellationTokenSource();
             cancelled.Cancel();
             Throws<OperationCanceledException>(() => BridgeSourceSnapshotV1.Capture(source,
@@ -126,6 +130,8 @@ internal static class BridgeSelfTests
 
             // An actual Companion/CIL vertical slice: no dynamic Assembly.Load, invocation or EDA.
             byte[] runtime = File.ReadAllBytes(typeof(object).Assembly.Location);
+            Require(runtime.Length <= BridgeSourceSnapshotV1.MaxReferenceBytes,
+                "Current Companion runtime reference exceeds the bounded snapshot limit.");
             var request = new CompanionSourceRequestV1("BridgeFixture",
                 new[] { new CompanionSourceDocumentV1("src/Fixture.cs",
                     "public static class Fixture { public static int AddWord(int a,int b) => unchecked(a+b); }") },
@@ -200,3 +206,4 @@ internal static class BridgeSelfTests
     }
 }
 #endif
+
