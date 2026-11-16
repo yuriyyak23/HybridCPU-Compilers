@@ -1,0 +1,42 @@
+{
+  "schema": "circuitweave.vector-pod-csr-independent-simulation/v1",
+  "status": "StructuralOnly",
+  "simulation": "PASS",
+  "simulatedVectors": 363584,
+  "activeBaseCommit": "1bfe41a49cf11c80fa6c6aee87accb54b78b331f",
+  "goldenCommit": "6946ccab9d888f7dae0a4d8e18480f436138acd9",
+  "activeSourceSha256": {
+    "vectorConfig": "7106965a6adbd61eed397ef3501610b0f5e8cfc9af5d312409c05fe09b777c92",
+    "architecturalState": "424c6b27d64b133331c3733b39aea9c7993520f74851c4b369675efe8efb9c5a",
+    "csrAddresses": "a2be00ba7d3248bc0aa4e3a49e238a5e0afdd919b5cf1c0d9d2e0bfa01893ef9",
+    "microOpControl": "a9f311292cef6cf97ace5516ffa9601bd3e1a272cce56d7cf229dba04b7a9d80"
+  },
+  "goldenSourceSha256": {
+    "vectorConfig": "d0410f900ba0dfd29d69a59e4edd9663b595b26ab434f75c8c4f8b44a9b7062c",
+    "architecturalState": "1a91fd218dcfb0005562dc1fbcb705f08a941a391bf366da3f3f775cf4dbfa11",
+    "microOpControl": "47f53ec0db804c0badf84cb92a152eb8bb9869535c4d2571af7db3a8ad016c0c"
+  },
+  "goldenMethodSourceCheck": "active/GOLDEN read-path and state accessor bodies token-identical; writes checked for equivalent five-field byte extraction/routing shapes",
+  "toolchain": {
+    "iverilog": "12.0 stable",
+    "sdk": "11.0.100",
+    "iverilogSha256": "a6681e0b577dcfc4ea83d1591a5714710b0b3535ebb36491ee8177553bab9631",
+    "circt": "firtool-1.160.0",
+    "vvpSha256": "e0a087a4906d5a9cd1b0b85c9b4c2081704c2c9bcd94f224437fc56b15fc440d",
+    "circtOptSha256": "187c0c0f0f1464a58997a3e99ca96560cc002b97276cc38c12c28addf0112c4e",
+    "roslyn": "15.0"
+  },
+  "artifacts": {
+    "runnerAssemblySha256": "7ebeb1f72842333e9db3700fadeed6f6d2e4073df314c2abb4231de0ece4c1c2",
+    "vectorsSha256": "4c22577a9dce6fca268a4296d0d975fed3fe354685c1a0a705cef8be41dba101",
+    "testbenchSha256": "8f08c6371ef6d8a3cf410fc91c805e9cf94dcec71cbb950b73ff0f8ad4fe9333",
+    "mlirSha256": "0e0c7510eb03b172a72e2d4bc727ccf58fc1d4ad7d9b12f21daeaf20f5fd0afe",
+    "simulationLogSha256": "b251bf1d60d0d0d710da02132f9c0b6ea379a2029d8d9e80936030a657d9c636",
+    "rtlSha256": "59bb982a379c54c1496a15cc898409fd89cdabe3f5a8fcde886e947a17496c24",
+    "hwirSha256": "a3985ec4aad05591f963fece6f066fc051c2f6d630750f8c58310d400ef19e94"
+  },
+  "statefulImplementation": false,
+  "clockResetEnableStallHandshake": "not modeled",
+  "goldenEquivalence": false,
+  "traceability": "The RTL was exported by the pinned firtool binary from canonical HWIR generated from exact active/GOLDEN source byte pins; Icarus compared outputs against a separate five-field software reference loop. This is not Processor equivalence or a stateful trace."
+}

@@ -1,0 +1,8 @@
+{
+  "status": "passed",
+  "vectors": 4096,
+  "directedCases": 12,
+  "oracle": "independent imperative per-rank retry/stop model; stage legality, backpressure, quota results, ranks and runtime port facts are sampled inputs",
+  "sourceSha256": "8515039c3d770382fd448439d2453c01bd42397f3b525b413d411161bf8035a8",
+  "scope": "Source-pinned four-rank Assist attempt control under AssistBundleQuota=1. Does not derive admission predicates or chain quota/backpressure mutation state. Rank3 credit-order source defect remains explicit as rank3_defined/rank3_out_of_range_reached."
+}

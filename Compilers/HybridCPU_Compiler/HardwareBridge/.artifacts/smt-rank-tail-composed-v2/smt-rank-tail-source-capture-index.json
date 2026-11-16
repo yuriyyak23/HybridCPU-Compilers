@@ -1,0 +1,76 @@
+{
+  "schema": "circuitweave.smt-source-capture-index/v1",
+  "modelCommit": "1bfe41a49cf11c80fa6c6aee87accb54b78b331f",
+  "modelGitHead": "1bfe41a49cf11c80fa6c6aee87accb54b78b331f",
+  "modelTreeState": "dirty-working-tree-listed-inputs-captured",
+  "dirtyInputPaths": [
+    " M CloseToHSL/Core/Pipeline/Assist/Runtime/MicroOpScheduler.Assist.cs",
+    " M CloseToHSL/Core/Pipeline/MicroOps/Types/MicroOp.cs",
+    " M CloseToHSL/Core/Pipeline/Scheduling/Admission/MicroOpScheduler.Admission.cs",
+    " M CloseToHSL/Core/Pipeline/Scheduling/MicroOpScheduler.cs",
+    " M CloseToHSL/Core/Pipeline/Scheduling/SlotLegality/SlotClassCapacity.cs",
+    " M CloseToHSL/Core/Pipeline/Scheduling/Smt/MicroOpScheduler.SMT.cs"
+  ],
+  "files": [
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Admission\\MicroOpScheduler.Admission.cs",
+      "sha256": "6cdd37f43a0a58c0b887f9e8bffe9d2d17abb5d404f7ace70fead05db4edbe25",
+      "length": 32343
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+      "sha256": "c7e675d76bb4eed9ecccb0b20c13c973895cce556e93c21457d966add731d8bf",
+      "length": 69561
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Smt\\MicroOpScheduler.SMT.cs",
+      "sha256": "4ecfa34a01d71033b9d6c0b3f2ce752cb50ff8d6004b3a2ba3d6f1c5710e340d",
+      "length": 61264
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Assist\\Runtime\\MicroOpScheduler.Assist.cs",
+      "sha256": "8515039c3d770382fd448439d2453c01bd42397f3b525b413d411161bf8035a8",
+      "length": 19236
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\SlotLegality\\SlotClassDefinitions.cs",
+      "sha256": "489edf25fe528393aba2e298c259e7929f59260430b4946ccea4c713065d9ff1",
+      "length": 21190
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\SlotLegality\\SlotClassCapacity.cs",
+      "sha256": "54dcc1597997bab5fbea400c2f2ab61f2da750b29db5592e2048a05adc49ade1",
+      "length": 8948
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\LaneId.cs",
+      "sha256": "fa8ff89c15ee0818e3c377f32be5eded6ac7df6bea701f5ce07c2c9e01f66400",
+      "length": 2522
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\LaneChoice\\DeterministicLaneChooser.cs",
+      "sha256": "7bb9602c10dc8dde50793cbe0c2f49f8cda7dd4779ba3f7757446be5894a4f28",
+      "length": 4283
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Safety\\SafetyVerifier.SmtLegality.cs",
+      "sha256": "89cb7e9f737815d9526bed00186c62f324ebaf805c1520a2ed5ebd1349b529a4",
+      "length": 2335
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Safety\\SafetyVerifier.Guards.cs",
+      "sha256": "f87ba64048e2d0a22642b254fe3eebd696553d3b8b4355b831b32ca77acbbf16",
+      "length": 13097
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\MicroOps\\Types\\MicroOp.cs",
+      "sha256": "bd53821fbd152287e31324706de558cfa7606e1c69f94d16c5da1d19590b469c",
+      "length": 48229
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\SlotPlacementMetadata.cs",
+      "sha256": "06cac68870c46136250bfdc4c5b195c6f569d7113d7c5d10bfbc41d5b0797f19",
+      "length": 2322
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "schema": "circuitweave.assist-source-capture/v1",
+  "status": "two-listed-dirty-worktree-files-hash-checked",
+  "baseCommit": "1bfe41a49cf11c80fa6c6aee87accb54b78b331f",
+  "sourceTreeState": "dirty-model-worktree; exact listed input bytes captured; commit is base identity, not asserted byte source",
+  "scope": "Exact listed SafetyVerifier source bytes; this is not project closure.",
+  "files": [
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Safety\\SafetyVerifier.SmtLegality.cs",
+      "relativePath": "HybridCPU_ISE/CloseToHSL/Core/Pipeline/Safety/SafetyVerifier.SmtLegality.cs",
+      "sha256": "89cb7e9f737815d9526bed00186c62f324ebaf805c1520a2ed5ebd1349b529a4",
+      "length": 2335
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Safety\\SafetyVerifier.Guards.cs",
+      "relativePath": "HybridCPU_ISE/CloseToHSL/Core/Pipeline/Safety/SafetyVerifier.Guards.cs",
+      "sha256": "f87ba64048e2d0a22642b254fe3eebd696553d3b8b4355b831b32ca77acbbf16",
+      "length": 13097
+    }
+  ]
+}

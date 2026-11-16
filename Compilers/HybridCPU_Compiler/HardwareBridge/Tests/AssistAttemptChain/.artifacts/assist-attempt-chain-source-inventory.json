@@ -1,0 +1,60 @@
+{
+  "schema": "circuitweave.source-coverage-index/v1",
+  "disposition": "incomplete-unqualified",
+  "project": "HybridCPU_ISE/HybridCPU_ISE.csproj",
+  "configuration": "Debug",
+  "targetFramework": "net11.0",
+  "scope": "One exact active dirty-worktree Assist source file and a source-bound four-rank retry/stop method; outcome legality and runtime state are sampled.",
+  "semanticReportSha256": "23b2d24aae4310c1751b2eb5fa413d491b8c1f9ab910d78c664457e33cce9cb0",
+  "captureVerification": {
+    "schema": "circuitweave.source-capture-check/v1",
+    "status": "producer-reported-listed-inputs-match",
+    "semanticReportSha256": "23b2d24aae4310c1751b2eb5fa413d491b8c1f9ab910d78c664457e33cce9cb0",
+    "sourceCaptureSha256": "f87724267e0a55e17d4c0601dfdc9c60c6c74bb26c2cd33348dcc6f7479158fe",
+    "projectGraphSha256": "3022562eb291dd8fede2b3a2811dc778d081d6a739f6327a07a05713b2015181",
+    "checkedFiles": 1,
+    "rootProject": "not-captured",
+    "scope": "One exact listed Assist file; project graph is a selected Debug project-graph artifact, not proof of complete source closure."
+  },
+  "capturedSourceFiles": [
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Assist\\Runtime\\MicroOpScheduler.Assist.cs",
+      "sha256": "8515039c3d770382fd448439d2453c01bd42397f3b525b413d411161bf8035a8",
+      "length": 19236
+    }
+  ],
+  "symbols": [
+    {
+      "symbol": "global::YAKSys_Hybrid_CPU.Core.MicroOpScheduler",
+      "assembly": "CircuitWeave.AssistAttemptChain",
+      "kind": "Class",
+      "memberCount": 1,
+      "declarations": [
+        {
+          "location": {
+            "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Assist\\Runtime\\MicroOpScheduler.Assist.cs",
+            "startLine": 166,
+            "startColumn": 21
+          },
+          "memberIds": [
+            "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.TryInjectAssistCandidates()"
+          ]
+        }
+      ],
+      "members": [
+        {
+          "id": "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.TryInjectAssistCandidates()",
+          "kind": "Method",
+          "locations": [
+            {
+              "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Assist\\Runtime\\MicroOpScheduler.Assist.cs",
+              "startLine": 166,
+              "startColumn": 21
+            }
+          ]
+        }
+      ],
+      "blockingReason": "Selected Assist method only; not full Processor symbol closure. Stage outcomes, reservation updates and credit rank facts remain sampled."
+    }
+  ]
+}

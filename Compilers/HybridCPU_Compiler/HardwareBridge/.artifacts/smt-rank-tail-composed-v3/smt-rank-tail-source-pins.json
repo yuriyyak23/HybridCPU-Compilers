@@ -1,0 +1,55 @@
+{
+  "modelCommit": "1bfe41a49cf11c80fa6c6aee87accb54b78b331f",
+  "modelGitHead": "1bfe41a49cf11c80fa6c6aee87accb54b78b331f",
+  "modelTreeState": "dirty-working-tree-listed-inputs-captured",
+  "dirtyInputPaths": [
+    " M CloseToHSL/Core/Pipeline/Assist/Runtime/MicroOpScheduler.Assist.cs",
+    " M CloseToHSL/Core/Pipeline/Certificates/BundleResourceCertificate4Way.cs",
+    " M CloseToHSL/Core/Pipeline/MicroOps/Types/MicroOp.cs",
+    " M CloseToHSL/Core/Pipeline/Scheduling/Admission/MicroOpScheduler.Admission.cs",
+    " M CloseToHSL/Core/Pipeline/Scheduling/MicroOpScheduler.cs",
+    " M CloseToHSL/Core/Pipeline/Scheduling/SlotLegality/SlotClassCapacity.cs",
+    " M CloseToHSL/Core/Pipeline/Scheduling/Smt/MicroOpScheduler.SMT.cs"
+  ],
+  "module": "smt_ranked_collected_admission_projection",
+  "hwirSha256": "d685cc9aacda6d1f118e21b4705f8fe7db5fbe628646edfbe778ef532d993054",
+  "mlirSha256": "ba2783c5ab329568e69c7bd77579daf49d637a7d0038421d99e306ebb2476b77",
+  "sources": {
+    "admission": "6cdd37f43a0a58c0b887f9e8bffe9d2d17abb5d404f7ace70fead05db4edbe25",
+    "scheduler": "c7e675d76bb4eed9ecccb0b20c13c973895cce556e93c21457d966add731d8bf",
+    "smt": "4ecfa34a01d71033b9d6c0b3f2ce752cb50ff8d6004b3a2ba3d6f1c5710e340d",
+    "assist": "8515039c3d770382fd448439d2453c01bd42397f3b525b413d411161bf8035a8",
+    "classes": "489edf25fe528393aba2e298c259e7929f59260430b4946ccea4c713065d9ff1",
+    "capacity": "54dcc1597997bab5fbea400c2f2ab61f2da750b29db5592e2048a05adc49ade1",
+    "laneId": "fa8ff89c15ee0818e3c377f32be5eded6ac7df6bea701f5ce07c2c9e01f66400",
+    "laneChooser": "7bb9602c10dc8dde50793cbe0c2f49f8cda7dd4779ba3f7757446be5894a4f28",
+    "smtLegality": "89cb7e9f737815d9526bed00186c62f324ebaf805c1520a2ed5ebd1349b529a4",
+    "guards": "f87ba64048e2d0a22642b254fe3eebd696553d3b8b4355b831b32ca77acbbf16",
+    "microOp": "bd53821fbd152287e31324706de558cfa7606e1c69f94d16c5da1d19590b469c",
+    "slotPlacement": "06cac68870c46136250bfdc4c5b195c6f569d7113d7c5d10bfbc41d5b0797f19"
+  },
+  "semanticCrosscheck": {
+    "file": "smt-rank-tail-semantic-crosscheck.json",
+    "sha256": "417806ff36fdf87bf2919098d4f20868bbffaa7df1a9e3824cdec062f7774a0a",
+    "vectors": 4727,
+    "status": "passed",
+    "scope": "4,704 ranking/collection vectors plus directed retry, shared/register certificate, replay select, guard and source-ordered A3 reject cases. A3 predicate results are explicit; sampled scoreboard/budget logic and diagnostic counters remain outside this projection. Exact cache key and refresh remain unmodeled. No clocked lifecycle or Golden equivalence"
+  },
+  "sourceInventorySha256": "942d364b1166d0976646efa081a2616a977e0c96eb433f3a4c0e74977d9ab85d",
+  "outputs": [
+    "ranked_vt0",
+    "ranked_vt1",
+    "ranked_vt2",
+    "ranked_vt3",
+    "main_rank3_duplicate_snapshot_condition",
+    "assist_rank3_index_oob_if_reached",
+    "c0-c3 accepted/reject_reason/selected_lane/stage_b_evaluated",
+    "c0-c3 guard_boundary_reject/owner_context_reject/domain_reject/certificate_checked/replay_certificate_selected/structural_certificate_selected/legality_allowed",
+    "final_next_occupancy",
+    "final_next_occupied0..5",
+    "final_budget0..7",
+    "final_injections"
+  ],
+  "testbenchSha256": "68ab978d30e88c9d49e9babf6f9e61996665b66a3f467d8b24cae48c0aa2b241",
+  "classification": "combinational SMT rank/collection and four-candidate source-bound guard, shared/register certificate predicate, and Stage A/B duplicate retry projection; complete replay key/template match and outer-cap gates are explicit inputs; Assist OOB is conditional on loop reach; not a clocked scheduler model"
+}

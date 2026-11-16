@@ -1,0 +1,7 @@
+{
+  "schema": "circuitweave.assist-attempt-chain-source-pins/v1",
+  "modelCommit": "1bfe41a49cf11c80fa6c6aee87accb54b78b331f",
+  "sourceSha256": "8515039c3d770382fd448439d2453c01bd42397f3b525b413d411161bf8035a8",
+  "sourcePath": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Assist\\Runtime\\MicroOpScheduler.Assist.cs",
+  "length": 19236
+}

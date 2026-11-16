@@ -1,0 +1,6 @@
+{
+  "vectors": 4747,
+  "oracle": "separately coded fair-rank \u002B collection \u002B four-candidate certificate/A3/A/B retry-state contract",
+  "status": "passed",
+  "scope": "4,704 ranking/collection vectors plus 41 directed retry, shared/register certificate, replay select, guard, scoreboard-derived per-VT bank-pending, bundle-local Store bank mask, sampled SuppressLsu predicate, projected-memory state, and source-derived A3 memory-budget predicate cases. The per-candidate remaining and packed-consumed budget tuples are explicit inputs; their initialization from snapshot plus original bundle and update after earlier successful candidates remain unmodeled. A3 predicate 5 and diagnostic counters remain external. Exact cache key and refresh remain unmodeled. No clocked lifecycle or Golden equivalence"
+}

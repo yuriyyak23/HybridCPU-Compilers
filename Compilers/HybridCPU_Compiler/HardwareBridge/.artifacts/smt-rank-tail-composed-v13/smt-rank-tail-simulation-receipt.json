@@ -1,0 +1,55 @@
+{
+  "schema": "circuitweave.smt-rank-tail-rtl-simulation/v1",
+  "status": "candidate-rtl-simulation-passed",
+  "trust": "StructuralOnly",
+  "source": {
+    "studioProject": "artifacts/processor-20261114/smt-rank-collected-composition-v6/studio.project.json",
+    "manifestSha256": "98e7b7f77f278c8038aa42b848a8adeb5fd58f5c09a3536bb1e21e484cfad9c6",
+    "snapshotId": "22d47e9939d1118fecb212b6901a55d0a6a07d8065db869c3c9e8f9cb0b1bbf8",
+    "modelCommit": "1bfe41a49cf11c80fa6c6aee87accb54b78b331f",
+    "modelGitHead": "1bfe41a49cf11c80fa6c6aee87accb54b78b331f",
+    "treeState": "dirty-working-tree-listed-inputs-captured",
+    "hwirSha256": "3393487ea1bb0108b59cb03b57c615173377252c2fc86f8f97f41a05578bca29",
+    "mlirSha256": "f54e0b7a9ba1b85a65472a004be59c178fb97289a533b5cd1ed68fb6bbff6732",
+    "mlirInputSha256": "f54e0b7a9ba1b85a65472a004be59c178fb97289a533b5cd1ed68fb6bbff6732"
+  },
+  "tools": {
+    "circtVersion": "CIRCT firtool-1.160.0",
+    "circtExecutableSha256": "187c0c0f0f1464a58997a3e99ca96560cc002b97276cc38c12c28addf0112c4e",
+    "iverilogVersion": "Icarus Verilog version 12.0 (stable)",
+    "iverilogExecutableSha256": "a6681e0b577dcfc4ea83d1591a5714710b0b3535ebb36491ee8177553bab9631",
+    "vvpVersion": "Icarus Verilog runtime version 12.0 (stable)",
+    "vvpExecutableSha256": "e0a087a4906d5a9cd1b0b85c9b4c2081704c2c9bcd94f224437fc56b15fc440d",
+    "environment": "WSL2 Ubuntu"
+  },
+  "commands": {
+    "rtl": "circt-opt --export-verilog smt-rank-tail.mlir -o /dev/null",
+    "compile": "iverilog -g2012 -s smt_rank_tail_directed_tb -o smt-rank-tail.vvp smt-rank-tail.sv smt-rank-tail.tb.sv",
+    "simulate": "vvp smt-rank-tail.vvp",
+    "rtlExportExit": 0,
+    "compileExit": 0,
+    "simulationExit": 0
+  },
+  "artifacts": {
+    "rtlSha256": "31bedd153d8e133092006b22136a6d3c057080422dca3b139cab8b1ee29e30ac",
+    "rtlBytes": 971003,
+    "testbenchSha256": "7333f415d3410ad2111689eead4117f3c835238399f8d2d200ffbc3c8b082727",
+    "compileLogSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "simulationLogSha256": "f75c849a62d59d4e930b1804854a4e89b5e46fa21ecaf81def8ce493c784a787",
+    "simulationOutput": "PASS standalone same-owner A3 bit5 bypass\nPASS standalone cross-owner A3 bit5 rejection\nPASS duplicate success suppresses retry; HardPinned lane6 committed once\nPASS selected bundle shared certificate blocks candidate\nPASS HardPinned lane6 conflict retries without committing occupancy\nPASS RAR register access remains admissible\nPASS RAW register conflict is rejected\nPASS WAR register conflict is rejected\nPASS WAW register conflict is rejected\nPASS accepted candidate commits shared mask; next candidate observes conflict\nPASS accepted Load consumes shared/read budget before next candidate retry\nPASS Stage B lane rejection preserves memory budget state\nPASS ordered original bundle seeds saturated shared/read/write budget tuples\nPASS replay certificate ignored without complete key and template match\nPASS matching replay certificate tuple is selected\nPASS exhausted speculation budget blocks cross-VT memory issue\nPASS positive speculation budget admits cross-VT memory issue\nPASS negative signed speculation budget is nonpositive and rejects\nPASS external legacy speculation fact is ignored\nPASS speculation exhaustion diagnostics cascade across two failed candidate attempts\nPASS earlier A3 rejection does not increment speculation exhaustion diagnostic\nPASS Assist bypass does not increment speculation exhaustion diagnostic\nPASS Stage A ResourceConflict increments aggregate SMT rejection count once\nPASS Stage B lane rejection increments aggregate SMT rejection count once\nPASS sampled SuppressLsu blocks memory candidate\nPASS sampled SuppressLsu bypasses non-memory candidate\nPASS memory candidate passes when SuppressLsu is clear\nPASS shared memory issue exhaustion derives A3 HardwareBudgetReject\nPASS read directional exhaustion rejects Load\nPASS Store uses write budget and ignores exhausted read budget\nPASS Atomic-like LoadStore subtype consumes shared gate without directional gate\nPASS invalid bank bypasses per-bank limits while global budgets remain positive\nPASS packed two-bit per-bank consumption blocks at the sampled cap\nPASS legacy LSU condition bit is ignored\nPASS legacy bundle-store condition bit is ignored\nPASS same-bank bundle Store rejects source-ordered A3\nPASS different-bank bundle Store does not block\nPASS same-bank bundle Load does not set Store mask\nPASS same-bank original-bundle Store does not block candidate Load\nPASS bundle Store bank outside 0..15 does not set mask\nPASS per-VT same-bank outstanding memory rejects from scoreboard\nPASS another VT same-bank outstanding entry does not block this VT\nPASS different-bank outstanding entry does not block candidate\nPASS negative candidate bank id bypasses pending-bank check\nPASS projected memory capacity rejects a full per-VT count\nPASS projected count has priority over legacy fact bit and commits after success\nPASS non-memory candidate bypasses projected memory capacity\nPASS non-LoadStore memory-marked candidate does not consume projected scoreboard count\nPASS outstanding Load entries count independently of free allocator values\nPASS non-free allocator values independently exhaust projected capacity\nPASS original bundle seeds projected count before a new accepted LoadStore\nPASS eight original bundle LoadStores saturate the projected count\nPASS outer gate selects the first source-order rejection\nPASS Assist bypasses the A3 outer-cap gate\nPASS all directed RTL scenarios\n/mnt/c/Users/Yuriy/Desktop/CircuitWeave-main/artifacts/processor-20261114/smt-rank-rtl-v13/smt-rank-tail.tb.sv:1530: $finish called at 54000 (1ps)\n"
+  },
+  "scenarios": [
+    "A3 bit5 rejects cross-VT memory candidate at zero budget",
+    "A3 bit5 admits cross-VT memory candidate at positive budget",
+    "A3 bit5 rejects cross-VT memory candidate at signed-negative budget",
+    "legacy A3 bit5 fact is ignored",
+    "two accepted-path candidates increment source-ordered exhaustion events",
+    "earlier Stage A guard suppresses exhaustion event",
+    "Assist bypass does not increment exhaustion event",
+    "standalone same-owner A3 bit5 bypass",
+    "standalone cross-owner A3 bit5 rejection",
+    "Stage A ResourceConflict increments aggregate SmtRejectionsCount once",
+    "Stage B lane rejection increments aggregate SmtRejectionsCount once"
+  ],
+  "limitations": "Combinational candidate projection only. Runtime candidate/snapshot identity, replay refresh and temporal scheduler lifecycle remain unmodeled. SmtRejectionsCount is modeled only for the typed non-Assist ordered four-candidate projection; Assist quota/backpressure, legacy untyped and FSP paths remain excluded. Same-owner and cross-owner direct A3 bit5 behavior is checked in the standalone gate; the source-ordered SpeculationBudgetExhaustionEvents counter is modeled from final Stage A reason. No Golden equivalence or waveform is claimed."
+}

@@ -1,0 +1,6 @@
+{
+  "vectors": 396,
+  "status": "passed",
+  "oracle": "separately coded Assist entry/quota/owner-guard equation",
+  "scope": "source-pinned three early returns and AssistBundleQuota=1; prior rank commit bits are abstract inputs constrained to zero or one-hot when loop entry is open; candidate admission outcomes are not modeled"
+}

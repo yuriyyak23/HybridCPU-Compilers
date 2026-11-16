@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net11.0</TargetFramework><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\HWIR\HardwareBridge.Hwir.csproj" />
+    <ProjectReference Include="C:\Users\Yuriy\Desktop\CircuitWeave-main\src\CircuitWeave.Backend.Circt\CircuitWeave.Backend.Circt.csproj" />
+    <ProjectReference Include="C:\Users\Yuriy\Desktop\CircuitWeave-main\src\CircuitWeave.Visualization.Publishing\CircuitWeave.Visualization.Publishing.csproj" />
+    <ProjectReference Include="C:\Users\Yuriy\Desktop\CircuitWeave-main\artifacts\processor-20261114\csr-clear-retire-studio-consumer-v3\consumer\src\CircuitWeave.Studio.Integration\CircuitWeave.Studio.Integration.csproj" />
+    <ProjectReference Include="C:\Users\Yuriy\Desktop\CircuitWeave-main\artifacts\processor-20261114\csr-clear-retire-studio-consumer-v3\consumer\src\CircuitWeave.Studio.GraphNavigation\CircuitWeave.Studio.GraphNavigation.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,3 @@
+187c0c0f0f1464a58997a3e99ca96560cc002b97276cc38c12c28addf0112c4e  /mnt/c/Users/Yuriy/Desktop/CircuitWeave-main/artifacts/processor-20261114/power-control-candidate/tool/firtool-1.160.0/bin/circt-opt
+a6681e0b577dcfc4ea83d1591a5714710b0b3535ebb36491ee8177553bab9631  /usr/bin/iverilog
+e0a087a4906d5a9cd1b0b85c9b4c2081704c2c9bcd94f224437fc56b15fc440d  /usr/bin/vvp

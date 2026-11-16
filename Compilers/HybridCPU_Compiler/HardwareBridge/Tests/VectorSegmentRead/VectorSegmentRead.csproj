@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net11.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <DefineConstants>$(DefineConstants);HARDWAREBRIDGE_HWIR</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="VectorSegmentReadOracle.cs" />
+    <ProjectReference Include="..\..\HWIR\HardwareBridge.Hwir.csproj" />
+    <ProjectReference Include="C:\Users\Yuriy\Desktop\CircuitWeave-main\src\CircuitWeave.Backend.Circt\CircuitWeave.Backend.Circt.csproj" />
+    <ProjectReference Include="C:\Users\Yuriy\Desktop\CircuitWeave-main\src\CircuitWeave.Visualization.Publishing\CircuitWeave.Visualization.Publishing.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,17 @@
+{
+  "baseCommit": "1bfe41a49cf11c80fa6c6aee87accb54b78b331f",
+  "worktreeState": "dirty-listed-input-captured",
+  "sourceSha256": "8515039c3d770382fd448439d2453c01bd42397f3b525b413d411161bf8035a8",
+  "hwirSha256": "dc4cd9b4d8ead654f59b3122aa7caa6c18d0c0533c69fd8554266699cf80a864",
+  "mlirSha256": "0ad12923e1ec129cfea547db6550b8bd66cf2a7ec925b9f3b8f114fb0a02c834",
+  "semanticCrosscheckSha256": "11318df0cbb9a3acebc98e95eba5c3cd69b80423796c7b55a894559813105404",
+  "vectors": 396,
+  "outputs": [
+    "rank3_iteration_reached",
+    "rank3_index_oob_exception_condition"
+  ],
+  "assumptions": [
+    "rank3_vt and prior rank commit bits are explicit inputs; this does not derive candidate class/lane/backpressure outcomes."
+  ],
+  "classification": "combinational source-bound control projection; no RTL/cycle or full Assist scheduler semantics"
+}

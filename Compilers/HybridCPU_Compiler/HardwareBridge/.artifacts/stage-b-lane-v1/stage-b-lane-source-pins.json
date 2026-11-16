@@ -1,0 +1,32 @@
+{
+  "schema": "circuitweave.stage-b-lane-source-pins/v1",
+  "modelCommit": "1bfe41a49cf11c80fa6c6aee87accb54b78b331f",
+  "currentModelHead": "1bfe41a49cf11c80fa6c6aee87accb54b78b331f",
+  "modelTreeState": "dirty; listed working bytes captured exactly; base revision not substituted",
+  "hwirSha256": "0453f5268091fd71f91c5b85a330fa5da3ba6a077faa468099f69fd29fa845de",
+  "mlirSha256": "00eaa8bb32ddc78037323605a6ee64f277470631ce87f2025a069c81482462c1",
+  "vectors": 74744,
+  "sourceFiles": [
+    {
+      "path": "HybridCPU_ISE/CloseToHSL/Core/Pipeline/Scheduling/Admission/MicroOpScheduler.Admission.cs",
+      "sha256": "6cdd37f43a0a58c0b887f9e8bffe9d2d17abb5d404f7ace70fead05db4edbe25",
+      "length": 32343
+    },
+    {
+      "path": "HybridCPU_ISE/CloseToHSL/Core/Pipeline/Scheduling/LaneId.cs",
+      "sha256": "fa8ff89c15ee0818e3c377f32be5eded6ac7df6bea701f5ce07c2c9e01f66400",
+      "length": 2522
+    },
+    {
+      "path": "HybridCPU_ISE/CloseToHSL/Core/Pipeline/Scheduling/SlotLegality/SlotClassDefinitions.cs",
+      "sha256": "489edf25fe528393aba2e298c259e7929f59260430b4946ccea4c713065d9ff1",
+      "length": 21190
+    },
+    {
+      "path": "HybridCPU_ISE/CloseToHSL/Core/Pipeline/Scheduling/LaneChoice/DeterministicLaneChooser.cs",
+      "sha256": "7bb9602c10dc8dde50793cbe0c2f49f8cda7dd4779ba3f7757446be5894a4f28",
+      "length": 4283
+    }
+  ],
+  "scope": "Stage B lane materialization only; Stage A, state mutation/commit, lane-reuse counter, memory/other rejection paths are outside this projection."
+}

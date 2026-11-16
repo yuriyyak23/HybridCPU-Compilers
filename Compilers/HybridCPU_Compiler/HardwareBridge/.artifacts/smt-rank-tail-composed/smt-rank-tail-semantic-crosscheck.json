@@ -1,0 +1,6 @@
+{
+  "vectors": 4713,
+  "oracle": "separately coded fair-rank \u002B collection \u002B Stage A/B four-candidate retry/state contract",
+  "status": "passed",
+  "scope": "4,704 ranking/collection vectors plus three directed same-VT rank0/rank3 admission cases; Stage A legality/outer-cap inputs remain abstract, while fast-template consumption, class capacity lookup, Stage B HardPinned lane6, repeat suppression, and occupancy/counter updates execute in source-bound HWIR. No RTL, scheduler clocks, rejection side-effect counters or Golden equivalence"
+}

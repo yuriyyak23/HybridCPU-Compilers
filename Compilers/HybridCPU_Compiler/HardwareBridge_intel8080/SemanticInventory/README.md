@@ -94,6 +94,12 @@ Example (choose another new output directory for each run):
 
 This adapter does not invoke SemanticInventory's HybridCPU byte-inventory contract. It parses selected files and creates an in-memory Roslyn compilation against SDK trusted platform assemblies to bind method and member symbols; unresolved-reference/compiler diagnostics are retained. It does not emit an assembly, build or execute the input project, perform HWIR/MLIR lowering, emit SystemVerilog, or functionally verify instructions. Its `memberDependencies` list records direct method calls, object creations and field/property/event references with source/target locations where Roslyn resolves them. It is an occurrence projection, not complete dataflow or dynamic dispatch. The transferred project graph and full semantic closure tools remain diagnostics for explicitly supplied MSBuild/Csc captures; `HardwareBridge.Hwir` adapters are not copied because their admitted operations and bindings are HybridCPU-specific.
 
+The adapted `Test-SemanticInventory.ps1` regression suite builds only this target utility and exercises partial declarations, member ownership, dependencies, overloads, nested/conditional symbols, source ProjectReferences, selected SDK JSON source generation, deterministic generator output, stale-input rejection and output-boundary rejection. Its generated fixtures and reports are kept under `CircuitWeave-main/artifacts/8080/tests/semantic-inventory-<guid>`; it does not compile or execute `emu8080.Core`. Run it from any working directory with:
+
+```powershell
+& 'C:\Users\Yuriy\Desktop\HybridCPU Compilers\Compilers\HybridCPU_Compiler\HardwareBridge_intel8080\SemanticInventory\Test-SemanticInventory.ps1'
+```
+
 ## Intel 8080 project/import inventory
 
 `ProjectInventory/HardwareBridge.Intel8080.ProjectInventory.csproj` ports the generic evaluation-only MSBuild import inventory for this source project. The opt-in wrapper `Intel8080/Invoke-Intel8080ProjectInventory.ps1` records the selected Debug evaluation's project properties, package/project references, Compile items, and hashes of observed imported/project files. The wrapper only writes a new file under `CircuitWeave-main/artifacts/8080`; existing outputs and linked output paths are refused.

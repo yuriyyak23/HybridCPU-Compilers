@@ -1,0 +1,64 @@
+{
+  "schema": "circuitweave.source-coverage-index/v1",
+  "disposition": "incomplete-unqualified",
+  "project": "HybridCPU_ISE/HybridCPU_ISE.csproj",
+  "configuration": "Debug",
+  "scope": "Source-bound SMT loop and TryClassAdmission branch abstract projection; not Roslyn project closure or full scheduler semantics.",
+  "semanticReportSha256": "46037f0c96d7c7ac3c48563df9ebe62c09dea8696c1366184c6495543fd19c1a",
+  "symbols": [
+    {
+      "symbol": "global::YAKSys_Hybrid_CPU.Core.MicroOpScheduler",
+      "assembly": "CircuitWeave.SmtDuplicateRetry",
+      "kind": "Class",
+      "memberCount": 1,
+      "blockingReason": "One source-mapped scheduler method only; admission is a syntax-guarded abstract boundary and the full active symbol inventory is published separately.",
+      "declarations": [
+        {
+          "location": {
+            "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Smt\\MicroOpScheduler.SMT.cs",
+            "startLine": 33,
+            "startColumn": 26
+          },
+          "memberIds": [
+            "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.PackBundleIntraCoreSmt()"
+          ]
+        }
+      ],
+      "members": [
+        {
+          "id": "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.PackBundleIntraCoreSmt()",
+          "kind": "Method",
+          "locations": [
+            {
+              "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Smt\\MicroOpScheduler.SMT.cs",
+              "startLine": 33,
+              "startColumn": 26
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "captureVerification": {
+    "schema": "circuitweave.source-capture-check/v1",
+    "status": "producer-reported-listed-inputs-match",
+    "semanticReportSha256": "46037f0c96d7c7ac3c48563df9ebe62c09dea8696c1366184c6495543fd19c1a",
+    "sourceCaptureSha256": "dbd6d95165036da75097cd628e284d724cd41d7927e4f380641c9b0e6ad9456d",
+    "projectGraphSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "checkedFiles": 2,
+    "rootProject": "not-captured",
+    "scope": "Exact byte hashes and captured bytes cover only listed active SMT and admission files; zero graph digest explicitly means project graph was not captured."
+  },
+  "capturedSourceFiles": [
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Smt\\MicroOpScheduler.SMT.cs",
+      "sha256": "4ecfa34a01d71033b9d6c0b3f2ce752cb50ff8d6004b3a2ba3d6f1c5710e340d",
+      "length": 61264
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Admission\\MicroOpScheduler.Admission.cs",
+      "sha256": "6cdd37f43a0a58c0b887f9e8bffe9d2d17abb5d404f7ace70fead05db4edbe25",
+      "length": 32343
+    }
+  ]
+}

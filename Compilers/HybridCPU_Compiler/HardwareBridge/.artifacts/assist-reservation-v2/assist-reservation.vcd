@@ -1,0 +1,1073 @@
+$date
+	Sun Nov 15 15:45:35 2026
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1s
+$end
+$scope module assist_reservation_directed_tb $end
+$var wire 16 ! reserved_line_demand [15:0] $end
+$var wire 1 " reject_shared_outer $end
+$var wire 1 # reject_outstanding $end
+$var wire 1 $ reject_lines $end
+$var wire 1 % reject_issue $end
+$var wire 1 & reject_dma_srf $end
+$var wire 64 ' next_typed_slot_resource_conflict_rejects [63:0] $end
+$var wire 64 ( next_typed_slot_domain_rejects [63:0] $end
+$var wire 64 ) next_static_class_overcommit_rejects [63:0] $end
+$var wire 64 * next_smt_shared_resource_certificate_rejects [63:0] $end
+$var wire 64 + next_smt_rejections_count [63:0] $end
+$var wire 64 , next_smt_register_group_certificate_rejects [63:0] $end
+$var wire 64 - next_smt_owner_context_guard_rejects [63:0] $end
+$var wire 64 . next_smt_legality_reject_by_system_singleton [63:0] $end
+$var wire 64 / next_smt_legality_reject_by_matrix_tile_stream_class [63:0] $end
+$var wire 64 0 next_smt_legality_reject_by_lsu_class [63:0] $end
+$var wire 64 1 next_smt_legality_reject_by_dma_stream_class [63:0] $end
+$var wire 64 2 next_smt_legality_reject_by_branch_control [63:0] $end
+$var wire 64 3 next_smt_legality_reject_by_alu_class [63:0] $end
+$var wire 64 4 next_smt_domain_guard_rejects [63:0] $end
+$var wire 64 5 next_smt_boundary_guard_rejects [63:0] $end
+$var wire 64 6 next_rejections_vt3 [63:0] $end
+$var wire 64 7 next_rejections_vt2 [63:0] $end
+$var wire 64 8 next_rejections_vt1 [63:0] $end
+$var wire 64 9 next_rejections_vt0 [63:0] $end
+$var wire 64 : next_reg_group_conflicts_vt3 [63:0] $end
+$var wire 64 ; next_reg_group_conflicts_vt2 [63:0] $end
+$var wire 64 < next_reg_group_conflicts_vt1 [63:0] $end
+$var wire 64 = next_reg_group_conflicts_vt0 [63:0] $end
+$var wire 64 > next_pinned_lane_conflicts [63:0] $end
+$var wire 8 ? next_outstanding_count_vt3 [7:0] $end
+$var wire 8 @ next_outstanding_count_vt2 [7:0] $end
+$var wire 8 A next_outstanding_count_vt1 [7:0] $end
+$var wire 8 B next_outstanding_count_vt0 [7:0] $end
+$var wire 64 C next_nop_due_to_resource_conflict [63:0] $end
+$var wire 64 D next_nop_due_to_pinned_constraint [63:0] $end
+$var wire 64 E next_nop_due_to_no_class_capacity [63:0] $end
+$var wire 8 F next_lsu_carrier_credits [7:0] $end
+$var wire 16 G next_line_credits [15:0] $end
+$var wire 64 H next_late_binding_conflicts [63:0] $end
+$var wire 64 I next_lane_conflict_rejects [63:0] $end
+$var wire 8 J next_issue_credits [7:0] $end
+$var wire 64 K next_invalid_pinned_lane_rejects [63:0] $end
+$var wire 64 L next_dynamic_class_exhaustion_rejects [63:0] $end
+$var wire 8 M next_dma_carrier_credits [7:0] $end
+$var wire 32 N next_consumed_shared_read_packed [31:0] $end
+$var wire 64 O next_class_capacity_rejects [63:0] $end
+$var wire 64 P next_certificate_reject_by_system_singleton [63:0] $end
+$var wire 64 Q next_certificate_reject_by_matrix_tile_stream_class [63:0] $end
+$var wire 64 R next_certificate_reject_by_lsu_class [63:0] $end
+$var wire 64 S next_certificate_reject_by_dma_stream_class [63:0] $end
+$var wire 64 T next_certificate_reject_by_branch_control [63:0] $end
+$var wire 64 U next_certificate_reject_by_alu_class [63:0] $end
+$var wire 8 V next_bp_shared_credits [7:0] $end
+$var wire 64 W next_assist_rejects [63:0] $end
+$var wire 64 X next_assist_quota_rejects [63:0] $end
+$var wire 64 Y next_assist_quota_line_rejects [63:0] $end
+$var wire 64 Z next_assist_quota_issue_rejects [63:0] $end
+$var wire 64 [ next_assist_backpressure_rejects [63:0] $end
+$var wire 64 \ next_assist_backpressure_outer_rejects [63:0] $end
+$var wire 64 ] next_assist_backpressure_mshr_rejects [63:0] $end
+$var wire 64 ^ next_assist_backpressure_dma_srf_rejects [63:0] $end
+$var wire 1 _ backpressure_accepted $end
+$var wire 1 ` accept $end
+$var reg 64 a assist_backpressure_dma_srf_rejects [63:0] $end
+$var reg 64 b assist_backpressure_mshr_rejects [63:0] $end
+$var reg 64 c assist_backpressure_outer_rejects [63:0] $end
+$var reg 64 d assist_backpressure_rejects [63:0] $end
+$var reg 64 e assist_quota_issue_rejects [63:0] $end
+$var reg 64 f assist_quota_line_rejects [63:0] $end
+$var reg 64 g assist_quota_rejects [63:0] $end
+$var reg 64 h assist_rejects [63:0] $end
+$var reg 8 i bank_id [7:0] $end
+$var reg 8 j bp_shared_current [7:0] $end
+$var reg 1 k bp_state_valid $end
+$var reg 8 l candidate_slot_class [7:0] $end
+$var reg 8 m candidate_vt [7:0] $end
+$var reg 64 n certificate_reject_by_alu_class [63:0] $end
+$var reg 64 o certificate_reject_by_branch_control [63:0] $end
+$var reg 64 p certificate_reject_by_dma_stream_class [63:0] $end
+$var reg 64 q certificate_reject_by_lsu_class [63:0] $end
+$var reg 64 r certificate_reject_by_matrix_tile_stream_class [63:0] $end
+$var reg 64 s certificate_reject_by_system_singleton [63:0] $end
+$var reg 64 t class_capacity_rejects [63:0] $end
+$var reg 8 u cold_line_cap [7:0] $end
+$var reg 32 v consumed_shared_read_packed [31:0] $end
+$var reg 8 w dma_carrier_current [7:0] $end
+$var reg 64 x dynamic_class_exhaustion_rejects [63:0] $end
+$var reg 8 y hot_line_cap [7:0] $end
+$var reg 64 z invalid_pinned_lane_rejects [63:0] $end
+$var reg 1 { is_dma_carrier $end
+$var reg 64 | lane_conflict_rejects [63:0] $end
+$var reg 8 } last_certificate_reject_detail [7:0] $end
+$var reg 8 ~ last_legality_reject_kind [7:0] $end
+$var reg 64 !" late_binding_conflicts [63:0] $end
+$var reg 1 "" locality_cold $end
+$var reg 8 #" lsu_carrier_current [7:0] $end
+$var reg 64 $" nop_due_to_no_class_capacity [63:0] $end
+$var reg 64 %" nop_due_to_pinned_constraint [63:0] $end
+$var reg 64 &" nop_due_to_resource_conflict [63:0] $end
+$var reg 8 '" outstanding_capacity_vt0 [7:0] $end
+$var reg 8 (" outstanding_capacity_vt1 [7:0] $end
+$var reg 8 )" outstanding_capacity_vt2 [7:0] $end
+$var reg 8 *" outstanding_capacity_vt3 [7:0] $end
+$var reg 8 +" outstanding_count_vt0 [7:0] $end
+$var reg 8 ," outstanding_count_vt1 [7:0] $end
+$var reg 8 -" outstanding_count_vt2 [7:0] $end
+$var reg 8 ." outstanding_count_vt3 [7:0] $end
+$var reg 64 /" pinned_lane_conflicts [63:0] $end
+$var reg 8 0" policy_dma_carrier_credits [7:0] $end
+$var reg 8 1" policy_lsu_carrier_credits [7:0] $end
+$var reg 8 2" policy_shared_outer_cap_credits [7:0] $end
+$var reg 64 3" prefetch_length [63:0] $end
+$var reg 16 4" read_budget_at_least_one [15:0] $end
+$var reg 16 5" read_budget_at_least_two [15:0] $end
+$var reg 64 6" reg_group_conflicts_vt0 [63:0] $end
+$var reg 64 7" reg_group_conflicts_vt1 [63:0] $end
+$var reg 64 8" reg_group_conflicts_vt2 [63:0] $end
+$var reg 64 9" reg_group_conflicts_vt3 [63:0] $end
+$var reg 64 :" rejections_vt0 [63:0] $end
+$var reg 64 ;" rejections_vt1 [63:0] $end
+$var reg 64 <" rejections_vt2 [63:0] $end
+$var reg 64 =" rejections_vt3 [63:0] $end
+$var reg 8 >" remaining_issue_credits [7:0] $end
+$var reg 16 ?" remaining_line_credits [15:0] $end
+$var reg 8 @" remaining_load_issue_budget [7:0] $end
+$var reg 8 A" remaining_memory_issue_budget [7:0] $end
+$var reg 64 B" smt_boundary_guard_rejects [63:0] $end
+$var reg 64 C" smt_domain_guard_rejects [63:0] $end
+$var reg 64 D" smt_legality_reject_by_alu_class [63:0] $end
+$var reg 64 E" smt_legality_reject_by_branch_control [63:0] $end
+$var reg 64 F" smt_legality_reject_by_dma_stream_class [63:0] $end
+$var reg 64 G" smt_legality_reject_by_lsu_class [63:0] $end
+$var reg 64 H" smt_legality_reject_by_matrix_tile_stream_class [63:0] $end
+$var reg 64 I" smt_legality_reject_by_system_singleton [63:0] $end
+$var reg 64 J" smt_owner_context_guard_rejects [63:0] $end
+$var reg 64 K" smt_register_group_certificate_rejects [63:0] $end
+$var reg 64 L" smt_rejections_count [63:0] $end
+$var reg 64 M" smt_shared_resource_certificate_rejects [63:0] $end
+$var reg 1 N" srf_file_present $end
+$var reg 1 O" srf_has_assist_victim $end
+$var reg 1 P" srf_has_empty_slot $end
+$var reg 8 Q" srf_loading_budget [7:0] $end
+$var reg 8 R" srf_loading_count [7:0] $end
+$var reg 8 S" srf_resident_budget [7:0] $end
+$var reg 8 T" srf_resident_count [7:0] $end
+$var reg 1 U" srf_reuse_match $end
+$var reg 8 V" stage_a_reject_reason [7:0] $end
+$var reg 8 W" stage_b_reject_reason [7:0] $end
+$var reg 64 X" static_class_overcommit_rejects [63:0] $end
+$var reg 8 Y" target_vt [7:0] $end
+$var reg 64 Z" typed_slot_domain_rejects [63:0] $end
+$var reg 64 [" typed_slot_resource_conflict_rejects [63:0] $end
+$scope module dut $end
+$var wire 32 \" _GEN_10 [31:0] $end
+$var wire 32 ]" _GEN_12 [31:0] $end
+$var wire 1 ^" _GEN_14 $end
+$var wire 1 _" _GEN_17 $end
+$var wire 1 `" _GEN_18 $end
+$var wire 1 a" _GEN_19 $end
+$var wire 1 b" _GEN_20 $end
+$var wire 1 c" _GEN_22 $end
+$var wire 1 d" _GEN_23 $end
+$var wire 1 e" _GEN_24 $end
+$var wire 1 f" _GEN_25 $end
+$var wire 1 g" _GEN_27 $end
+$var wire 64 h" _GEN_28 [63:0] $end
+$var wire 1 i" _GEN_3 $end
+$var wire 1 j" _GEN_35 $end
+$var wire 1 k" _GEN_36 $end
+$var wire 1 l" _GEN_37 $end
+$var wire 1 m" _GEN_38 $end
+$var wire 1 n" _GEN_39 $end
+$var wire 1 o" _GEN_4 $end
+$var wire 1 p" _GEN_40 $end
+$var wire 1 q" _GEN_41 $end
+$var wire 1 r" _GEN_42 $end
+$var wire 1 s" _GEN_43 $end
+$var wire 1 t" _GEN_48 $end
+$var wire 1 u" _GEN_57 $end
+$var wire 1 v" _GEN_60 $end
+$var wire 1 ` accept $end
+$var wire 64 w" assist_backpressure_dma_srf_rejects [63:0] $end
+$var wire 64 x" assist_backpressure_mshr_rejects [63:0] $end
+$var wire 64 y" assist_backpressure_outer_rejects [63:0] $end
+$var wire 64 z" assist_backpressure_rejects [63:0] $end
+$var wire 64 {" assist_quota_issue_rejects [63:0] $end
+$var wire 64 |" assist_quota_line_rejects [63:0] $end
+$var wire 64 }" assist_quota_rejects [63:0] $end
+$var wire 64 ~" assist_rejects [63:0] $end
+$var wire 1 _ backpressure_accepted $end
+$var wire 8 !# bank_id [7:0] $end
+$var wire 8 "# bp_shared_current [7:0] $end
+$var wire 1 k bp_state_valid $end
+$var wire 8 ## candidate_slot_class [7:0] $end
+$var wire 8 $# candidate_vt [7:0] $end
+$var wire 64 %# certificate_reject_by_alu_class [63:0] $end
+$var wire 64 &# certificate_reject_by_branch_control [63:0] $end
+$var wire 64 '# certificate_reject_by_dma_stream_class [63:0] $end
+$var wire 64 (# certificate_reject_by_lsu_class [63:0] $end
+$var wire 64 )# certificate_reject_by_matrix_tile_stream_class [63:0] $end
+$var wire 64 *# certificate_reject_by_system_singleton [63:0] $end
+$var wire 64 +# class_capacity_rejects [63:0] $end
+$var wire 8 ,# cold_line_cap [7:0] $end
+$var wire 32 -# consumed_shared_read_packed [31:0] $end
+$var wire 8 .# dma_carrier_current [7:0] $end
+$var wire 64 /# dynamic_class_exhaustion_rejects [63:0] $end
+$var wire 8 0# hot_line_cap [7:0] $end
+$var wire 64 1# invalid_pinned_lane_rejects [63:0] $end
+$var wire 1 { is_dma_carrier $end
+$var wire 64 2# lane_conflict_rejects [63:0] $end
+$var wire 8 3# last_certificate_reject_detail [7:0] $end
+$var wire 8 4# last_legality_reject_kind [7:0] $end
+$var wire 64 5# late_binding_conflicts [63:0] $end
+$var wire 1 "" locality_cold $end
+$var wire 8 6# lsu_carrier_current [7:0] $end
+$var wire 64 7# nop_due_to_no_class_capacity [63:0] $end
+$var wire 64 8# nop_due_to_pinned_constraint [63:0] $end
+$var wire 64 9# nop_due_to_resource_conflict [63:0] $end
+$var wire 8 :# outstanding_capacity_vt0 [7:0] $end
+$var wire 8 ;# outstanding_capacity_vt1 [7:0] $end
+$var wire 8 <# outstanding_capacity_vt2 [7:0] $end
+$var wire 8 =# outstanding_capacity_vt3 [7:0] $end
+$var wire 8 ># outstanding_count_vt0 [7:0] $end
+$var wire 8 ?# outstanding_count_vt1 [7:0] $end
+$var wire 8 @# outstanding_count_vt2 [7:0] $end
+$var wire 8 A# outstanding_count_vt3 [7:0] $end
+$var wire 64 B# pinned_lane_conflicts [63:0] $end
+$var wire 8 C# policy_dma_carrier_credits [7:0] $end
+$var wire 8 D# policy_lsu_carrier_credits [7:0] $end
+$var wire 8 E# policy_shared_outer_cap_credits [7:0] $end
+$var wire 64 F# prefetch_length [63:0] $end
+$var wire 16 G# read_budget_at_least_one [15:0] $end
+$var wire 16 H# read_budget_at_least_two [15:0] $end
+$var wire 64 I# reg_group_conflicts_vt0 [63:0] $end
+$var wire 64 J# reg_group_conflicts_vt1 [63:0] $end
+$var wire 64 K# reg_group_conflicts_vt2 [63:0] $end
+$var wire 64 L# reg_group_conflicts_vt3 [63:0] $end
+$var wire 1 & reject_dma_srf $end
+$var wire 1 % reject_issue $end
+$var wire 1 $ reject_lines $end
+$var wire 1 # reject_outstanding $end
+$var wire 1 " reject_shared_outer $end
+$var wire 64 M# rejections_vt0 [63:0] $end
+$var wire 64 N# rejections_vt1 [63:0] $end
+$var wire 64 O# rejections_vt2 [63:0] $end
+$var wire 64 P# rejections_vt3 [63:0] $end
+$var wire 8 Q# remaining_issue_credits [7:0] $end
+$var wire 16 R# remaining_line_credits [15:0] $end
+$var wire 8 S# remaining_load_issue_budget [7:0] $end
+$var wire 8 T# remaining_memory_issue_budget [7:0] $end
+$var wire 64 U# smt_boundary_guard_rejects [63:0] $end
+$var wire 64 V# smt_domain_guard_rejects [63:0] $end
+$var wire 64 W# smt_legality_reject_by_alu_class [63:0] $end
+$var wire 64 X# smt_legality_reject_by_branch_control [63:0] $end
+$var wire 64 Y# smt_legality_reject_by_dma_stream_class [63:0] $end
+$var wire 64 Z# smt_legality_reject_by_lsu_class [63:0] $end
+$var wire 64 [# smt_legality_reject_by_matrix_tile_stream_class [63:0] $end
+$var wire 64 \# smt_legality_reject_by_system_singleton [63:0] $end
+$var wire 64 ]# smt_owner_context_guard_rejects [63:0] $end
+$var wire 64 ^# smt_register_group_certificate_rejects [63:0] $end
+$var wire 64 _# smt_rejections_count [63:0] $end
+$var wire 64 `# smt_shared_resource_certificate_rejects [63:0] $end
+$var wire 1 N" srf_file_present $end
+$var wire 1 O" srf_has_assist_victim $end
+$var wire 1 P" srf_has_empty_slot $end
+$var wire 8 a# srf_loading_budget [7:0] $end
+$var wire 8 b# srf_loading_count [7:0] $end
+$var wire 8 c# srf_resident_budget [7:0] $end
+$var wire 8 d# srf_resident_count [7:0] $end
+$var wire 1 U" srf_reuse_match $end
+$var wire 8 e# stage_a_reject_reason [7:0] $end
+$var wire 8 f# stage_b_reject_reason [7:0] $end
+$var wire 64 g# static_class_overcommit_rejects [63:0] $end
+$var wire 8 h# target_vt [7:0] $end
+$var wire 64 i# typed_slot_domain_rejects [63:0] $end
+$var wire 64 j# typed_slot_resource_conflict_rejects [63:0] $end
+$var wire 16 k# reserved_line_demand [15:0] $end
+$var wire 64 l# next_typed_slot_resource_conflict_rejects [63:0] $end
+$var wire 64 m# next_typed_slot_domain_rejects [63:0] $end
+$var wire 64 n# next_static_class_overcommit_rejects [63:0] $end
+$var wire 64 o# next_smt_shared_resource_certificate_rejects [63:0] $end
+$var wire 64 p# next_smt_rejections_count [63:0] $end
+$var wire 64 q# next_smt_register_group_certificate_rejects [63:0] $end
+$var wire 64 r# next_smt_owner_context_guard_rejects [63:0] $end
+$var wire 64 s# next_smt_legality_reject_by_system_singleton [63:0] $end
+$var wire 64 t# next_smt_legality_reject_by_matrix_tile_stream_class [63:0] $end
+$var wire 64 u# next_smt_legality_reject_by_lsu_class [63:0] $end
+$var wire 64 v# next_smt_legality_reject_by_dma_stream_class [63:0] $end
+$var wire 64 w# next_smt_legality_reject_by_branch_control [63:0] $end
+$var wire 64 x# next_smt_legality_reject_by_alu_class [63:0] $end
+$var wire 64 y# next_smt_domain_guard_rejects [63:0] $end
+$var wire 64 z# next_smt_boundary_guard_rejects [63:0] $end
+$var wire 64 {# next_rejections_vt3 [63:0] $end
+$var wire 64 |# next_rejections_vt2 [63:0] $end
+$var wire 64 }# next_rejections_vt1 [63:0] $end
+$var wire 64 ~# next_rejections_vt0 [63:0] $end
+$var wire 64 !$ next_reg_group_conflicts_vt3 [63:0] $end
+$var wire 64 "$ next_reg_group_conflicts_vt2 [63:0] $end
+$var wire 64 #$ next_reg_group_conflicts_vt1 [63:0] $end
+$var wire 64 $$ next_reg_group_conflicts_vt0 [63:0] $end
+$var wire 64 %$ next_pinned_lane_conflicts [63:0] $end
+$var wire 8 &$ next_outstanding_count_vt3 [7:0] $end
+$var wire 8 '$ next_outstanding_count_vt2 [7:0] $end
+$var wire 8 ($ next_outstanding_count_vt1 [7:0] $end
+$var wire 8 )$ next_outstanding_count_vt0 [7:0] $end
+$var wire 64 *$ next_nop_due_to_resource_conflict [63:0] $end
+$var wire 64 +$ next_nop_due_to_pinned_constraint [63:0] $end
+$var wire 64 ,$ next_nop_due_to_no_class_capacity [63:0] $end
+$var wire 8 -$ next_lsu_carrier_credits [7:0] $end
+$var wire 16 .$ next_line_credits [15:0] $end
+$var wire 64 /$ next_late_binding_conflicts [63:0] $end
+$var wire 64 0$ next_lane_conflict_rejects [63:0] $end
+$var wire 8 1$ next_issue_credits [7:0] $end
+$var wire 64 2$ next_invalid_pinned_lane_rejects [63:0] $end
+$var wire 64 3$ next_dynamic_class_exhaustion_rejects [63:0] $end
+$var wire 8 4$ next_dma_carrier_credits [7:0] $end
+$var wire 32 5$ next_consumed_shared_read_packed [31:0] $end
+$var wire 64 6$ next_class_capacity_rejects [63:0] $end
+$var wire 64 7$ next_certificate_reject_by_system_singleton [63:0] $end
+$var wire 64 8$ next_certificate_reject_by_matrix_tile_stream_class [63:0] $end
+$var wire 64 9$ next_certificate_reject_by_lsu_class [63:0] $end
+$var wire 64 :$ next_certificate_reject_by_dma_stream_class [63:0] $end
+$var wire 64 ;$ next_certificate_reject_by_branch_control [63:0] $end
+$var wire 64 <$ next_certificate_reject_by_alu_class [63:0] $end
+$var wire 8 =$ next_bp_shared_credits [7:0] $end
+$var wire 64 >$ next_assist_rejects [63:0] $end
+$var wire 64 ?$ next_assist_quota_rejects [63:0] $end
+$var wire 64 @$ next_assist_quota_line_rejects [63:0] $end
+$var wire 64 A$ next_assist_quota_issue_rejects [63:0] $end
+$var wire 64 B$ next_assist_backpressure_rejects [63:0] $end
+$var wire 64 C$ next_assist_backpressure_outer_rejects [63:0] $end
+$var wire 64 D$ next_assist_backpressure_mshr_rejects [63:0] $end
+$var wire 64 E$ next_assist_backpressure_dma_srf_rejects [63:0] $end
+$var wire 32 F$ _GEN_9 [31:0] $end
+$var wire 1 G$ _GEN_8 $end
+$var wire 8 H$ _GEN_7 [7:0] $end
+$var wire 1 I$ _GEN_64 $end
+$var wire 1 J$ _GEN_63 $end
+$var wire 1 K$ _GEN_62 $end
+$var wire 1 L$ _GEN_61 $end
+$var wire 8 M$ _GEN_6 [7:0] $end
+$var wire 1 N$ _GEN_59 $end
+$var wire 1 O$ _GEN_58 $end
+$var wire 1 P$ _GEN_56 $end
+$var wire 1 Q$ _GEN_55 $end
+$var wire 1 R$ _GEN_54 $end
+$var wire 1 S$ _GEN_53 $end
+$var wire 1 T$ _GEN_52 $end
+$var wire 1 U$ _GEN_51 $end
+$var wire 1 V$ _GEN_50 $end
+$var wire 8 W$ _GEN_5 [7:0] $end
+$var wire 1 X$ _GEN_49 $end
+$var wire 1 Y$ _GEN_47 $end
+$var wire 1 Z$ _GEN_46 $end
+$var wire 1 [$ _GEN_45 $end
+$var wire 8 \$ _GEN_44 [7:0] $end
+$var wire 1 ]$ _GEN_34 $end
+$var wire 64 ^$ _GEN_33 [63:0] $end
+$var wire 64 _$ _GEN_32 [63:0] $end
+$var wire 8 `$ _GEN_31 [7:0] $end
+$var wire 64 a$ _GEN_30 [63:0] $end
+$var wire 64 b$ _GEN_29 [63:0] $end
+$var wire 1 c$ _GEN_26 $end
+$var wire 1 d$ _GEN_21 $end
+$var wire 1 e$ _GEN_2 $end
+$var wire 8 f$ _GEN_16 [7:0] $end
+$var wire 8 g$ _GEN_15 [7:0] $end
+$var wire 32 h$ _GEN_13 [31:0] $end
+$var wire 32 i$ _GEN_11 [31:0] $end
+$var wire 1 j$ _GEN_1 $end
+$var wire 1 k$ _GEN_0 $end
+$var wire 1 l$ _GEN $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+$comment Show the parameter values. $end
+$dumpall
+$end
+#0
+$dumpvars
+1l$
+0k$
+0j$
+b0 i$
+b1 h$
+b1 g$
+b1 f$
+0e$
+1d$
+0c$
+b1 b$
+b1 a$
+b1 `$
+b1 _$
+b1 ^$
+0]$
+b0 \$
+0[$
+0Z$
+0Y$
+1X$
+b10 W$
+0V$
+0U$
+0T$
+0S$
+0R$
+0Q$
+0P$
+0O$
+0N$
+b10 M$
+1L$
+0K$
+0J$
+0I$
+b10 H$
+1G$
+b0 F$
+b110010 E$
+b101000 D$
+b11110 C$
+b10100 B$
+b1000110 A$
+b1010000 @$
+b111100 ?$
+b1010 >$
+b1 =$
+b0 <$
+b0 ;$
+b0 :$
+b0 9$
+b0 8$
+b0 7$
+b0 6$
+b1 5$
+b1 4$
+b0 3$
+b0 2$
+b0 1$
+b0 0$
+b0 /$
+b1 .$
+b0 -$
+b0 ,$
+b0 +$
+b0 *$
+b1 )$
+b0 ($
+b0 '$
+b0 &$
+b0 %$
+b0 $$
+b0 #$
+b0 "$
+b0 !$
+b0 ~#
+b0 }#
+b0 |#
+b0 {#
+b0 z#
+b0 y#
+b0 x#
+b0 w#
+b0 v#
+b0 u#
+b0 t#
+b0 s#
+b0 r#
+b0 q#
+b1001 p#
+b0 o#
+b0 n#
+b0 m#
+b0 l#
+b1 k#
+b0 j#
+b0 i#
+b0 h#
+b0 g#
+b0 f#
+b0 e#
+b0 d#
+b10 c#
+b0 b#
+b1 a#
+b0 `#
+b1001 _#
+b0 ^#
+b0 ]#
+b0 \#
+b0 [#
+b0 Z#
+b0 Y#
+b0 X#
+b0 W#
+b0 V#
+b0 U#
+b10 T#
+b10 S#
+b10 R#
+b1 Q#
+b0 P#
+b0 O#
+b0 N#
+b0 M#
+b0 L#
+b0 K#
+b0 J#
+b0 I#
+b0 H#
+b1 G#
+b100000 F#
+b10 E#
+b1 D#
+b1 C#
+b0 B#
+b0 A#
+b0 @#
+b0 ?#
+b0 >#
+b0 =#
+b0 <#
+b0 ;#
+b1 :#
+b0 9#
+b0 8#
+b0 7#
+b1001 6#
+b0 5#
+b0 4#
+b0 3#
+b0 2#
+b0 1#
+b1 0#
+b0 /#
+b1001 .#
+b0 -#
+b1 ,#
+b0 +#
+b0 *#
+b0 )#
+b0 (#
+b0 '#
+b0 &#
+b0 %#
+b0 $#
+b0 ##
+b1001 "#
+b0 !#
+b1010 ~"
+b111100 }"
+b1010000 |"
+b1000110 {"
+b10100 z"
+b11110 y"
+b101000 x"
+b110010 w"
+0v"
+0u"
+0t"
+0s"
+0r"
+0q"
+0p"
+1o"
+0n"
+0m"
+0l"
+0k"
+1j"
+1i"
+b101 h"
+1g"
+1f"
+1e"
+0d"
+0c"
+1b"
+0a"
+1`"
+1_"
+1^"
+b0 ]"
+b1 \"
+b0 ["
+b0 Z"
+b0 Y"
+b0 X"
+b0 W"
+b0 V"
+0U"
+b0 T"
+b10 S"
+b0 R"
+b1 Q"
+1P"
+0O"
+0N"
+b0 M"
+b1001 L"
+b0 K"
+b0 J"
+b0 I"
+b0 H"
+b0 G"
+b0 F"
+b0 E"
+b0 D"
+b0 C"
+b0 B"
+b10 A"
+b10 @"
+b10 ?"
+b1 >"
+b0 ="
+b0 <"
+b0 ;"
+b0 :"
+b0 9"
+b0 8"
+b0 7"
+b0 6"
+b0 5"
+b1 4"
+b100000 3"
+b10 2"
+b1 1"
+b1 0"
+b0 /"
+b0 ."
+b0 -"
+b0 ,"
+b0 +"
+b0 *"
+b0 )"
+b0 ("
+b1 '"
+b0 &"
+b0 %"
+b0 $"
+b1001 #"
+0""
+b0 !"
+b0 ~
+b0 }
+b0 |
+0{
+b0 z
+b1 y
+b0 x
+b1001 w
+b0 v
+b1 u
+b0 t
+b0 s
+b0 r
+b0 q
+b0 p
+b0 o
+b0 n
+b0 m
+b0 l
+0k
+b1001 j
+b0 i
+b1010 h
+b111100 g
+b1010000 f
+b1000110 e
+b10100 d
+b11110 c
+b101000 b
+b110010 a
+1`
+1_
+b110010 ^
+b101000 ]
+b11110 \
+b10100 [
+b1000110 Z
+b1010000 Y
+b111100 X
+b1010 W
+b1 V
+b0 U
+b0 T
+b0 S
+b0 R
+b0 Q
+b0 P
+b0 O
+b1 N
+b1 M
+b0 L
+b0 K
+b0 J
+b0 I
+b0 H
+b1 G
+b0 F
+b0 E
+b0 D
+b0 C
+b1 B
+b0 A
+b0 @
+b0 ?
+b0 >
+b0 =
+b0 <
+b0 ;
+b0 :
+b0 9
+b0 8
+b0 7
+b0 6
+b0 5
+b0 4
+b0 3
+b0 2
+b0 1
+b0 0
+b0 /
+b0 .
+b0 -
+b0 ,
+b1001 +
+b0 *
+b0 )
+b0 (
+b0 '
+0&
+0%
+0$
+0#
+0"
+b1 !
+$end
+#1
+b1011 W
+b1011 >$
+b1010 +
+b1010 p#
+b10 G
+b10 .$
+1s"
+b111101 X
+b111101 ?$
+0`
+0j"
+1r"
+b1000111 Z
+b1000111 A$
+1%
+1p"
+0g"
+b0 J
+b0 1$
+1c$
+b0 >"
+b0 Q#
+#2
+b0 N
+b0 5$
+b0 B
+b0 )$
+b10101 [
+b10101 B$
+b10 V
+b10 =$
+1n"
+0_
+0f"
+0b"
+b110011 ^
+b110011 E$
+1&
+1k"
+1a"
+b1011 W
+b1011 >$
+b1010 +
+b1010 p#
+b10 G
+b10 .$
+b1 F
+b1 -$
+1s"
+b111100 X
+b111100 ?$
+0`
+0j"
+b1 M
+b1 4$
+0r"
+b1000110 Z
+b1000110 A$
+0%
+0p"
+1g"
+b1 J
+b1 1$
+b1 R"
+b1 b#
+1N"
+1{
+0c$
+b1 >"
+b1 Q#
+#3
+b10100 [
+b10100 B$
+b1 S
+b1 :$
+0n"
+b1 7
+b1 |#
+1b"
+b110010 ^
+b110010 E$
+b1 ;
+b1 "$
+0e"
+0&
+0k"
+b1 1
+b1 v#
+b1 ,
+b1 q#
+b1 -
+b1 r#
+b1 C
+b1 *$
+b1 '
+b1 l#
+1t"
+1d"
+1v"
+1[$
+b11 \$
+1c"
+0a"
+0X$
+1U$
+b10 l
+b10 ##
+1Y$
+b10 }
+b10 3#
+b10 ~
+b10 4#
+0L$
+1J$
+b10 m
+b10 $#
+b1101 W"
+b1101 f#
+0d$
+b11 V"
+b11 e#
+b0 R"
+b0 b#
+0N"
+0{
+#4
+b0 ;
+b0 "$
+b0 1
+b0 v#
+b0 S
+b0 :$
+b0 ,
+b0 q#
+0t"
+b0 -
+b0 r#
+0v"
+0U$
+b110 l
+b110 ##
+0Y$
+b111 }
+b111 3#
+b111 ~
+b111 4#
+b0 W"
+b0 f#
+#5
+b1 J
+b1 1$
+b10 G
+b10 .$
+0`
+0j"
+b0 N
+b0 5$
+b1 F
+b1 -$
+b0 B
+b0 )$
+b10 V
+b10 =$
+b1011 W
+b1011 >$
+b1010 +
+b1010 p#
+0_
+0f"
+1s"
+0e"
+b1 K
+b1 2$
+b0 7
+b0 |#
+b1 6
+b1 {#
+1d"
+b0 C
+b0 *$
+b0 '
+b0 l#
+0c"
+0[$
+b1101 \$
+1X$
+b0 l
+b0 ##
+b0 }
+b0 3#
+b0 ~
+b0 4#
+0J$
+1I$
+b11 m
+b11 $#
+b1101 W"
+b1101 f#
+1d$
+b0 V"
+b0 e#
+#6
+b1 O
+b1 6$
+b1 E
+b1 ,$
+b1 9
+b1 ~#
+b0 6
+b0 {#
+b1 )
+b1 n#
+1u"
+b0 K
+b0 2$
+1Q$
+b1 \$
+1c"
+1L$
+0I$
+b0 m
+b0 $#
+b0 W"
+b0 f#
+0d$
+b1 V"
+b1 e#
+#7
+b0 9
+b0 ~#
+b1 8
+b1 }#
+b0 )
+b0 n#
+b1 L
+b1 3$
+0Q$
+1P$
+b10 \$
+0L$
+1K$
+b1 m
+b1 $#
+b10 V"
+b10 e#
+#8
+b0 O
+b0 6$
+b0 E
+b0 ,$
+b1 9
+b1 ~#
+b0 8
+b0 }#
+b0 L
+b0 3$
+0u"
+b1 (
+b1 m#
+0P$
+b100 \$
+1L$
+0K$
+b0 m
+b0 $#
+b100 V"
+b100 e#
+#9
+b1 J
+b1 1$
+b10 G
+b10 .$
+0`
+0j"
+b0 N
+b0 5$
+b1 F
+b1 -$
+b0 B
+b0 )$
+b10 V
+b10 =$
+b1011 W
+b1011 >$
+b1010 +
+b1010 p#
+0_
+0f"
+1s"
+b1 9
+b1 ~#
+b1 I
+b1 0$
+0e"
+b1 D
+b1 +$
+b1 >
+b1 %$
+1d"
+1O$
+b0 (
+b0 m#
+0c"
+b1011 \$
+b1011 W"
+b1011 f#
+1d$
+b0 V"
+b0 e#
+#10
+b0 D
+b0 +$
+b0 >
+b0 %$
+b1 H
+b1 /$
+0O$
+1N$
+b1100 \$
+b1100 W"
+b1100 f#
+#11

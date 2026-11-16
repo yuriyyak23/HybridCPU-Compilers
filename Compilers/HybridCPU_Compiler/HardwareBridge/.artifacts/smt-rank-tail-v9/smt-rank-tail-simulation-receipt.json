@@ -1,0 +1,24 @@
+﻿{
+    "schema":  "circuitweave.smt-rank-tail-simulation-receipt/v1",
+    "disposition":  "source-pinned combinational consumer projection; StructuralOnly; not scheduler or Golden equivalence",
+    "referenceVectors":  "33,554,432 source-pinned C# cases; see smt-rank-tail-reference-v1.json",
+    "rtlVectors":  "131,072 Icarus cases covering owner 0..3, tail valid/out-of-range classes, all 2-bit credit patterns, and 16 joint readiness/presence masks",
+    "tools":  {
+                  "circt":  "firtool-1.160.0",
+                  "iverilog":  "12.0",
+                  "vvp":  "12.0"
+              },
+    "sourceHwirDigest":  "b3ea7b7feb8ccda784851a0559cf0bef70bb8f944655360f762eb721dffed8d6",
+    "fileSha256":  {
+                       "smt-rank-tail-simulation.log":  "d1426b089fa29d032905fc768b11db0d5b3c0d781a383ea239e4f69ece4c3564",
+                       "smt-rank-tail-source-pins.json":  "80bdddf70fe5fb5eac543eb49b25a1e821e2be75ba5b03fb0fade15b37f43c3a",
+                       "smt-rank-tail-captured-sources.json":  "1140a088a42e7d998669536547505bf53aa31ce0649d488865ecf82d4b15da00",
+                       "smt-rank-tail.mlir":  "7c3220eeebf5fd1549b6df29d3c957260b2818fbdac1b4f5b22e2bf685643edb",
+                       "smt-rank-tail.sv":  "9dec23956d751ef215e81029869f279b308d2506f83918be723570a0dc89dd0f",
+                       "smt-rank-tail.hwir.json":  "f855d424d2896d412c9df2d2f1a558e90f4ba5c022166735ac2746773e9ac8d2",
+                       "smt-rank-tail.tb.sv":  "ce7c45e783de167a55f896e60d036fa5912ee82249a7c512eec145ed10b9d9fc",
+                       "smt-rank-tail-reference-v1.json":  "1058138072678e9e219364ee657af0298a4491339a9bccfb3acf9829de1a2e46",
+                       "smt-rank-tail-source-inventory.json":  "82055186f66ef17888c139b4e8c3e3787c622f6c0ac136fd38cae58b9f3a0dcf"
+                   },
+    "simulationLog":  "PASS: 131072 SMT rank-tail RTL vectors\r\n/mnt/c/Users/Yuriy/Desktop/HybridCPU Compilers/Compilers/HybridCPU_Compiler/HardwareBridge/.artifacts/smt-rank-tail-v9/smt-rank-tail.tb.sv:48: $finish called at 131072 (1s)"
+}

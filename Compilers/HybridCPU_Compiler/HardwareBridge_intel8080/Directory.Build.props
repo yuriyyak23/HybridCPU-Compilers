@@ -1,0 +1,8 @@
+<!-- Keep bridge build artifacts inside HardwareBridge_intel8080. -->
+<Project>
+  <PropertyGroup>
+    <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory).artifacts\obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
+    <OutputPath>$(MSBuildThisFileDirectory).artifacts\bin\$(MSBuildProjectName)\</OutputPath>
+    <DefaultItemExcludesInProjectFolder>$(DefaultItemExcludesInProjectFolder);.artifacts\**</DefaultItemExcludesInProjectFolder>
+  </PropertyGroup>
+</Project>

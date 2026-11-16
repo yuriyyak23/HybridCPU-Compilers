@@ -1,0 +1,92 @@
+{
+  "schema": "circuitweave.vector-pod-csr-candidate-run/v1",
+  "status": "StructuralOnly",
+  "activeBaseCommit": "1bfe41a49cf11c80fa6c6aee87accb54b78b331f",
+  "goldenCommit": "6946ccab9d888f7dae0a4d8e18480f436138acd9",
+  "sourceSha256": {
+    "vectorConfig": "7106965a6adbd61eed397ef3501610b0f5e8cfc9af5d312409c05fe09b777c92",
+    "microOpControl": "a9f311292cef6cf97ace5516ffa9601bd3e1a272cce56d7cf229dba04b7a9d80",
+    "architecturalState": "424c6b27d64b133331c3733b39aea9c7993520f74851c4b369675efe8efb9c5a",
+    "csrAddresses": "a2be00ba7d3248bc0aa4e3a49e238a5e0afdd919b5cf1c0d9d2e0bfa01893ef9",
+    "goldenVectorConfig": "d0410f900ba0dfd29d69a59e4edd9663b595b26ab434f75c8c4f8b44a9b7062c",
+    "goldenMicroOpControl": "47f53ec0db804c0badf84cb92a152eb8bb9869535c4d2571af7db3a8ad016c0c",
+    "goldenArchitecturalState": "1a91fd218dcfb0005562dc1fbcb705f08a941a391bf366da3f3f775cf4dbfa11",
+    "activeRetire": "cfdb51be0e465e485ce1c314dcc957e88cd537e3bd5c5fc374eb4a46eda8d184",
+    "goldenRetire": "c98abf4d8133a38c6270de8f20e595a662d3e71731c6771aea056ea220bb6e81",
+    "activeCsrClearDecode": "5ce02ff9939265ddacec5f962eb6fd5490e8558e37716877ecdf1a6eac1d6a36",
+    "goldenCsrClearDecode": "1b195602596485bbb857fc95c9c0e66f052d74c33950b62322b509bd301c865d",
+    "activeGeneratedOpcode": "4ad1d049514cbb2f95290c7aeb16466d99fec5d7fa3950cf38f8322783185fa6",
+    "goldenGeneratedOpcode": "5495d5da14893e4bb586af29bd9233223646753a406805d1b0a796fe7dceb8cd",
+    "goldenPipelineControl": "47f53ec0db804c0badf84cb92a152eb8bb9869535c4d2571af7db3a8ad016c0c",
+    "goldenPipelineRetire": "c98abf4d8133a38c6270de8f20e595a662d3e71731c6771aea056ea220bb6e81",
+    "goldenPipelineState": "1a91fd218dcfb0005562dc1fbcb705f08a941a391bf366da3f3f775cf4dbfa11"
+  },
+  "goldenMethodBodyCheck": "active and pinned Golden read-routing/read-pack/SetMask/SetPriority/GetPriority bodies are token-identical; writer routes are separately pinned and shape-checked because ownership APIs differ",
+  "modules": [
+    {
+      "id": "vector_pod_csr_read_projection",
+      "originPath": "HybridCPU_ISE/CloseToHSL/Core/Pipeline/MicroOps/Control/MicroOp.Control.cs",
+      "originType": "YAKSys_Hybrid_CPU.Core.CSRMicroOp",
+      "originMember": "ReadPackedExceptionPriorities",
+      "originSha256": "ef1cbd27821465533c1ba3aecc89bc06889949fdf1c242fa7a0217aed815d96c"
+    },
+    {
+      "id": "vector_pod_csr_write_projection",
+      "originPath": "HybridCPU_ISE/CloseToHSL/Core/Architecture/State/Architectural/CPU_Core.VectorConfig.cs",
+      "originType": "YAKSys_Hybrid_CPU.Processor.CPU_Core",
+      "originMember": "WritePackedExceptionPriorities",
+      "originSha256": "d707194da846c53dd8cbccfb106e13f5962fd57f46031b067ef96f82acec01d9"
+    },
+    {
+      "id": "retired_csr_exception_counter_transition",
+      "originPath": "HybridCPU_ISE/CloseToHSL/Core/Pipeline/Retire/Evidence/CPU_Core.PipelineExecution.Retire.cs",
+      "originType": "YAKSys_Hybrid_CPU.Processor.CPU_Core",
+      "originMember": "ApplyRetiredCsrEffect",
+      "originSha256": "df24290516e5b0cf35738839f2dd2569f5b0004d3e7eb0bc6b01dfead79110b4"
+    },
+    {
+      "id": "vector_exception_counter_clear_action",
+      "originPath": "HybridCPU_ISE/CloseToHSL/Core/Architecture/State/Architectural/CPU_Core.State.cs",
+      "originType": "YAKSys_Hybrid_CPU.Processor.CPU_Core.VectorExceptionStatus",
+      "originMember": "ClearExceptionCounters",
+      "originSha256": "74835901907eab8a242c8fd4288a0900d76a4f495b20d1467e4926e43c3ea172"
+    },
+    {
+      "id": "csr_clear_instruction_decode",
+      "originPath": "HybridCPU_ISE/CloseToHSL/Core/Diagnostics/InstructionRegistry.Helpers.Csr.cs",
+      "originType": "YAKSys_Hybrid_CPU.Core.InstructionRegistry",
+      "originMember": "TryCreatePublishedCsrMicroOp.CSR_CLEAR",
+      "originSha256": "a816e977ce4783ad02a68c656056a4f6eeee75e73e6efbd8e826b1c5affe6ccf"
+    },
+    {
+      "id": "csr_clear_microop_retire_effect",
+      "originPath": "HybridCPU_ISE/CloseToHSL/Core/Pipeline/MicroOps/Control/MicroOp.Control.cs",
+      "originType": "YAKSys_Hybrid_CPU.Core.CSRMicroOp",
+      "originMember": "CreateRetireEffect",
+      "originSha256": "5fcc1b6389f2b5e5c0104156bd225ac7bfbb10a5192389ac36ad63a776b69320"
+    },
+    {
+      "id": "processor_csr_clear_retire_event_projection",
+      "originPath": "HybridCPU_ISE/CloseToHSL/Core/Pipeline/Retire/Evidence/CPU_Core.PipelineExecution.Retire.cs",
+      "originType": "YAKSys_Hybrid_CPU.Processor.CPU_Core",
+      "originMember": "ApplyCapturedRetireWindowBatch",
+      "originSha256": "eb490fd32ac16f3c0c56ec834ee1428a3149a12b64aef69f7d3475ff9bee5ea6"
+    }
+  ],
+  "designTopPointer": "processor_csr_clear_retire_event_projection",
+  "designTopMeaning": "CSR_CLEAR call-event vertical projection: source-bound opcode decode -\u003E CSR_CLEAR micro-op retire effect -\u003E captured retire-batch application event -\u003E five counter next-state outputs. It excludes other instructions and physical clock/reset/stall/replay timing; this is not a composed CPU top.",
+  "addressValidity": "address_valid only recognizes this projection domain, CSR addresses 0x900 and 0x901; it is not a handshake. Other addresses are out of scope because unsupported software CSR routes throw.",
+  "staleSourceRejected": true,
+  "hwirSha256": "99fd0f73f96eec5463d703959bb1acedde7b6d82dae607545777070d9cd09eb9",
+  "mlirSha256": "318cbb1c023f481ba1c1dd05ec779ef804df9f02813d0654a372c79b60b5d437",
+  "vectorCount": 363584,
+  "counterVectorCount": 20036,
+  "csrClearRetirePathVectorCount": 262144,
+  "expectedCounterVectorFileSha256": "95db9715423740e24ab62fe96eebcdf6f19d7d77b2035b97ec9535ef46fd1dd0",
+  "expectedCsrClearRetirePathVectorFileSha256": "d2bdce3d368a30399343a5de26f96b93cca9e30d1f393dee44e5f17cfea903bb",
+  "expectedVectorFileSha256": "4c22577a9dce6fca268a4296d0d975fed3fe354685c1a0a705cef8be41dba101",
+  "statefulImplementation": false,
+  "physicalClockResetStallHandshake": "unmodeled",
+  "goldenEquivalence": false,
+  "note": "CSR_CLEAR decode-to-retire call-event projection plus combinational Vector CSR next-state; vectors do not establish CPU state timing or active/Golden sequential equivalence."
+}

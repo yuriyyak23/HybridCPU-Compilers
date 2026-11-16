@@ -1,0 +1,54 @@
+{
+  "schema": "circuitweave.vector-pod-csr-independent-simulation/v2",
+  "status": "StructuralOnly",
+  "simulation": "PASS",
+  "simulatedVectors": 363584,
+  "activeBaseCommit": "1bfe41a49cf11c80fa6c6aee87accb54b78b331f",
+  "goldenCommit": "6946ccab9d888f7dae0a4d8e18480f436138acd9",
+  "moduleOrigins": [
+    {
+      "module": "vector_pod_csr_read_projection",
+      "member": "ReadPackedExceptionPriorities",
+      "sourcePath": "HybridCPU_ISE/CloseToHSL/Core/Pipeline/MicroOps/Control/MicroOp.Control.cs",
+      "originIdentitySha256": "ef1cbd27821465533c1ba3aecc89bc06889949fdf1c242fa7a0217aed815d96c"
+    },
+    {
+      "module": "vector_pod_csr_write_projection",
+      "member": "WritePackedExceptionPriorities",
+      "sourcePath": "HybridCPU_ISE/CloseToHSL/Core/Architecture/State/Architectural/CPU_Core.VectorConfig.cs",
+      "originIdentitySha256": "d707194da846c53dd8cbccfb106e13f5962fd57f46031b067ef96f82acec01d9"
+    }
+  ],
+  "sharedStateSources": {
+    "goldenArchitecturalState": "1a91fd218dcfb0005562dc1fbcb705f08a941a391bf366da3f3f775cf4dbfa11",
+    "csrAddresses": "a2be00ba7d3248bc0aa4e3a49e238a5e0afdd919b5cf1c0d9d2e0bfa01893ef9",
+    "architecturalState": "424c6b27d64b133331c3733b39aea9c7993520f74851c4b369675efe8efb9c5a",
+    "goldenMicroOpControl": "47f53ec0db804c0badf84cb92a152eb8bb9869535c4d2571af7db3a8ad016c0c"
+  },
+  "sourceCodeHashes": {
+    "runner": "9a181ceef2d9a5f6f1f9fa7d4a24b41eb74094511e6eff44bb9385e4e2ee1a8c",
+    "testbench": "62840ee44e543931e04373d2394dbecc66bcee2e891cf90cbd2a4d98c02152c5",
+    "bridge": "54bd7d7b16e005ca05783927085398a173d4b77b3b281327d5317b4618561f41"
+  },
+  "tools": {
+    "circt": "firtool-1.160.0",
+    "circtOptSha256": "187c0c0f0f1464a58997a3e99ca96560cc002b97276cc38c12c28addf0112c4e",
+    "iverilog": "12.0 stable",
+    "iverilogSha256": "a6681e0b577dcfc4ea83d1591a5714710b0b3535ebb36491ee8177553bab9631",
+    "vvpSha256": "e0a087a4906d5a9cd1b0b85c9b4c2081704c2c9bcd94f224437fc56b15fc440d"
+  },
+  "artifacts": {
+    "hwirSha256": "00994a975e7b424e44a236ab95a5fe22fdb7e8240fd269ec866ab5d05ffe9789",
+    "vectorsSha256": "4c22577a9dce6fca268a4296d0d975fed3fe354685c1a0a705cef8be41dba101",
+    "testbenchSha256": "62840ee44e543931e04373d2394dbecc66bcee2e891cf90cbd2a4d98c02152c5",
+    "rtlSha256": "faa8f7699a60ff8fb13224550979ea5e26947f6da8743d1932d6731192559953",
+    "simulationLogSha256": "26d32f8549d13bbcd27671f0bddc5daeb078bb27782087dab0c8ada29e9b0661",
+    "runnerAssemblySha256": "51ec5de04dda079b879140cd7199b80930e79e13e62b1a7c31202d91a79d7dbf",
+    "mlirSha256": "590fe0dd22320631c7f302bbbbf08193dd629326061893b6934f7f7bd239f391"
+  },
+  "statefulImplementation": false,
+  "physicalClockResetEnableStallHandshake": "unmodeled",
+  "goldenEquivalence": false,
+  "sourceMapping": "Every read module/node/drive uses the active MicroOp.Control reader origin; every write module/node/drive uses active VectorConfig writer origin. HWIR validator requires one source origin per module. Design top pointer is read only because schema requires one; write projection is a separate root module and testbench instantiates both. No integrated CPU top.",
+  "addressValidity": "address_valid only recognizes 0x900 and 0x901 for these projections; not a transaction handshake. The test vectors stay within this address domain because other active software CSR routes throw."
+}

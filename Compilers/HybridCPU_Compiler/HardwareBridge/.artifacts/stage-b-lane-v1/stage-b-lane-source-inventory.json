@@ -1,0 +1,90 @@
+{
+  "schema": "circuitweave.source-coverage-index/v1",
+  "disposition": "incomplete-unqualified",
+  "semanticReportSha256": "45fa70d6fdcda0cdffd096aee52975a093fd7d95e87d1d46844c3a5f76d97d1d",
+  "project": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\HybridCPU_ISE.csproj",
+  "configuration": "Debug",
+  "targetFramework": "net11.0",
+  "defines": [
+    "TRACE",
+    "TESTING",
+    "DEBUG"
+  ],
+  "scope": "Selected Stage B materialization method and four exact source files; not a complete Processor/project inventory. The Admission source contains other dirty working-tree edits outside this member.",
+  "captureVerification": {
+    "schema": "circuitweave.source-capture-check/v1",
+    "status": "producer-reported-listed-inputs-match",
+    "semanticReportSha256": "45fa70d6fdcda0cdffd096aee52975a093fd7d95e87d1d46844c3a5f76d97d1d",
+    "sourceCaptureSha256": "058ac8aa30aed51277e6b05e06846970ee056000fa512f1851dcdc4883eb5728",
+    "projectGraphSha256": "5121e5a6d54028c3e21aab9961f231d082aee1caedd56646dbc3bfeef6a8c3ea",
+    "scope": "Listed source bytes only; root project file digest captured, evaluated dependency graph closure not claimed.",
+    "checkedFiles": 4
+  },
+  "capturedSourceFiles": [
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Admission\\MicroOpScheduler.Admission.cs",
+      "sha256": "6cdd37f43a0a58c0b887f9e8bffe9d2d17abb5d404f7ace70fead05db4edbe25",
+      "length": 32343
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\LaneId.cs",
+      "sha256": "fa8ff89c15ee0818e3c377f32be5eded6ac7df6bea701f5ce07c2c9e01f66400",
+      "length": 2522
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\SlotLegality\\SlotClassDefinitions.cs",
+      "sha256": "489edf25fe528393aba2e298c259e7929f59260430b4946ccea4c713065d9ff1",
+      "length": 21190
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\LaneChoice\\DeterministicLaneChooser.cs",
+      "sha256": "7bb9602c10dc8dde50793cbe0c2f49f8cda7dd4779ba3f7757446be5894a4f28",
+      "length": 4283
+    }
+  ],
+  "symbols": [
+    {
+      "symbol": "global::YAKSys_Hybrid_CPU.Core.MicroOpScheduler",
+      "assembly": "HybridCPU_ISE",
+      "kind": "Class",
+      "accessibility": "Public",
+      "memberCount": 1,
+      "blockingReason": "Selected member projection only; all other partial declarations and transitive dependencies are not inventoried.",
+      "coverage": {
+        "inventory": "partial-semantic",
+        "hardwareRole": "unclassified",
+        "hwir": "not-established",
+        "rtl": "not-established",
+        "simulation": "not-run",
+        "independentVerification": "not-run",
+        "studio": "not-published"
+      },
+      "declarations": [
+        {
+          "location": {
+            "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Admission\\MicroOpScheduler.Admission.cs",
+            "startLine": 10,
+            "startColumn": 26
+          },
+          "memberIds": [
+            "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.TryMaterializeLane(System.ReadOnlySpan{System.Byte},System.Int32@,YAKSys_Hybrid_CPU.Core.TypedSlotRejectReason@)"
+          ]
+        }
+      ],
+      "dependencies": [],
+      "members": [
+        {
+          "id": "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.TryMaterializeLane(System.ReadOnlySpan{System.Byte},System.Int32@,YAKSys_Hybrid_CPU.Core.TypedSlotRejectReason@)",
+          "kind": "Method",
+          "locations": [
+            {
+              "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Admission\\MicroOpScheduler.Admission.cs",
+              "startLine": 170,
+              "startColumn": 22
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

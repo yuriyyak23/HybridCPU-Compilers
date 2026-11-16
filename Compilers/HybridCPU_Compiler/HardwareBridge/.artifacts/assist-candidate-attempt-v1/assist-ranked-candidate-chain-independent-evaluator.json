@@ -1,0 +1,303 @@
+{
+  "schema": "circuitweave.assist-ranked-hwir-rtl-crosscheck/v1",
+  "status": "generated-independent-executor-expected-values",
+  "trust": "StructuralOnly",
+  "designCanonicalDigest": "8c97cd180e96b7a5586cfc7a9d878eb5cd5da0d29ba4cb7fae9abd01b85644c0",
+  "vectorCount": 38,
+  "directedCases": 6,
+  "randomCases": 32,
+  "outputsCheckedPerVector": 134,
+  "totalOutputComparisons": 5092,
+  "executor": "Independent recursive HWIR interpreter evaluates child instances and parent combinational nodes; compared against pinned-CIRCT RTL in Icarus.",
+  "rankCommitVectorCounts": {
+    "rank0": 1,
+    "rank1": 0,
+    "rank2": 0,
+    "rank3": 0
+  },
+  "directedOutcomes": [
+    {
+      "name": "all_zero",
+      "finalScanActive": 0,
+      "injectionCount": 0,
+      "attempts": [
+        {
+          "reached": 0,
+          "candidateValid": 0,
+          "stageA": 0,
+          "stageB": 0,
+          "backpressure": 0,
+          "quota": 0,
+          "committed": 0,
+          "rejectReason": 0
+        },
+        {
+          "reached": 0,
+          "candidateValid": 0,
+          "stageA": 0,
+          "stageB": 0,
+          "backpressure": 0,
+          "quota": 0,
+          "committed": 0,
+          "rejectReason": 0
+        },
+        {
+          "reached": 0,
+          "candidateValid": 0,
+          "stageA": 0,
+          "stageB": 0,
+          "backpressure": 0,
+          "quota": 0,
+          "committed": 0,
+          "rejectReason": 0
+        },
+        {
+          "reached": 0,
+          "candidateValid": 0,
+          "stageA": 0,
+          "stageB": 0,
+          "backpressure": 0,
+          "quota": 0,
+          "committed": 0,
+          "rejectReason": 0
+        }
+      ]
+    },
+    {
+      "name": "assist_disabled",
+      "finalScanActive": 0,
+      "injectionCount": 0,
+      "attempts": [
+        {
+          "reached": 0,
+          "candidateValid": 0,
+          "stageA": 0,
+          "stageB": 0,
+          "backpressure": 0,
+          "quota": 0,
+          "committed": 0,
+          "rejectReason": 0
+        },
+        {
+          "reached": 0,
+          "candidateValid": 0,
+          "stageA": 0,
+          "stageB": 0,
+          "backpressure": 0,
+          "quota": 0,
+          "committed": 0,
+          "rejectReason": 0
+        },
+        {
+          "reached": 0,
+          "candidateValid": 0,
+          "stageA": 0,
+          "stageB": 0,
+          "backpressure": 0,
+          "quota": 0,
+          "committed": 0,
+          "rejectReason": 0
+        },
+        {
+          "reached": 0,
+          "candidateValid": 0,
+          "stageA": 0,
+          "stageB": 0,
+          "backpressure": 0,
+          "quota": 0,
+          "committed": 0,
+          "rejectReason": 0
+        }
+      ]
+    },
+    {
+      "name": "boundary_blocked",
+      "finalScanActive": 0,
+      "injectionCount": 0,
+      "attempts": [
+        {
+          "reached": 0,
+          "candidateValid": 0,
+          "stageA": 0,
+          "stageB": 0,
+          "backpressure": 0,
+          "quota": 0,
+          "committed": 0,
+          "rejectReason": 0
+        },
+        {
+          "reached": 0,
+          "candidateValid": 0,
+          "stageA": 0,
+          "stageB": 0,
+          "backpressure": 0,
+          "quota": 0,
+          "committed": 0,
+          "rejectReason": 0
+        },
+        {
+          "reached": 0,
+          "candidateValid": 0,
+          "stageA": 0,
+          "stageB": 0,
+          "backpressure": 0,
+          "quota": 0,
+          "committed": 0,
+          "rejectReason": 0
+        },
+        {
+          "reached": 0,
+          "candidateValid": 0,
+          "stageA": 0,
+          "stageB": 0,
+          "backpressure": 0,
+          "quota": 0,
+          "committed": 0,
+          "rejectReason": 0
+        }
+      ]
+    },
+    {
+      "name": "entry_open_empty_facts",
+      "finalScanActive": 1,
+      "injectionCount": 0,
+      "attempts": [
+        {
+          "reached": 1,
+          "candidateValid": 1,
+          "stageA": 0,
+          "stageB": 0,
+          "backpressure": 0,
+          "quota": 1,
+          "committed": 0,
+          "rejectReason": 1
+        },
+        {
+          "reached": 1,
+          "candidateValid": 1,
+          "stageA": 0,
+          "stageB": 0,
+          "backpressure": 0,
+          "quota": 1,
+          "committed": 0,
+          "rejectReason": 1
+        },
+        {
+          "reached": 1,
+          "candidateValid": 1,
+          "stageA": 0,
+          "stageB": 0,
+          "backpressure": 0,
+          "quota": 1,
+          "committed": 0,
+          "rejectReason": 1
+        },
+        {
+          "reached": 1,
+          "candidateValid": 1,
+          "stageA": 0,
+          "stageB": 0,
+          "backpressure": 0,
+          "quota": 1,
+          "committed": 0,
+          "rejectReason": 1
+        }
+      ]
+    },
+    {
+      "name": "entry_open_dense_facts",
+      "finalScanActive": 1,
+      "injectionCount": 0,
+      "attempts": [
+        {
+          "reached": 1,
+          "candidateValid": 1,
+          "stageA": 0,
+          "stageB": 0,
+          "backpressure": 0,
+          "quota": 1,
+          "committed": 0,
+          "rejectReason": 1
+        },
+        {
+          "reached": 1,
+          "candidateValid": 1,
+          "stageA": 0,
+          "stageB": 0,
+          "backpressure": 0,
+          "quota": 1,
+          "committed": 0,
+          "rejectReason": 1
+        },
+        {
+          "reached": 1,
+          "candidateValid": 1,
+          "stageA": 0,
+          "stageB": 0,
+          "backpressure": 0,
+          "quota": 1,
+          "committed": 0,
+          "rejectReason": 1
+        },
+        {
+          "reached": 1,
+          "candidateValid": 1,
+          "stageA": 0,
+          "stageB": 0,
+          "backpressure": 0,
+          "quota": 1,
+          "committed": 0,
+          "rejectReason": 1
+        }
+      ]
+    },
+    {
+      "name": "rank0_hardpinned_dma_commit",
+      "finalScanActive": 0,
+      "injectionCount": 1,
+      "attempts": [
+        {
+          "reached": 1,
+          "candidateValid": 1,
+          "stageA": 1,
+          "stageB": 1,
+          "backpressure": 1,
+          "quota": 1,
+          "committed": 1,
+          "rejectReason": 0
+        },
+        {
+          "reached": 0,
+          "candidateValid": 0,
+          "stageA": 0,
+          "stageB": 0,
+          "backpressure": 0,
+          "quota": 0,
+          "committed": 0,
+          "rejectReason": 0
+        },
+        {
+          "reached": 0,
+          "candidateValid": 0,
+          "stageA": 0,
+          "stageB": 0,
+          "backpressure": 0,
+          "quota": 0,
+          "committed": 0,
+          "rejectReason": 0
+        },
+        {
+          "reached": 0,
+          "candidateValid": 0,
+          "stageA": 0,
+          "stageB": 0,
+          "backpressure": 0,
+          "quota": 0,
+          "committed": 0,
+          "rejectReason": 0
+        }
+      ]
+    }
+  ],
+  "scope": "Combinational lowering crosscheck only; not a source-level oracle, sequential timing/reset/stall/replay test or Golden equivalence."
+}

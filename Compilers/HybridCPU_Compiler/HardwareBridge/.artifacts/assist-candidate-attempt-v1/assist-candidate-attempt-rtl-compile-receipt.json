@@ -1,0 +1,27 @@
+{
+  "schema": "circuitweave.assist-ranked-candidate-chain-rtl-compile-receipt/v3",
+  "status": "passed",
+  "trust": "IndependentCombinationalDifferential",
+  "attemptHwirSha256": "ab23600fac942f584e39c14e464dfa1598df16be79a8eeb7e78bf9813f6b9d0b",
+  "attemptMlirSha256": "192cf99323bc57f65b803284c8c6b5daa137704e3e51215438f54130f479f4b4",
+  "attemptRtlSha256": "97668fb03ce505f8898b929dc626551e86ec7bf327c03aa6e42479a5ff8bf740",
+  "rankedHwirSha256": "69145850b2d777e2119fff8d8c346aa542bcbc3d8ec5a9d50ac7041949cbd384",
+  "rankedMlirSha256": "52cd7517665fdd66d04c965300321e429562a712e80227cf3f7e405aa3aff6e4",
+  "rankedRtlSha256": "27866edfe9a03bc2dcf5a8326cdda0e57d2867a37ef9fb4b481fb319ec21e3c5",
+  "testbenchSha256": "62fb3e9a074cef15bd5460f7ccc60e9bcf911d25b94a4400f1d18e7a1aab7b9e",
+  "independentEvaluatorReceiptSha256": "8e879cb6c44518030d494f5e794d3c39469560fedc32854871b2fd39b58c4667",
+  "simulationLogSha256": "5e82dfeac1ae966def97903a757bc12fbc070345995bc0446d9ed74746912719",
+  "waveformSha256": "73eb34fb0458c9546b4b1a5bf02dd5fb7a6deda7cfc27d912e2e6b1bccd749a8",
+  "rankCommitVectorCounts": {
+    "rank0": 1,
+    "rank1": 0,
+    "rank2": 0,
+    "rank3": 0
+  },
+  "vectorCount": 38,
+  "outputComparisons": 5092,
+  "firtoolSha256": "187c0c0f0f1464a58997a3e99ca96560cc002b97276cc38c12c28addf0112c4e",
+  "iverilogSha256": "a6681e0b577dcfc4ea83d1591a5714710b0b3535ebb36491ee8177553bab9631",
+  "simulation": "Icarus executed 38 deterministic input vectors; 5092 RTL outputs matched recursive HWIR evaluator; includes Stage A/B, backpressure, quota and rank-0 commit acceptance; VCD emitted.",
+  "scope": "Combinational lowerer differential only. HWIR evaluator is not source-level independent behavior, Golden equivalence, or a sequential reset/stall/replay test."
+}

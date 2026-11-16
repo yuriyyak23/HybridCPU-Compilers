@@ -39,8 +39,8 @@ public static class BridgeHwirBankPressure
         nodes.Add(new HwConstantNode("zero_score", u6, "000000", origin));
         for (int i = 0; i < 4; i++)
         {
-            ports.Add(new("input" + i + "_bank_id", HwPortDirection.Input, u32));
-            ports.Add(new("input" + i + "_is_memory", HwPortDirection.Input, u1));
+            if (!ports.Any(p => p.Name == "input" + i + "_bank_id"))
+                ports.Add(new("input" + i + "_bank_id", HwPortDirection.Input, u32));
             nodes.Add(new HwWireNode("raw_pressure" + i, u6, origin));
             nodes.Add(new HwOperationNode("pressure_gate" + i, "and", ["sort_enabled", "input" + i + "_is_memory"], u1, Origin: origin));
             nodes.Add(new HwMuxNode("pressure" + i, "pressure_gate" + i, "raw_pressure" + i, "zero_score", u6, origin));

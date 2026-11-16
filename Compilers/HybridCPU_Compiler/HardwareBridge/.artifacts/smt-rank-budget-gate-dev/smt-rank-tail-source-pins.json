@@ -1,0 +1,59 @@
+{
+  "modelCommit": "1bfe41a49cf11c80fa6c6aee87accb54b78b331f",
+  "modelGitHead": "1bfe41a49cf11c80fa6c6aee87accb54b78b331f",
+  "modelTreeState": "dirty-working-tree-listed-inputs-captured",
+  "dirtyInputPaths": [
+    " M CloseToHSL/Core/Pipeline/Assist/Runtime/MicroOpScheduler.Assist.cs",
+    " M CloseToHSL/Core/Pipeline/Certificates/BundleResourceCertificate4Way.cs",
+    " M CloseToHSL/Core/Pipeline/MicroOps/Memory/MicroOp.LoadStore.cs",
+    " M CloseToHSL/Core/Pipeline/MicroOps/Types/MicroOp.Misc.cs",
+    " M CloseToHSL/Core/Pipeline/MicroOps/Types/MicroOp.cs",
+    " M CloseToHSL/Core/Pipeline/Scheduling/Admission/MicroOpScheduler.Admission.cs",
+    " M CloseToHSL/Core/Pipeline/Scheduling/MicroOpScheduler.Infrastructure.cs",
+    " M CloseToHSL/Core/Pipeline/Scheduling/MicroOpScheduler.cs",
+    " M CloseToHSL/Core/Pipeline/Scheduling/Scoreboard/MicroOpScheduler.Scoreboard.cs",
+    " M CloseToHSL/Core/Pipeline/Scheduling/SlotLegality/SlotClassCapacity.cs",
+    " M CloseToHSL/Core/Pipeline/Scheduling/Smt/MicroOpScheduler.SMT.cs"
+  ],
+  "module": "smt_ranked_collected_admission_projection",
+  "hwirSha256": "bd9ea53731f16f2f6f9690d8df0e426ae271e33ffc6905ecd54e180f192ba1c3",
+  "mlirSha256": "0fde7a8b7e39b4a476ae8f031ff7cb01ac0516497a6dc8e4ea338f046ebfd83d",
+  "sources": {
+    "admission": "6cdd37f43a0a58c0b887f9e8bffe9d2d17abb5d404f7ace70fead05db4edbe25",
+    "scheduler": "c7e675d76bb4eed9ecccb0b20c13c973895cce556e93c21457d966add731d8bf",
+    "smt": "4ecfa34a01d71033b9d6c0b3f2ce752cb50ff8d6004b3a2ba3d6f1c5710e340d",
+    "assist": "8515039c3d770382fd448439d2453c01bd42397f3b525b413d411161bf8035a8",
+    "classes": "489edf25fe528393aba2e298c259e7929f59260430b4946ccea4c713065d9ff1",
+    "capacity": "54dcc1597997bab5fbea400c2f2ab61f2da750b29db5592e2048a05adc49ade1",
+    "laneId": "fa8ff89c15ee0818e3c377f32be5eded6ac7df6bea701f5ce07c2c9e01f66400",
+    "laneChooser": "7bb9602c10dc8dde50793cbe0c2f49f8cda7dd4779ba3f7757446be5894a4f28",
+    "smtLegality": "89cb7e9f737815d9526bed00186c62f324ebaf805c1520a2ed5ebd1349b529a4",
+    "guards": "f87ba64048e2d0a22642b254fe3eebd696553d3b8b4355b831b32ca77acbbf16",
+    "microOp": "bd53821fbd152287e31324706de558cfa7606e1c69f94d16c5da1d19590b469c",
+    "slotPlacement": "06cac68870c46136250bfdc4c5b195c6f569d7113d7c5d10bfbc41d5b0797f19"
+  },
+  "semanticCrosscheck": {
+    "file": "smt-rank-tail-semantic-crosscheck.json",
+    "sha256": "e9c79db282dd515c32d63d5eafbc60af01458124fe993045583d415df4de9237",
+    "vectors": 4745,
+    "status": "passed",
+    "scope": "4,704 ranking/collection vectors plus 41 directed retry, shared/register certificate, replay select, guard, scoreboard-derived per-VT bank-pending, bundle-local Store bank mask, sampled SuppressLsu predicate, projected-memory state, and source-derived A3 memory-budget predicate cases. The per-candidate remaining and packed-consumed budget tuples are explicit inputs; their initialization from snapshot plus original bundle and update after earlier successful candidates remain unmodeled. A3 predicate 5 and diagnostic counters remain external. Exact cache key and refresh remain unmodeled. No clocked lifecycle or Golden equivalence"
+  },
+  "sourceInventorySha256": "35f56ed916bfeac471f80a02f5e984a7d0cc19cbe95dedaa89103c0b16d77bfe",
+  "outputs": [
+    "ranked_vt0",
+    "ranked_vt1",
+    "ranked_vt2",
+    "ranked_vt3",
+    "main_rank3_duplicate_snapshot_condition",
+    "assist_rank3_index_oob_if_reached",
+    "c0-c3 accepted/reject_reason/selected_lane/stage_b_evaluated",
+    "c0-c3 guard_boundary_reject/owner_context_reject/domain_reject/certificate_checked/replay_certificate_selected/structural_certificate_selected/legality_allowed",
+    "final_next_occupancy",
+    "final_next_occupied0..5",
+    "final_budget0..7",
+    "final_injections"
+  ],
+  "testbenchSha256": "72d89d0468d7494d69f94bbbd64822b09605c2ca3ced5fc43f365cfd521f6377",
+  "classification": "combinational SMT rank/collection and four-candidate source-bound guard, shared/register certificate predicate, and Stage A/B duplicate retry projection; complete replay key/template match and outer-cap gates are explicit inputs; Assist OOB is conditional on loop reach; not a clocked scheduler model"
+}

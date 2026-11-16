@@ -1,0 +1,29 @@
+{
+  "schema": "circuitweave.smt-legality-guard-plane-pins/v1",
+  "baseCommit": "1bfe41a49cf11c80fa6c6aee87accb54b78b331f",
+  "treeState": "dirty-model-worktree; exact listed input bytes captured; commit is base identity, not asserted byte source",
+  "sources": [
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Safety\\SafetyVerifier.SmtLegality.cs",
+      "relativePath": "HybridCPU_ISE/CloseToHSL/Core/Pipeline/Safety/SafetyVerifier.SmtLegality.cs",
+      "sha256": "89cb7e9f737815d9526bed00186c62f324ebaf805c1520a2ed5ebd1349b529a4",
+      "bytes": 2335
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Safety\\SafetyVerifier.Guards.cs",
+      "relativePath": "HybridCPU_ISE/CloseToHSL/Core/Pipeline/Safety/SafetyVerifier.Guards.cs",
+      "sha256": "f87ba64048e2d0a22642b254fe3eebd696553d3b8b4355b831b32ca77acbbf16",
+      "bytes": 13097
+    }
+  ],
+  "hwirSha256": "11d8a0f1ef0299300a7de191cb75b045db525e1ba6490e519d73b659aaf2754f",
+  "hwirArtifactSha256": "be0281044073207de380a88996a0a2e7cf61155ce4831a68a52c630171ef1d69",
+  "mlirSha256": "9060a0d033597660f669661e90f327add458690fa86a7f3a1f0f952668e0d59d",
+  "testbenchSha256": "f5cc9da05c6b74de01447c90a8e227a0c64df8fa16fb0c81d1c6085ea412c940",
+  "vectors": 12288,
+  "assumptions": [
+    "phase_key_valid and phase_template_matches are explicit inputs; cache-key equality and cache refresh are not modeled",
+    "selected_certificate_allowed is the explicit CanInjectWithReason result for the selected replay or structural certificate",
+    "no clock/reset or scheduler-state timing contract is claimed"
+  ]
+}

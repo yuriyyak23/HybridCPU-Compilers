@@ -1,0 +1,24 @@
+{
+  "modelCommit": "1bfe41a49cf11c80fa6c6aee87accb54b78b331f",
+  "modelTreeState": "dirty-listed-inputs-captured",
+  "sourceHashes": {
+    "smt": "4ecfa34a01d71033b9d6c0b3f2ce752cb50ff8d6004b3a2ba3d6f1c5710e340d",
+    "admission": "6cdd37f43a0a58c0b887f9e8bffe9d2d17abb5d404f7ace70fead05db4edbe25"
+  },
+  "module": "smt_duplicate_retry_projection",
+  "hwirSha256": "e91cd1eadb138d6b974c33b15f76d21954a57d81e10e32a04ec208bf3169ca68",
+  "mlirSha256": "2876fd8167788a31c1929256929bb2f690d77925362d3e58eb90836f15311fab",
+  "semanticCrosscheckSha256": "46037f0c96d7c7ac3c48563df9ebe62c09dea8696c1366184c6495543fd19c1a",
+  "vectors": 256,
+  "inputs": [
+    "duplicate_entry_present",
+    "rank3_candidate_present",
+    "attempt0_class_admitted",
+    "attempt0_lane_materialized",
+    "attempt1_class_admitted",
+    "attempt1_lane_materialized",
+    "attempt0_template_budget_consumed",
+    "attempt1_template_budget_consumed"
+  ],
+  "limits": "Fixed source-guarded TypedSlotEnabled branch; candidate admission and lane outcomes are explicit abstract inputs. Only typed-slot retry/clear ordering is source-bound. No legacy branch, runtime policy, clocked state, RTL, or Golden equivalence."
+}

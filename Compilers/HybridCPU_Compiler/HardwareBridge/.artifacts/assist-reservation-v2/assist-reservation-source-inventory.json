@@ -1,0 +1,640 @@
+{
+  "schema": "circuitweave.source-coverage-index/v1",
+  "disposition": "incomplete-unqualified",
+  "semanticReportSha256": "b0ca672237aae8819645885f6c895ec53cf6edb208d615e08800c8438d8b284b",
+  "project": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\HybridCPU_ISE.csproj",
+  "configuration": "Debug",
+  "targetFramework": "net11.0",
+  "defines": [
+    "TRACE",
+    "TESTING",
+    "DEBUG"
+  ],
+  "scope": "Roslyn located the Assist scheduler entry method in eleven byte-pinned source files. Additional Stage A/B methods, typed reason and detail enums, reject recorders and counter properties are source-guarded inputs; this remains a selected Assist projection, not complete Processor project closure or semantic dependency inventory.",
+  "captureVerification": {
+    "schema": "circuitweave.source-capture-check/v1",
+    "status": "producer-reported-listed-inputs-match",
+    "semanticReportSha256": "b0ca672237aae8819645885f6c895ec53cf6edb208d615e08800c8438d8b284b",
+    "sourceCaptureSha256": "53488ec1ef313fba4435eb0ce16818664eca0ad49f3c1b9a1c43bc82255833fa",
+    "projectGraphSha256": "5121e5a6d54028c3e21aab9961f231d082aee1caedd56646dbc3bfeef6a8c3ea",
+    "scope": "Selected byte-pinned files only; no transitive project graph closure claimed.",
+    "checkedFiles": 11
+  },
+  "capturedSourceFiles": [
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Assist\\Runtime\\AssistRuntime.cs",
+      "sha256": "d6f5d75253714ab283015099f895c3f4c603c0f60070f53641ed040929438138",
+      "length": 48339
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\MicroOps\\Assist\\AssistMicroOp.cs",
+      "sha256": "6054413e07978e15e39d9634b798721140fb1f7d98ab2bdd25ae50e8bb011d3d",
+      "length": 31237
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Assist\\Runtime\\MicroOpScheduler.Assist.cs",
+      "sha256": "8515039c3d770382fd448439d2453c01bd42397f3b525b413d411161bf8035a8",
+      "length": 19236
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Admission\\MicroOpScheduler.Admission.cs",
+      "sha256": "6cdd37f43a0a58c0b887f9e8bffe9d2d17abb5d404f7ace70fead05db4edbe25",
+      "length": 32343
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\SlotLegality\\SlotClassDefinitions.cs",
+      "sha256": "489edf25fe528393aba2e298c259e7929f59260430b4946ccea4c713065d9ff1",
+      "length": 21190
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+      "sha256": "c7e675d76bb4eed9ecccb0b20c13c973895cce556e93c21457d966add731d8bf",
+      "length": 69561
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Backpressure\\MicroOpScheduler.AssistBackpressure.cs",
+      "sha256": "1d6230b660f42be5f1f6bddc82f9a4e21cf8d283a53506b3d5734df346f137ad",
+      "length": 3484
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Memory\\Registers\\StreamRegisterFile.Assist.cs",
+      "sha256": "4398132c8f4a3ea315ac6c591fa6ae4ae8332ae99bb1d0fa5f59ab881d8d9e03",
+      "length": 6851
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Smt\\MicroOpScheduler.SMT.cs",
+      "sha256": "4ecfa34a01d71033b9d6c0b3f2ce752cb50ff8d6004b3a2ba3d6f1c5710e340d",
+      "length": 61264
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Safety\\SafetyVerifier.Types.cs",
+      "sha256": "593ff47affbac1c9616b7398075a3089738ad958364d9aa9cb6cc860ae092bd5",
+      "length": 14547
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Certificates\\BundleResourceCertificate4Way.cs",
+      "sha256": "e539d874d9be20605539cda9bf31ed0aed4199b3fced5b35c6531408483ba781",
+      "length": 24027
+    }
+  ],
+  "supportingSourceInventory": [
+    {
+      "id": "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.TryClassAdmission(MicroOp,BundleResourceCertificate4Way\u0026,SmtBundleMetadata4Way,BoundaryGuardState,ClassTemplateAdmissionState\u0026,Int32,Int32,TypedSlotRejectReason\u0026,Boolean,Nullable\u003CInt32\u003E)",
+      "kind": "Method",
+      "disposition": "source-inventory-only; sampled contract input",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Admission\\MicroOpScheduler.Admission.cs",
+        "startLine": 71,
+        "startColumn": 22
+      },
+      "blockingReason": "Method body is pinned and call-order guarded; this candidate samples the method result and does not elaborate its full logic."
+    },
+    {
+      "id": "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.TryMaterializeLane(MicroOp,Byte,Int32\u0026,TypedSlotRejectReason\u0026,LaneMaterializationRole,Byte)",
+      "kind": "Method",
+      "disposition": "source-inventory-only; sampled contract input",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Admission\\MicroOpScheduler.Admission.cs",
+        "startLine": 170,
+        "startColumn": 22
+      },
+      "blockingReason": "Method body is pinned and call-order guarded; this candidate samples the method result and does not elaborate its full logic."
+    },
+    {
+      "id": "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.RecordAssistReject(MicroOp,TypedSlotRejectReason)",
+      "kind": "Method",
+      "disposition": "source-inventory-only; sampled contract input",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Assist\\Runtime\\MicroOpScheduler.Assist.cs",
+        "startLine": 342,
+        "startColumn": 22
+      },
+      "blockingReason": "Method body is pinned and call-order guarded; this candidate samples the method result and does not elaborate its full logic."
+    },
+    {
+      "id": "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.RecordTypedSlotReject(TypedSlotRejectReason)",
+      "kind": "Method",
+      "disposition": "source-inventory-only; sampled contract input",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Smt\\MicroOpScheduler.SMT.cs",
+        "startLine": 998,
+        "startColumn": 22
+      },
+      "blockingReason": "Method body is pinned and call-order guarded; this candidate samples the method result and does not elaborate its full logic."
+    },
+    {
+      "id": "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.RecordTypedSlotReject(TypedSlotRejectReason,MicroOp)",
+      "kind": "Method",
+      "disposition": "source-inventory-only; sampled contract input",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Smt\\MicroOpScheduler.SMT.cs",
+        "startLine": 1201,
+        "startColumn": 22
+      },
+      "blockingReason": "Method body is pinned and call-order guarded; this candidate samples the method result and does not elaborate its full logic."
+    },
+    {
+      "id": "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.RecordPerVtRejection(Int32)",
+      "kind": "Method",
+      "disposition": "source-inventory-only; sampled contract input",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Smt\\MicroOpScheduler.SMT.cs",
+        "startLine": 1153,
+        "startColumn": 22
+      },
+      "blockingReason": "Method body is pinned and call-order guarded; this candidate samples the method result and does not elaborate its full logic."
+    },
+    {
+      "id": "T:YAKSys_Hybrid_CPU.Core.TypedSlotRejectReason",
+      "kind": "Enum",
+      "disposition": "source-inventory-only; values source-pinned",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\SlotLegality\\SlotClassDefinitions.cs",
+        "startLine": 72,
+        "startColumn": 17
+      },
+      "blockingReason": "Stage A/B reason values are enumerated for decoding, while the stage legality equations remain sampled outcomes."
+    },
+    {
+      "id": "T:YAKSys_Hybrid_CPU.Core.RejectKind",
+      "kind": "Enum",
+      "disposition": "source-inventory-only; values source-pinned",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Safety\\SafetyVerifier.Types.cs",
+        "startLine": 127,
+        "startColumn": 17
+      },
+      "blockingReason": "Legality reject-kind result is sampled; RuntimeLegalityService evaluation is not elaborated."
+    },
+    {
+      "id": "T:YAKSys_Hybrid_CPU.Core.CertificateRejectDetail",
+      "kind": "Enum",
+      "disposition": "source-inventory-only; values source-pinned",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Certificates\\BundleResourceCertificate4Way.cs",
+        "startLine": 13,
+        "startColumn": 17
+      },
+      "blockingReason": "Certificate detail result is sampled; BundleResourceCertificate4Way.CanInject logic is not elaborated."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.ClassCapacityRejects",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 911,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.StaticClassOvercommitRejects",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 1066,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.DynamicClassExhaustionRejects",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 1069,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.NopDueToNoClassCapacity",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 1099,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.TypedSlotResourceConflictRejects",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 917,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.NopDueToResourceConflict",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 1102,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.TypedSlotDomainRejects",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 1081,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.LaneConflictRejects",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 914,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.PinnedLaneConflicts",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 1072,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.LateBindingConflicts",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 1078,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.NopDueToPinnedConstraint",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 1096,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.InvalidPinnedLaneRejects",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 1075,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.RejectionsVT0",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 1152,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.RejectionsVT1",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 1155,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.RejectionsVT2",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 1158,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.RejectionsVT3",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 1161,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.SmtOwnerContextGuardRejects",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 920,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.SmtDomainGuardRejects",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 923,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.SmtBoundaryGuardRejects",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 926,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.SmtSharedResourceCertificateRejects",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 929,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.SmtRegisterGroupCertificateRejects",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 932,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.SmtLegalityRejectByAluClass",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 941,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.SmtLegalityRejectByLsuClass",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 944,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.SmtLegalityRejectByDmaStreamClass",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 947,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.SmtLegalityRejectByMatrixTileStreamClass",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 948,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.SmtLegalityRejectByBranchControl",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 951,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.SmtLegalityRejectBySystemSingleton",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 954,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.CertificateRejectByAluClass",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 1124,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.CertificateRejectByLsuClass",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 1127,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.CertificateRejectByDmaStreamClass",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 1130,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.CertificateRejectByMatrixTileStreamClass",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 1131,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.CertificateRejectByBranchControl",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 1134,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.CertificateRejectBySystemSingleton",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 1137,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.RegGroupConflictsVT0",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 1164,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.RegGroupConflictsVT1",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 1167,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.RegGroupConflictsVT2",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 1170,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    },
+    {
+      "id": "P:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.RegGroupConflictsVT3",
+      "kind": "Property",
+      "disposition": "counter inventory; sampled baseline",
+      "location": {
+        "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+        "startLine": 1173,
+        "startColumn": 21
+      },
+      "blockingReason": "Counter next-value is modeled; no physical register clock/reset lifecycle is established."
+    }
+  ],
+  "symbols": [
+    {
+      "symbol": "global::YAKSys_Hybrid_CPU.Core.MicroOpScheduler",
+      "assembly": "HybridCPU_ISE",
+      "kind": "Class",
+      "accessibility": "Public",
+      "memberCount": 1,
+      "blockingReason": "Selected Assist call-path projection only; containing project and transitive dependencies are not inventoried.",
+      "coverage": {
+        "inventory": "partial-semantic",
+        "hardwareRole": "unclassified",
+        "hwir": "not-established",
+        "rtl": "not-established",
+        "simulation": "not-run",
+        "independentVerification": "not-run",
+        "studio": "not-published"
+      },
+      "declarations": [
+        {
+          "location": {
+            "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Assist\\Runtime\\MicroOpScheduler.Assist.cs",
+            "startLine": 166,
+            "startColumn": 21
+          },
+          "memberIds": [
+            "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.TryInjectAssistCandidates()"
+          ]
+        }
+      ],
+      "dependencies": [
+        "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.TryClassAdmission()",
+        "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.TryMaterializeLane()",
+        "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.RecordAssistReject()",
+        "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.RecordTypedSlotReject(TypedSlotRejectReason)",
+        "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.RecordPerVtRejection(Int32)",
+        "T:YAKSys_Hybrid_CPU.Core.TypedSlotRejectReason"
+      ],
+      "members": [
+        {
+          "id": "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.TryInjectAssistCandidates()",
+          "kind": "Method",
+          "locations": [
+            {
+              "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Assist\\Runtime\\MicroOpScheduler.Assist.cs",
+              "startLine": 166,
+              "startColumn": 21
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

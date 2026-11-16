@@ -1,0 +1,519 @@
+{
+  "schema": "circuitweave.source-coverage-index/v1",
+  "disposition": "incomplete-unqualified",
+  "project": "HybridCPU_ISE/HybridCPU_ISE.csproj",
+  "configuration": "Debug",
+  "targetFramework": "net11.0",
+  "defines": [
+    "TRACE",
+    "TESTING",
+    "DEBUG"
+  ],
+  "semanticReportSha256": "cabcc308752377326d9c3ceec4e8fbd3b2037e5bdc153955804e7016af4c4d0d",
+  "scope": "Twelve exact inputs and source-mapped HWIR members for this SMT combinational composition; listed inputs are captured from the current dirty worktree where marked; base commit is not asserted as their byte source; not project symbol closure.",
+  "symbols": [
+    {
+      "symbol": "global::YAKSys_Hybrid_CPU.Core.MicroOpScheduler.GetCreditRankedOrder",
+      "assembly": "CircuitWeave.SmtRanking.Projection",
+      "kind": "Class",
+      "memberCount": 1,
+      "declarations": [
+        {
+          "location": {
+            "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Admission\\MicroOpScheduler.Admission.cs",
+            "startLine": 267,
+            "startColumn": 22
+          },
+          "memberIds": [
+            "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.GetCreditRankedOrder()"
+          ]
+        }
+      ],
+      "members": [
+        {
+          "id": "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.GetCreditRankedOrder()",
+          "kind": "Method",
+          "observedDependencyCount": 0,
+          "locations": [
+            {
+              "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Admission\\MicroOpScheduler.Admission.cs",
+              "startLine": 267,
+              "startColumn": 22
+            }
+          ]
+        }
+      ],
+      "blockingReason": "Only source-mapped HWIR members are listed; not a complete Roslyn type/member inventory."
+    },
+    {
+      "symbol": "global::YAKSys_Hybrid_CPU.Core.MicroOpScheduler.PackBundleIntraCoreSmt",
+      "assembly": "CircuitWeave.PressureOrder.Projection",
+      "kind": "Class",
+      "memberCount": 1,
+      "declarations": [
+        {
+          "location": {
+            "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Smt\\MicroOpScheduler.SMT.cs",
+            "startLine": 33,
+            "startColumn": 26
+          },
+          "memberIds": [
+            "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.PackBundleIntraCoreSmt()"
+          ]
+        }
+      ],
+      "members": [
+        {
+          "id": "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.PackBundleIntraCoreSmt()",
+          "kind": "Method",
+          "observedDependencyCount": 0,
+          "locations": [
+            {
+              "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Smt\\MicroOpScheduler.SMT.cs",
+              "startLine": 33,
+              "startColumn": 26
+            }
+          ]
+        }
+      ],
+      "blockingReason": "Only source-mapped HWIR members are listed; not a complete Roslyn type/member inventory."
+    },
+    {
+      "symbol": "global::YAKSys_Hybrid_CPU.Core.MicroOpScheduler.GetBankPressureScore",
+      "assembly": "CircuitWeave.BankPressure.Projection",
+      "kind": "Class",
+      "memberCount": 1,
+      "declarations": [
+        {
+          "location": {
+            "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Admission\\MicroOpScheduler.Admission.cs",
+            "startLine": 615,
+            "startColumn": 21
+          },
+          "memberIds": [
+            "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.GetBankPressureScore()"
+          ]
+        }
+      ],
+      "members": [
+        {
+          "id": "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.GetBankPressureScore()",
+          "kind": "Method",
+          "observedDependencyCount": 0,
+          "locations": [
+            {
+              "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Admission\\MicroOpScheduler.Admission.cs",
+              "startLine": 615,
+              "startColumn": 21
+            }
+          ]
+        }
+      ],
+      "blockingReason": "Only source-mapped HWIR members are listed; not a complete Roslyn type/member inventory."
+    },
+    {
+      "symbol": "global::YAKSys_Hybrid_CPU.Core.MicroOpScheduler.TryClassAdmission",
+      "assembly": "CircuitWeave.StageA.Projection",
+      "kind": "Class",
+      "memberCount": 1,
+      "declarations": [
+        {
+          "location": {
+            "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Admission\\MicroOpScheduler.Admission.cs",
+            "startLine": 71,
+            "startColumn": 22
+          },
+          "memberIds": [
+            "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.TryClassAdmission()"
+          ]
+        }
+      ],
+      "members": [
+        {
+          "id": "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.TryClassAdmission()",
+          "kind": "Method",
+          "observedDependencyCount": 0,
+          "locations": [
+            {
+              "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Admission\\MicroOpScheduler.Admission.cs",
+              "startLine": 71,
+              "startColumn": 22
+            }
+          ]
+        }
+      ],
+      "blockingReason": "Only source-mapped HWIR members are listed; not a complete Roslyn type/member inventory."
+    },
+    {
+      "symbol": "global::YAKSys_Hybrid_CPU.Core.SlotClassCapacityState.HasFreeCapacity",
+      "assembly": "CircuitWeave.Capacity.Projection",
+      "kind": "Class",
+      "memberCount": 1,
+      "declarations": [
+        {
+          "location": {
+            "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\SlotLegality\\SlotClassCapacity.cs",
+            "startLine": 70,
+            "startColumn": 30
+          },
+          "memberIds": [
+            "M:YAKSys_Hybrid_CPU.Core.SlotClassCapacityState.HasFreeCapacity()"
+          ]
+        }
+      ],
+      "members": [
+        {
+          "id": "M:YAKSys_Hybrid_CPU.Core.SlotClassCapacityState.HasFreeCapacity()",
+          "kind": "Method",
+          "observedDependencyCount": 0,
+          "locations": [
+            {
+              "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\SlotLegality\\SlotClassCapacity.cs",
+              "startLine": 70,
+              "startColumn": 30
+            }
+          ]
+        }
+      ],
+      "blockingReason": "Only source-mapped HWIR members are listed; not a complete Roslyn type/member inventory."
+    },
+    {
+      "symbol": "global::YAKSys_Hybrid_CPU.Core.MicroOpScheduler.TryMaterializeLane",
+      "assembly": "CircuitWeave.StageB.Projection",
+      "kind": "Class",
+      "memberCount": 1,
+      "declarations": [
+        {
+          "location": {
+            "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Admission\\MicroOpScheduler.Admission.cs",
+            "startLine": 170,
+            "startColumn": 22
+          },
+          "memberIds": [
+            "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.TryMaterializeLane()"
+          ]
+        }
+      ],
+      "members": [
+        {
+          "id": "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.TryMaterializeLane()",
+          "kind": "Method",
+          "observedDependencyCount": 0,
+          "locations": [
+            {
+              "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Admission\\MicroOpScheduler.Admission.cs",
+              "startLine": 170,
+              "startColumn": 22
+            }
+          ]
+        }
+      ],
+      "blockingReason": "Only source-mapped HWIR members are listed; not a complete Roslyn type/member inventory."
+    },
+    {
+      "symbol": "global::YAKSys_Hybrid_CPU.Core.SlotClassLaneMap.GetLaneMask",
+      "assembly": "CircuitWeave.SlotClass.Projection",
+      "kind": "Class",
+      "memberCount": 1,
+      "declarations": [
+        {
+          "location": {
+            "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\SlotLegality\\SlotClassDefinitions.cs",
+            "startLine": 199,
+            "startColumn": 28
+          },
+          "memberIds": [
+            "M:YAKSys_Hybrid_CPU.Core.SlotClassLaneMap.GetLaneMask()"
+          ]
+        }
+      ],
+      "members": [
+        {
+          "id": "M:YAKSys_Hybrid_CPU.Core.SlotClassLaneMap.GetLaneMask()",
+          "kind": "Method",
+          "observedDependencyCount": 0,
+          "locations": [
+            {
+              "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\SlotLegality\\SlotClassDefinitions.cs",
+              "startLine": 199,
+              "startColumn": 28
+            }
+          ]
+        }
+      ],
+      "blockingReason": "Only source-mapped HWIR members are listed; not a complete Roslyn type/member inventory."
+    },
+    {
+      "symbol": "global::YAKSys_Hybrid_CPU.Core.DeterministicLaneChooser.SelectWithReplayHint",
+      "assembly": "CircuitWeave.LaneChooser.Projection",
+      "kind": "Class",
+      "memberCount": 1,
+      "declarations": [
+        {
+          "location": {
+            "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\LaneChoice\\DeterministicLaneChooser.cs",
+            "startLine": 46,
+            "startColumn": 27
+          },
+          "memberIds": [
+            "M:YAKSys_Hybrid_CPU.Core.DeterministicLaneChooser.SelectWithReplayHint()"
+          ]
+        }
+      ],
+      "members": [
+        {
+          "id": "M:YAKSys_Hybrid_CPU.Core.DeterministicLaneChooser.SelectWithReplayHint()",
+          "kind": "Method",
+          "observedDependencyCount": 0,
+          "locations": [
+            {
+              "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\LaneChoice\\DeterministicLaneChooser.cs",
+              "startLine": 46,
+              "startColumn": 27
+            }
+          ]
+        }
+      ],
+      "blockingReason": "Only source-mapped HWIR members are listed; not a complete Roslyn type/member inventory."
+    },
+    {
+      "symbol": "global::YAKSys_Hybrid_CPU.Core.SafetyVerifier.EvaluateSmtLegality",
+      "assembly": "CircuitWeave.SmtLegalityGuardPlane",
+      "kind": "Class",
+      "memberCount": 1,
+      "declarations": [
+        {
+          "location": {
+            "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Safety\\SafetyVerifier.SmtLegality.cs",
+            "startLine": 14,
+            "startColumn": 9
+          },
+          "memberIds": [
+            "M:YAKSys_Hybrid_CPU.Core.SafetyVerifier.EvaluateSmtLegality()"
+          ]
+        }
+      ],
+      "members": [
+        {
+          "id": "M:YAKSys_Hybrid_CPU.Core.SafetyVerifier.EvaluateSmtLegality()",
+          "kind": "Method",
+          "observedDependencyCount": 0,
+          "locations": [
+            {
+              "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Safety\\SafetyVerifier.SmtLegality.cs",
+              "startLine": 14,
+              "startColumn": 9
+            }
+          ]
+        }
+      ],
+      "blockingReason": "Only source-mapped HWIR members are listed; not a complete Roslyn type/member inventory."
+    },
+    {
+      "symbol": "global::YAKSys_Hybrid_CPU.Core.BundleResourceCertificate4Way.CanInjectWithReason",
+      "assembly": "CircuitWeave.SmtCertificatePredicate",
+      "kind": "Class",
+      "memberCount": 1,
+      "declarations": [
+        {
+          "location": {
+            "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Certificates\\BundleResourceCertificate4Way.cs",
+            "startLine": 446,
+            "startColumn": 21
+          },
+          "memberIds": [
+            "M:YAKSys_Hybrid_CPU.Core.BundleResourceCertificate4Way.CanInjectWithReason()"
+          ]
+        }
+      ],
+      "members": [
+        {
+          "id": "M:YAKSys_Hybrid_CPU.Core.BundleResourceCertificate4Way.CanInjectWithReason()",
+          "kind": "Method",
+          "observedDependencyCount": 0,
+          "locations": [
+            {
+              "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Certificates\\BundleResourceCertificate4Way.cs",
+              "startLine": 446,
+              "startColumn": 21
+            }
+          ]
+        }
+      ],
+      "blockingReason": "Only source-mapped HWIR members are listed; not a complete Roslyn type/member inventory."
+    },
+    {
+      "symbol": "global::YAKSys_Hybrid_CPU.Core.MicroOpScheduler.TryPassOuterCap",
+      "assembly": "CircuitWeave.SmtOuterGate",
+      "kind": "Class",
+      "memberCount": 1,
+      "declarations": [
+        {
+          "location": {
+            "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Admission\\MicroOpScheduler.Admission.cs",
+            "startLine": 638,
+            "startColumn": 22
+          },
+          "memberIds": [
+            "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.TryPassOuterCap()"
+          ]
+        }
+      ],
+      "members": [
+        {
+          "id": "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.TryPassOuterCap()",
+          "kind": "Method",
+          "observedDependencyCount": 0,
+          "locations": [
+            {
+              "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Admission\\MicroOpScheduler.Admission.cs",
+              "startLine": 638,
+              "startColumn": 22
+            }
+          ]
+        }
+      ],
+      "blockingReason": "Only source-mapped HWIR members are listed; not a complete Roslyn type/member inventory."
+    },
+    {
+      "symbol": "global::YAKSys_Hybrid_CPU.Core.MicroOpScheduler.InitializeProjectedOutstandingMemoryState",
+      "assembly": "CircuitWeave.ProjectedMemoryState",
+      "kind": "Class",
+      "memberCount": 1,
+      "declarations": [
+        {
+          "location": {
+            "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Admission\\MicroOpScheduler.Admission.cs",
+            "startLine": 354,
+            "startColumn": 22
+          },
+          "memberIds": [
+            "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.InitializeProjectedOutstandingMemoryState()"
+          ]
+        }
+      ],
+      "members": [
+        {
+          "id": "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.InitializeProjectedOutstandingMemoryState()",
+          "kind": "Method",
+          "observedDependencyCount": 0,
+          "locations": [
+            {
+              "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Admission\\MicroOpScheduler.Admission.cs",
+              "startLine": 354,
+              "startColumn": 22
+            }
+          ]
+        }
+      ],
+      "blockingReason": "Only source-mapped HWIR members are listed; not a complete Roslyn type/member inventory."
+    }
+  ],
+  "captureVerification": {
+    "schema": "circuitweave.source-capture-check/v1",
+    "status": "producer-reported-listed-inputs-match",
+    "semanticReportSha256": "cabcc308752377326d9c3ceec4e8fbd3b2037e5bdc153955804e7016af4c4d0d",
+    "sourceCaptureSha256": "a8bc9d75838c519e38422147258a1651ae1c5cf49b50cc53f8ebfea28a289435",
+    "projectGraphSha256": "d1545a671ebd657cb5d6e3db4c6ccfff75eaa1cbba3bf5e184f865b0cb39c0d0",
+    "scope": "Exact listed hashes recomputed from current worktree bytes; working-tree state is recorded; listed member mapping does not establish complete Roslyn inventory.",
+    "checkedFiles": 19,
+    "rootProject": "not-captured"
+  },
+  "capturedSourceFiles": [
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Admission\\MicroOpScheduler.Admission.cs",
+      "sha256": "6cdd37f43a0a58c0b887f9e8bffe9d2d17abb5d404f7ace70fead05db4edbe25",
+      "length": 32343
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Scoreboard\\MicroOpScheduler.Scoreboard.cs",
+      "sha256": "19f17c5417a4b981af5ebb6fa33da2a48ec980dad86a0e8291553205945497de",
+      "length": 10931
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.Infrastructure.cs",
+      "sha256": "0151477bee4622e64b4f6e63b38cb671becfaca87acc1eacbc2687feb2ee2f8a",
+      "length": 10429
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+      "sha256": "c7e675d76bb4eed9ecccb0b20c13c973895cce556e93c21457d966add731d8bf",
+      "length": 69561
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Smt\\MicroOpScheduler.SMT.cs",
+      "sha256": "4ecfa34a01d71033b9d6c0b3f2ce752cb50ff8d6004b3a2ba3d6f1c5710e340d",
+      "length": 61264
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Assist\\Runtime\\MicroOpScheduler.Assist.cs",
+      "sha256": "8515039c3d770382fd448439d2453c01bd42397f3b525b413d411161bf8035a8",
+      "length": 19236
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\SlotLegality\\SlotClassDefinitions.cs",
+      "sha256": "489edf25fe528393aba2e298c259e7929f59260430b4946ccea4c713065d9ff1",
+      "length": 21190
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\SlotLegality\\SlotClassCapacity.cs",
+      "sha256": "54dcc1597997bab5fbea400c2f2ab61f2da750b29db5592e2048a05adc49ade1",
+      "length": 8948
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\LaneId.cs",
+      "sha256": "fa8ff89c15ee0818e3c377f32be5eded6ac7df6bea701f5ce07c2c9e01f66400",
+      "length": 2522
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\LaneChoice\\DeterministicLaneChooser.cs",
+      "sha256": "7bb9602c10dc8dde50793cbe0c2f49f8cda7dd4779ba3f7757446be5894a4f28",
+      "length": 4283
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Safety\\SafetyVerifier.SmtLegality.cs",
+      "sha256": "89cb7e9f737815d9526bed00186c62f324ebaf805c1520a2ed5ebd1349b529a4",
+      "length": 2335
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Safety\\SafetyVerifier.Guards.cs",
+      "sha256": "f87ba64048e2d0a22642b254fe3eebd696553d3b8b4355b831b32ca77acbbf16",
+      "length": 13097
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\MicroOps\\Memory\\MicroOp.LoadStore.cs",
+      "sha256": "5dac6c801751a25234c49c7f905dd56a6472bef8bcdc9de2e30cba872026193f",
+      "length": 50415
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\MicroOps\\Types\\MicroOp.Misc.cs",
+      "sha256": "8dd8cfb04d4c7fc7554cceeab0daf8a8f6db54ee281cc102b4a5ee68c606c5cd",
+      "length": 27554
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Memory\\IHardwareOccupancyInput.cs",
+      "sha256": "fbf74223e62df20d1c74963925e063d25b00080deb5a3ffba15c2a008acc8e7d",
+      "length": 12055
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\MicroOps\\Types\\MicroOp.cs",
+      "sha256": "bd53821fbd152287e31324706de558cfa7606e1c69f94d16c5da1d19590b469c",
+      "length": 48229
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\SlotPlacementMetadata.cs",
+      "sha256": "06cac68870c46136250bfdc4c5b195c6f569d7113d7c5d10bfbc41d5b0797f19",
+      "length": 2322
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Certificates\\BundleResourceCertificate4Way.cs",
+      "sha256": "e539d874d9be20605539cda9bf31ed0aed4199b3fced5b35c6531408483ba781",
+      "length": 24027
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Metadata\\MicroOpAdmissionMetadata.cs",
+      "sha256": "c0c9b134863ba11f59c5a7bbb2ba1122a1a933fe4379cee0053b085224ba7691",
+      "length": 6515
+    }
+  ]
+}

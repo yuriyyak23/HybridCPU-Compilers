@@ -1,0 +1,176 @@
+{
+  "schema": "circuitweave.smt-rank-tail-reference/v1",
+  "classification": "source-pinned C# reference-vector exploration; not RTL, not a processor equivalence result",
+  "modelCommit": "1bfe41a49cf11c80fa6c6aee87accb54b78b331f",
+  "goldenCommit": "6946ccab9d888f7dae0a4d8e18480f436138acd9",
+  "smtWays": 4,
+  "sources": {
+    "admission": {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Admission\\MicroOpScheduler.Admission.cs",
+      "bytes": 32343,
+      "sha256": "6cdd37f43a0a58c0b887f9e8bffe9d2d17abb5d404f7ace70fead05db4edbe25"
+    },
+    "smt": {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\Smt\\MicroOpScheduler.SMT.cs",
+      "bytes": 61264,
+      "sha256": "4ecfa34a01d71033b9d6c0b3f2ce752cb50ff8d6004b3a2ba3d6f1c5710e340d"
+    },
+    "scheduler": {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Scheduling\\MicroOpScheduler.cs",
+      "bytes": 69561,
+      "sha256": "c7e675d76bb4eed9ecccb0b20c13c973895cce556e93c21457d966add731d8bf"
+    },
+    "assist": {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Assist\\Runtime\\MicroOpScheduler.Assist.cs",
+      "bytes": 19236,
+      "sha256": "8515039c3d770382fd448439d2453c01bd42397f3b525b413d411161bf8035a8"
+    }
+  },
+  "sourceContracts": {
+    "rank": "Credit descending, VT id ascending on ties; owner omitted; 3 entries written for valid owner 0..3.",
+    "main": "4 rank entries read; IsReadyNonOwnerCandidate rejects OOR/owner and checks ready bit; duplicate valid VT entries remain separate legalVts attempts.",
+    "assist": "4 rank entries read; owner short-circuits before indexing; then valid[] and ports[] are indexed without OOR guard; valid \u0026 present entries reach candidate probe.",
+    "limitations": "Does not model later typed-slot legality, lane assignment, injection quota/state changes, stack bytes, clock/reset or RTL. Assist OOB counts are reachable outcomes when the loop reaches the out-of-range rank with quota still available; earlier successful injections could stop the loop. Credits are exhaustively sampled over 0..3 to cover ordering/tie permutations, not their full source int domain."
+  },
+  "coverage": {
+    "cases": 33554432,
+    "owners": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "tailValues": [
+      {
+        "value": 0,
+        "classification": "valid"
+      },
+      {
+        "value": 1,
+        "classification": "valid"
+      },
+      {
+        "value": 2,
+        "classification": "valid"
+      },
+      {
+        "value": 3,
+        "classification": "valid"
+      },
+      {
+        "value": 4,
+        "classification": "out-of-range"
+      },
+      {
+        "value": 4294967295,
+        "classification": "out-of-range"
+      },
+      {
+        "value": 2147483648,
+        "classification": "out-of-range"
+      },
+      {
+        "value": 4294967294,
+        "classification": "out-of-range"
+      }
+    ],
+    "creditsPerVt": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "readinessMasks": 16,
+    "assistValidMasks": 16,
+    "assistPresentMasks": 16,
+    "mainDuplicateVectors": 6291456,
+    "mainInvalidTailFilteredVectors": 16777216,
+    "assistOutOfRangeReachableIfQuotaAvailableVectors": 16777216,
+    "assistDuplicateProbeVectors": 3145728,
+    "assistInvalidShortCircuits": 29360128,
+    "assistOwnerShortCircuits": 4194304
+  },
+  "witnesses": {
+    "assistDuplicatePresentTail": {
+      "owner": 0,
+      "tail": 1,
+      "credits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "validMask": 2,
+      "presentMask": 2,
+      "ranks": [
+        1,
+        2,
+        3
+      ],
+      "candidates": [
+        1,
+        1
+      ]
+    },
+    "mainDuplicateValidTail": {
+      "owner": 0,
+      "tail": 1,
+      "credits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "readyMask": 2,
+      "ranks": [
+        1,
+        2,
+        3
+      ],
+      "attempts": [
+        1,
+        1
+      ]
+    },
+    "assistOutOfRangeTail": {
+      "owner": 0,
+      "tail": 4,
+      "credits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "validMask": 0,
+      "presentMask": 0,
+      "ranks": [
+        1,
+        2,
+        3
+      ],
+      "order": [
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    "mainOutOfRangeTailFiltered": {
+      "owner": 0,
+      "tail": 4,
+      "credits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "readyMask": 0,
+      "ranks": [
+        1,
+        2,
+        3
+      ],
+      "attempts": []
+    }
+  }
+}

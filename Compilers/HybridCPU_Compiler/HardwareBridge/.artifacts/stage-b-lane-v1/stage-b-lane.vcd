@@ -1,0 +1,271 @@
+$date
+	Sun Nov 15 12:35:02 2026
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1s
+$end
+$scope module stage_b_lane_directed_tb $end
+$var wire 3 ! selected_lane [2:0] $end
+$var wire 4 " reject_reason [3:0] $end
+$var wire 1 # defined $end
+$var wire 1 $ accepted $end
+$var reg 8 % donor_mask [7:0] $end
+$var reg 8 & occupancy [7:0] $end
+$var reg 1 ' opportunistic $end
+$var reg 8 ( permitted_lanes [7:0] $end
+$var reg 8 ) pinned_lane [7:0] $end
+$var reg 8 * pinning_kind [7:0] $end
+$var reg 32 + previous_lane [31:0] $end
+$var reg 1 , replay_active $end
+$var reg 8 - slot_class [7:0] $end
+$var reg 1 . stable_donor $end
+$scope module dut $end
+$var wire 8 / _GEN_1 [7:0] $end
+$var wire 8 0 _GEN_10 [7:0] $end
+$var wire 1 1 _GEN_9 $end
+$var wire 8 2 donor_mask [7:0] $end
+$var wire 8 3 occupancy [7:0] $end
+$var wire 1 ' opportunistic $end
+$var wire 8 4 permitted_lanes [7:0] $end
+$var wire 8 5 pinned_lane [7:0] $end
+$var wire 8 6 pinning_kind [7:0] $end
+$var wire 32 7 previous_lane [31:0] $end
+$var wire 1 , replay_active $end
+$var wire 8 8 slot_class [7:0] $end
+$var wire 1 . stable_donor $end
+$var wire 3 9 selected_lane [2:0] $end
+$var wire 4 : reject_reason [3:0] $end
+$var wire 1 # defined $end
+$var wire 1 $ accepted $end
+$var wire 1 ; _lane_chooser_valid $end
+$var wire 3 < _lane_chooser_selected_lane [2:0] $end
+$var wire 1 = _class_mask_lookup_valid $end
+$var wire 8 > _class_mask_lookup_lane_mask [7:0] $end
+$var wire 1 ? _GEN_8 $end
+$var wire 1 @ _GEN_7 $end
+$var wire 1 A _GEN_6 $end
+$var wire 1 B _GEN_5 $end
+$var wire 1 C _GEN_4 $end
+$var wire 1 D _GEN_3 $end
+$var wire 1 E _GEN_2 $end
+$var wire 1 F _GEN_0 $end
+$var wire 1 G _GEN $end
+$scope module class_mask_lookup $end
+$var wire 8 H slot_class [7:0] $end
+$var wire 1 = valid $end
+$var wire 8 I lane_mask [7:0] $end
+$var wire 1 J _GEN_5 $end
+$var wire 1 K _GEN_4 $end
+$var wire 1 L _GEN_3 $end
+$var wire 1 M _GEN_2 $end
+$var wire 1 N _GEN_1 $end
+$var wire 1 O _GEN_0 $end
+$var wire 1 P _GEN $end
+$upscope $end
+$scope module lane_chooser $end
+$var wire 1 Q _GEN $end
+$var wire 1 R _GEN_0 $end
+$var wire 1 S _GEN_1 $end
+$var wire 1 T _GEN_10 $end
+$var wire 1 U _GEN_11 $end
+$var wire 1 V _GEN_12 $end
+$var wire 1 W _GEN_13 $end
+$var wire 1 X _GEN_14 $end
+$var wire 1 Y _GEN_15 $end
+$var wire 1 Z _GEN_2 $end
+$var wire 1 [ _GEN_3 $end
+$var wire 1 \ _GEN_4 $end
+$var wire 1 ] _GEN_5 $end
+$var wire 1 ^ _GEN_6 $end
+$var wire 1 _ _GEN_7 $end
+$var wire 1 ` _GEN_8 $end
+$var wire 1 a _GEN_9 $end
+$var wire 8 b free_lanes [7:0] $end
+$var wire 32 c previous_lane [31:0] $end
+$var wire 1 , replay_active $end
+$var wire 1 d reused $end
+$var wire 1 ; valid $end
+$var wire 3 e selected_lane [2:0] $end
+$upscope $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+$comment Show the parameter values. $end
+$dumpall
+$end
+#0
+$dumpvars
+b0 e
+0d
+b0 c
+b0 b
+0a
+0`
+0_
+0^
+0]
+0\
+0[
+0Z
+0Y
+0X
+0W
+0V
+0U
+0T
+0S
+0R
+0Q
+0P
+0O
+0N
+0M
+0L
+0K
+1J
+b1111 I
+b0 H
+1G
+0F
+0E
+0D
+0C
+0B
+0A
+1@
+0?
+b1111 >
+1=
+b0 <
+0;
+b0 :
+b110 9
+b0 8
+b0 7
+b1 6
+b110 5
+b1000000 4
+b0 3
+b11111111 2
+11
+b0 0
+b11111111 /
+0.
+b0 -
+0,
+b0 +
+b1 *
+b110 )
+b1000000 (
+0'
+b0 &
+b11111111 %
+1$
+1#
+b0 "
+b110 !
+$end
+#1
+b1011 "
+b1011 :
+0$
+01
+b10111111 /
+b1000000 &
+b1000000 3
+#2
+b11111111 /
+b100000 (
+b100000 4
+b0 &
+b0 3
+#3
+1R
+1Q
+1S
+1[
+1]
+b1101 "
+b1101 :
+1;
+b0 !
+b0 9
+b1111 b
+b1111 0
+b11111111 (
+b11111111 4
+0@
+b1000 )
+b1000 5
+#4
+b1 !
+b1 9
+01
+b1 <
+b1 e
+0R
+0Q
+b1110 b
+b1110 0
+b11111110 /
+1$
+b0 "
+b0 :
+b1111 (
+b1111 4
+b1 &
+b1 3
+1F
+b0 )
+b0 5
+0G
+b0 *
+b0 6
+#5
+b0 !
+b0 9
+b0 <
+b0 e
+b1100 "
+b1100 :
+0S
+0[
+0]
+0$
+0;
+b0 b
+b0 0
+b11111111 /
+b0 (
+b0 4
+b0 &
+b0 3
+#6
+b11 !
+b11 9
+b11 <
+b11 e
+11
+1d
+1Y
+1^
+b0 "
+b0 :
+1Q
+1S
+1[
+1]
+1$
+1;
+b1111 b
+b1111 0
+b11 +
+b11 7
+b11 c
+1,
+b1111 (
+b1111 4
+#7

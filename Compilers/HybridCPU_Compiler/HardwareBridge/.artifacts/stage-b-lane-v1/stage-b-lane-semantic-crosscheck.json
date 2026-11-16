@@ -1,0 +1,8 @@
+{
+  "schema": "circuitweave.stage-b-lane-crosscheck/v1",
+  "status": "passed",
+  "vectors": 74744,
+  "exhaustiveHardPinnedLane6Masks": 65536,
+  "exhaustiveReplayChooserCases": 5120,
+  "scope": "Independent scalar evaluator over validated HWIR, source-extracted slot-class map and separately coded lane chooser oracle; no CPU timeline or Golden equivalence."
+}

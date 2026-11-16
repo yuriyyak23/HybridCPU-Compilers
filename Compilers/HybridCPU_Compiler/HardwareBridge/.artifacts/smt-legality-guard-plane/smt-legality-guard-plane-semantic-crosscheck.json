@@ -1,0 +1,7 @@
+{
+  "schema": "circuitweave.smt-legality-guard-plane-crosscheck/v1",
+  "status": "passed",
+  "vectors": 12288,
+  "oracle": "independently coded C# guard equations against evaluated HWIR",
+  "scope": "boundary precedence; known-owner context mismatch; kernel/domain certificate behavior; replay-vs-structural certificate selection gates; certificate allow result is supplied input"
+}

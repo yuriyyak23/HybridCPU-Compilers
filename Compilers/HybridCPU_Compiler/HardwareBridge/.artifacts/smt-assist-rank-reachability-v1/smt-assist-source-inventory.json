@@ -1,0 +1,59 @@
+{
+  "schema": "circuitweave.source-coverage-index/v1",
+  "disposition": "incomplete-unqualified",
+  "project": "HybridCPU_ISE/HybridCPU_ISE.csproj",
+  "configuration": "Debug",
+  "scope": "One exact active dirty-worktree Assist source file and one source-mapped member; not project closure or full member inventory.",
+  "semanticReportSha256": "11318df0cbb9a3acebc98e95eba5c3cd69b80423796c7b55a894559813105404",
+  "symbols": [
+    {
+      "symbol": "global::YAKSys_Hybrid_CPU.Core.MicroOpScheduler",
+      "assembly": "CircuitWeave.SmtAssistRankReachability",
+      "kind": "Class",
+      "memberCount": 1,
+      "blockingReason": "Single-method source-bound reachability slice only; full scheduler type inventory is published separately.",
+      "declarations": [
+        {
+          "location": {
+            "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Assist\\Runtime\\MicroOpScheduler.Assist.cs",
+            "startLine": 166,
+            "startColumn": 21
+          },
+          "memberIds": [
+            "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.TryInjectAssistCandidates()"
+          ]
+        }
+      ],
+      "members": [
+        {
+          "id": "M:YAKSys_Hybrid_CPU.Core.MicroOpScheduler.TryInjectAssistCandidates()",
+          "kind": "Method",
+          "locations": [
+            {
+              "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Assist\\Runtime\\MicroOpScheduler.Assist.cs",
+              "startLine": 166,
+              "startColumn": 21
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "captureVerification": {
+    "schema": "circuitweave.source-capture-check/v1",
+    "status": "producer-reported-listed-inputs-match",
+    "semanticReportSha256": "11318df0cbb9a3acebc98e95eba5c3cd69b80423796c7b55a894559813105404",
+    "sourceCaptureSha256": "e0f011815499e8ad9ac71ef5cbc2464736a6f67cbeda38240638e03629a0b2e9",
+    "projectGraphSha256": "d1545a671ebd657cb5d6e3db4c6ccfff75eaa1cbba3bf5e184f865b0cb39c0d0",
+    "checkedFiles": 1,
+    "rootProject": "not-captured",
+    "scope": "The projectGraphSha256 references the separate selected Debug project graph audit context. SHA-256 and captured bytes cover exactly the listed active dirty-worktree Assist file; this is not project closure."
+  },
+  "capturedSourceFiles": [
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Assist\\Runtime\\MicroOpScheduler.Assist.cs",
+      "sha256": "8515039c3d770382fd448439d2453c01bd42397f3b525b413d411161bf8035a8",
+      "length": 19236
+    }
+  ]
+}

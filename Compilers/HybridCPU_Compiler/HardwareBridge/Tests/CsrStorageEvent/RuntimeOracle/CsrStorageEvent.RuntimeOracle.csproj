@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net11.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <CsrSourceRoot Condition="'$(CsrSourceRoot)' == ''">C:\Users\Yuriy\Desktop\HybridCPU ISE\HybridCPU_ISE\CloseToHSL\Core\Architecture\Registers\CSR</CsrSourceRoot>
+    <AddressSource Condition="'$(AddressSource)' == ''">C:\Users\Yuriy\Desktop\HybridCPU ISE\HybridCPU_ISE\Arch\CsrAddresses.cs</AddressSource>
+    <DefineConstants Condition="'$(RuntimeModel)' == 'ACTIVE'">$(DefineConstants);ACTIVE_MODEL</DefineConstants>
+    <DefineConstants Condition="'$(RuntimeModel)' == 'GOLDEN'">$(DefineConstants);GOLDEN_MODEL</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(CsrSourceRoot)\CsrFile.cs" Link="CapturedModel\CsrFile.cs" />
+    <Compile Include="$(CsrSourceRoot)\CsrAccessPolicy.cs" Link="CapturedModel\CsrAccessPolicy.cs" />
+    <Compile Include="$(AddressSource)" Link="CapturedModel\CsrAddresses.cs" />
+  </ItemGroup>
+</Project>

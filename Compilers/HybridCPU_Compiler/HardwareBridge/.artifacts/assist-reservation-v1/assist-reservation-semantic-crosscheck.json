@@ -1,0 +1,7 @@
+{
+  "schema": "circuitweave.assist-reservation-crosscheck/v3",
+  "status": "passed",
+  "vectors": 24192,
+  "oracle": "separately coded evaluator for prefetch demand, locality caps, quota/backpressure gates, snapshot/policy seed, SRF inventory summary, state cascade, reject priorities and Stage A/B typed and post-Stage-B counter updates",
+  "scope": "Combinational sampled-state projection. Not dynamic scheduler execution, full SRF register-array elaboration, RTL equivalence to Golden, or cycle/reset validation."
+}

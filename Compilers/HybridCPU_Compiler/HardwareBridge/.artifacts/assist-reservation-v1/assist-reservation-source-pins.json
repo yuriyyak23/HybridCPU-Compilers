@@ -1,0 +1,138 @@
+{
+  "schema": "circuitweave.assist-reservation-source-pins/v3",
+  "modelCommit": "1bfe41a49cf11c80fa6c6aee87accb54b78b331f",
+  "currentModelHead": "1bfe41a49cf11c80fa6c6aee87accb54b78b331f",
+  "modelTreeState": "dirty; exact listed working-tree bytes were captured; base commit is not asserted as the byte source",
+  "hwirSha256": "c8905311c3597ebd0cd69536b6a086d37eea7507f9d342472b43f4fd861e0926",
+  "mlirSha256": "1c4f9cc1a63cfde36639b0767f0abbedea62955ad046f71b44ee601b068b000c",
+  "sourceInventorySha256": "0b9407bd20594bf42ee8f15e1062baa57b64bdc5cd2e3c47282faf0e6b0321a5",
+  "sources": [
+    {
+      "path": "HybridCPU_ISE/CloseToHSL/Core/Pipeline/Assist/Runtime/AssistRuntime.cs",
+      "sha256": "d6f5d75253714ab283015099f895c3f4c603c0f60070f53641ed040929438138",
+      "length": 48339
+    },
+    {
+      "path": "HybridCPU_ISE/CloseToHSL/Core/Pipeline/MicroOps/Assist/AssistMicroOp.cs",
+      "sha256": "6054413e07978e15e39d9634b798721140fb1f7d98ab2bdd25ae50e8bb011d3d",
+      "length": 31237
+    },
+    {
+      "path": "HybridCPU_ISE/CloseToHSL/Core/Pipeline/Assist/Runtime/MicroOpScheduler.Assist.cs",
+      "sha256": "8515039c3d770382fd448439d2453c01bd42397f3b525b413d411161bf8035a8",
+      "length": 19236
+    },
+    {
+      "path": "HybridCPU_ISE/CloseToHSL/Core/Pipeline/Scheduling/Admission/MicroOpScheduler.Admission.cs",
+      "sha256": "6cdd37f43a0a58c0b887f9e8bffe9d2d17abb5d404f7ace70fead05db4edbe25",
+      "length": 32343
+    },
+    {
+      "path": "HybridCPU_ISE/CloseToHSL/Core/Pipeline/Scheduling/SlotLegality/SlotClassDefinitions.cs",
+      "sha256": "489edf25fe528393aba2e298c259e7929f59260430b4946ccea4c713065d9ff1",
+      "length": 21190
+    },
+    {
+      "path": "HybridCPU_ISE/CloseToHSL/Core/Pipeline/Scheduling/MicroOpScheduler.cs",
+      "sha256": "c7e675d76bb4eed9ecccb0b20c13c973895cce556e93c21457d966add731d8bf",
+      "length": 69561
+    },
+    {
+      "path": "HybridCPU_ISE/CloseToHSL/Core/Pipeline/Scheduling/Backpressure/MicroOpScheduler.AssistBackpressure.cs",
+      "sha256": "1d6230b660f42be5f1f6bddc82f9a4e21cf8d283a53506b3d5734df346f137ad",
+      "length": 3484
+    },
+    {
+      "path": "HybridCPU_ISE/CloseToHSL/Memory/Registers/StreamRegisterFile.Assist.cs",
+      "sha256": "4398132c8f4a3ea315ac6c591fa6ae4ae8332ae99bb1d0fa5f59ab881d8d9e03",
+      "length": 6851
+    },
+    {
+      "path": "HybridCPU_ISE/CloseToHSL/Core/Pipeline/Scheduling/Smt/MicroOpScheduler.SMT.cs",
+      "sha256": "4ecfa34a01d71033b9d6c0b3f2ce752cb50ff8d6004b3a2ba3d6f1c5710e340d",
+      "length": 61264
+    },
+    {
+      "path": "HybridCPU_ISE/CloseToHSL/Core/Pipeline/Safety/SafetyVerifier.Types.cs",
+      "sha256": "593ff47affbac1c9616b7398075a3089738ad958364d9aa9cb6cc860ae092bd5",
+      "length": 14547
+    },
+    {
+      "path": "HybridCPU_ISE/CloseToHSL/Core/Pipeline/Certificates/BundleResourceCertificate4Way.cs",
+      "sha256": "e539d874d9be20605539cda9bf31ed0aed4199b3fced5b35c6531408483ba781",
+      "length": 24027
+    }
+  ],
+  "outputs": [
+    "accept",
+    "backpressure_accepted",
+    "reject_outstanding",
+    "reject_shared_outer",
+    "reject_dma_srf",
+    "next_bp_shared_credits",
+    "next_lsu_carrier_credits",
+    "next_dma_carrier_credits",
+    "next_consumed_shared_read_packed",
+    "next_outstanding_count_vt0",
+    "next_outstanding_count_vt1",
+    "next_outstanding_count_vt2",
+    "next_outstanding_count_vt3",
+    "reject_issue",
+    "reject_lines",
+    "next_issue_credits",
+    "next_line_credits",
+    "reserved_line_demand",
+    "next_smt_rejections_count",
+    "next_assist_rejects",
+    "next_assist_backpressure_rejects",
+    "next_assist_backpressure_outer_rejects",
+    "next_assist_backpressure_mshr_rejects",
+    "next_assist_backpressure_dma_srf_rejects",
+    "next_assist_quota_rejects",
+    "next_assist_quota_issue_rejects",
+    "next_assist_quota_line_rejects",
+    "next_class_capacity_rejects",
+    "next_static_class_overcommit_rejects",
+    "next_dynamic_class_exhaustion_rejects",
+    "next_nop_due_to_no_class_capacity",
+    "next_typed_slot_resource_conflict_rejects",
+    "next_nop_due_to_resource_conflict",
+    "next_typed_slot_domain_rejects",
+    "next_lane_conflict_rejects",
+    "next_pinned_lane_conflicts",
+    "next_late_binding_conflicts",
+    "next_nop_due_to_pinned_constraint",
+    "next_invalid_pinned_lane_rejects",
+    "next_rejections_vt0",
+    "next_rejections_vt1",
+    "next_rejections_vt2",
+    "next_rejections_vt3",
+    "next_smt_owner_context_guard_rejects",
+    "next_smt_domain_guard_rejects",
+    "next_smt_boundary_guard_rejects",
+    "next_smt_shared_resource_certificate_rejects",
+    "next_smt_register_group_certificate_rejects",
+    "next_smt_legality_reject_by_alu_class",
+    "next_smt_legality_reject_by_lsu_class",
+    "next_smt_legality_reject_by_dma_stream_class",
+    "next_smt_legality_reject_by_matrix_tile_stream_class",
+    "next_smt_legality_reject_by_branch_control",
+    "next_smt_legality_reject_by_system_singleton",
+    "next_certificate_reject_by_alu_class",
+    "next_certificate_reject_by_lsu_class",
+    "next_certificate_reject_by_dma_stream_class",
+    "next_certificate_reject_by_matrix_tile_stream_class",
+    "next_certificate_reject_by_branch_control",
+    "next_certificate_reject_by_system_singleton",
+    "next_reg_group_conflicts_vt0",
+    "next_reg_group_conflicts_vt1",
+    "next_reg_group_conflicts_vt2",
+    "next_reg_group_conflicts_vt3"
+  ],
+  "assumptions": [
+    "Scheduler memory/load budget seeds and policy values are sampled ports; min/clamp initialization is derived.",
+    "SRF per-register arrays are reduced to reuse/count/empty/victim summary ports; array scan itself is not elaborated.",
+    "Stage A/B reason codes, ResourceConflict RejectKind, CertificateRejectDetail, candidate SlotClass, and diagnostic counter baselines are sampled outputs; RuntimeLegalityService and BundleResourceCertificate4Way evaluation are not elaborated.",
+    "No physical clock/reset exists for this pass-local reservation state."
+  ]
+}

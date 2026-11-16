@@ -1,0 +1,6 @@
+{
+  "vectors": 256,
+  "oracle": "independent attempt-state equations over all boolean input combinations",
+  "status": "passed",
+  "scope": "Fixed source-guarded TypedSlotEnabled branch; abstract class admission/lane outcomes; first commit clears candidate and makes duplicate skip; failure preserves candidate for retry; budget and rejection effects gated by reached attempt. Not full policy/temporal/RTL/Golden equivalence."
+}

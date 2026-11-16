@@ -1,0 +1,18 @@
+{
+  "modelCommit": "1bfe41a49cf11c80fa6c6aee87accb54b78b331f",
+  "module": "smt_rank_tail_consumers_projection",
+  "hwirSha256": "b3ea7b7feb8ccda784851a0559cf0bef70bb8f944655360f762eb721dffed8d6",
+  "mlirSha256": "7c3220eeebf5fd1549b6df29d3c957260b2818fbdac1b4f5b22e2bf685643edb",
+  "sources": {
+    "admission": "6cdd37f43a0a58c0b887f9e8bffe9d2d17abb5d404f7ace70fead05db4edbe25",
+    "scheduler": "c7e675d76bb4eed9ecccb0b20c13c973895cce556e93c21457d966add731d8bf",
+    "smt": "4ecfa34a01d71033b9d6c0b3f2ce752cb50ff8d6004b3a2ba3d6f1c5710e340d",
+    "assist": "8515039c3d770382fd448439d2453c01bd42397f3b525b413d411161bf8035a8"
+  },
+  "outputs": [
+    "main_duplicate_candidate_attempt",
+    "assist_rank3_index_oob_if_reached",
+    "rank3_in_range"
+  ],
+  "classification": "combinational projection; assist OOB is conditional on the loop reaching rank3; not a clocked scheduler model"
+}

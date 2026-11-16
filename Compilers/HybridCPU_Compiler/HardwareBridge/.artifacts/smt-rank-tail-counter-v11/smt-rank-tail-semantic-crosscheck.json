@@ -1,0 +1,6 @@
+{
+  "vectors": 4757,
+  "oracle": "separately coded fair-rank \u002B collection \u002B four-candidate certificate/A3/A/B retry-state contract",
+  "status": "passed",
+  "scope": "4,704 ranking/collection vectors plus 53 directed retry, shared/register certificate, replay select, guard, scoreboard-derived per-VT bank-pending, bundle-local Store bank mask, sampled SuppressLsu predicate, projected-memory state, source-derived A3 memory-budget predicate, accepted-candidate budget cascade, original-bundle budget initialization, and six independently derived A3 speculation-predicate truth-table cases, four source-ordered speculation-exhaustion event counter cases. Snapshot budget inputs and typed bundle facts remain explicit sampled inputs. A3 predicate 5 is source-derived from enable, signed owner/budget and candidate memory/VT inputs; the exhaustion event increments only when final Stage A reason is SpeculationBudgetReject. Aggregate SmtRejectionsCount remains external. Exact cache key and refresh remain unmodeled. No clocked lifecycle or Golden equivalence"
+}

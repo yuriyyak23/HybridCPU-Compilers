@@ -1,0 +1,90 @@
+{
+  "schema": "circuitweave.source-coverage-index/v1",
+  "disposition": "incomplete-unqualified",
+  "project": "HybridCPU_ISE/HybridCPU_ISE.csproj",
+  "configuration": "Debug",
+  "semanticReportSha256": "8a5345e1f91bbedcb24414b4608c0f2d955bdfb8a9365411b32925f467aa680d",
+  "symbols": [
+    {
+      "symbol": "global::YAKSys_Hybrid_CPU.Core.Registers.CsrFile",
+      "assembly": "CircuitWeave.CsrAccess",
+      "kind": "Class",
+      "memberCount": 1,
+      "blockingReason": "Excerpt-only entry for source-mapped method; not complete type inventory.",
+      "declarations": [
+        {
+          "location": {
+            "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Architecture\\Registers\\CSR\\CsrFile.cs",
+            "startLine": 74,
+            "startColumn": 5
+          },
+          "memberIds": [
+            "M:YAKSys_Hybrid_CPU.Core.Registers.CsrFile.CheckReadAccess(ushort,YAKSys_Hybrid_CPU.Core.Registers.CsrAccessPolicy,YAKSys_Hybrid_CPU.Core.Registers.PrivilegeLevel)"
+          ]
+        }
+      ],
+      "members": [
+        {
+          "id": "M:YAKSys_Hybrid_CPU.Core.Registers.CsrFile.CheckReadAccess(ushort,YAKSys_Hybrid_CPU.Core.Registers.CsrAccessPolicy,YAKSys_Hybrid_CPU.Core.Registers.PrivilegeLevel)",
+          "kind": "Method",
+          "locations": [
+            {
+              "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Architecture\\Registers\\CSR\\CsrFile.cs",
+              "startLine": 170,
+              "startColumn": 29
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "symbol": "global::YAKSys_Hybrid_CPU.Core.Registers.CsrFile",
+      "assembly": "CircuitWeave.CsrStorageEvent",
+      "kind": "Class",
+      "memberCount": 1,
+      "blockingReason": "Excerpt-only entry for source-mapped method; not complete type inventory.",
+      "declarations": [
+        {
+          "location": {
+            "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Architecture\\Registers\\CSR\\CsrFile.cs",
+            "startLine": 74,
+            "startColumn": 5
+          },
+          "memberIds": [
+            "M:YAKSys_Hybrid_CPU.Core.Registers.CsrFile.RegisterDefaults()"
+          ]
+        }
+      ],
+      "members": [
+        {
+          "id": "M:YAKSys_Hybrid_CPU.Core.Registers.CsrFile.RegisterDefaults()",
+          "kind": "Method",
+          "locations": [
+            {
+              "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Architecture\\Registers\\CSR\\CsrFile.cs",
+              "startLine": 217,
+              "startColumn": 22
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "captureVerification": {
+    "schema": "circuitweave.source-capture-check/v1",
+    "status": "producer-reported-listed-inputs-match",
+    "semanticReportSha256": "8a5345e1f91bbedcb24414b4608c0f2d955bdfb8a9365411b32925f467aa680d",
+    "sourceCaptureSha256": "2fd9e014212fa1ffea10b558f74e94c936349cf17bc51b9403c1a973475d18ef",
+    "projectGraphSha256": "d1545a671ebd657cb5d6e3db4c6ccfff75eaa1cbba3bf5e184f865b0cb39c0d0",
+    "scope": "Hash-checked capture of the single listed CsrFile.cs source; projectGraphSha256 references the separate selected Debug project-graph audit context, not a claim that this is a complete project source capture.",
+    "checkedFiles": 1,
+    "rootProject": "not-captured"
+  },
+  "capturedSourceFiles": [
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Architecture\\Registers\\CSR\\CsrFile.cs",
+      "sha256": "2dc2c172d8248ad2fed0a3832b39008b0449f302e75280b8fef46b2d499ad470",
+      "length": 14638
+    }
+  ]
+}

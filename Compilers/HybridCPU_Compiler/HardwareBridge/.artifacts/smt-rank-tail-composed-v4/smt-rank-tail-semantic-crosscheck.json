@@ -1,0 +1,6 @@
+{
+  "vectors": 4728,
+  "oracle": "separately coded fair-rank \u002B collection \u002B four-candidate certificate/A3/A/B retry-state contract",
+  "status": "passed",
+  "scope": "4,704 ranking/collection vectors plus directed retry, shared/register certificate, replay select, guard and source-ordered A3 reject cases. A3 predicate results are explicit; sampled scoreboard/budget logic and diagnostic counters remain outside this projection. Exact cache key and refresh remain unmodeled. No clocked lifecycle or Golden equivalence"
+}

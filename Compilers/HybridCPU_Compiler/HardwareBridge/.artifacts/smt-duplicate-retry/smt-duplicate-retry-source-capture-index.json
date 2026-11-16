@@ -1,0 +1,10 @@
+{
+  "schema": "circuitweave.source-capture-check/v1",
+  "status": "listed-active-input-bytes-checked",
+  "commit": "1bfe41a49cf11c80fa6c6aee87accb54b78b331f",
+  "rootProject": "not-captured",
+  "scope": "Two exact active dirty-worktree source files; one SMT method is graph-mapped, admission method is syntax-guarded and its outcomes stay abstract.",
+  "checkedFiles": 2,
+  "smtSha256": "4ecfa34a01d71033b9d6c0b3f2ce752cb50ff8d6004b3a2ba3d6f1c5710e340d",
+  "admissionSha256": "6cdd37f43a0a58c0b887f9e8bffe9d2d17abb5d404f7ace70fead05db4edbe25"
+}

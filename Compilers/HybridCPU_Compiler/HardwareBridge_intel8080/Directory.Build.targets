@@ -1,0 +1,9 @@
+<!-- Custom artifact directories are below the project root, so exclude their generated C# files explicitly. -->
+<Project>
+  <ItemGroup>
+    <Compile Remove="obj/**/*.cs" />
+    <Compile Remove="bin/**/*.cs" />
+    <Compile Remove=".artifacts/**/*.cs" />
+    <Compile Remove="$(MSBuildThisFileDirectory).artifacts/**/*.cs" />
+  </ItemGroup>
+</Project>

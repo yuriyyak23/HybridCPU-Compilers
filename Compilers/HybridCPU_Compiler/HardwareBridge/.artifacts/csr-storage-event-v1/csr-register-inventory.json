@@ -1,0 +1,362 @@
+[
+  {
+    "AddressMember": "Mstatus",
+    "Address": 768,
+    "Policy": "MachineReadWrite",
+    "PolicyValue": 0,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 220
+  },
+  {
+    "AddressMember": "Misa",
+    "Address": 769,
+    "Policy": "ReadOnly",
+    "PolicyValue": 1,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 221
+  },
+  {
+    "AddressMember": "Mie",
+    "Address": 772,
+    "Policy": "MachineReadWrite",
+    "PolicyValue": 0,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 222
+  },
+  {
+    "AddressMember": "Mtvec",
+    "Address": 773,
+    "Policy": "MachineReadWrite",
+    "PolicyValue": 0,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 223
+  },
+  {
+    "AddressMember": "Mscratch",
+    "Address": 832,
+    "Policy": "MachineReadWrite",
+    "PolicyValue": 0,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 224
+  },
+  {
+    "AddressMember": "Mepc",
+    "Address": 833,
+    "Policy": "MachineReadWrite",
+    "PolicyValue": 0,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 225
+  },
+  {
+    "AddressMember": "Mcause",
+    "Address": 834,
+    "Policy": "MachineReadWrite",
+    "PolicyValue": 0,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 226
+  },
+  {
+    "AddressMember": "Mtval",
+    "Address": 835,
+    "Policy": "MachineReadWrite",
+    "PolicyValue": 0,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 227
+  },
+  {
+    "AddressMember": "Mip",
+    "Address": 836,
+    "Policy": "MachineReadWrite",
+    "PolicyValue": 0,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 228
+  },
+  {
+    "AddressMember": "MpowerState",
+    "Address": 837,
+    "Policy": "MachineReadWrite",
+    "PolicyValue": 0,
+    "InitialValue": 0,
+    "InitialExpression": "(ulong)Processor.CPU_Core.CorePowerState.C0_Active",
+    "SourceLine": 229
+  },
+  {
+    "AddressMember": "MperfLevel",
+    "Address": 838,
+    "Policy": "MachineReadWrite",
+    "PolicyValue": 0,
+    "InitialValue": 100,
+    "InitialExpression": "(ulong)Processor.CPU_Core.CorePowerState.P0_MaxPerformance",
+    "SourceLine": 230
+  },
+  {
+    "AddressMember": "Sstatus",
+    "Address": 256,
+    "Policy": "SupervisorReadWrite",
+    "PolicyValue": 2,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 233
+  },
+  {
+    "AddressMember": "Sie",
+    "Address": 260,
+    "Policy": "SupervisorReadWrite",
+    "PolicyValue": 2,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 234
+  },
+  {
+    "AddressMember": "Stvec",
+    "Address": 261,
+    "Policy": "SupervisorReadWrite",
+    "PolicyValue": 2,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 235
+  },
+  {
+    "AddressMember": "Sscratch",
+    "Address": 320,
+    "Policy": "SupervisorReadWrite",
+    "PolicyValue": 2,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 236
+  },
+  {
+    "AddressMember": "Sepc",
+    "Address": 321,
+    "Policy": "SupervisorReadWrite",
+    "PolicyValue": 2,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 237
+  },
+  {
+    "AddressMember": "Scause",
+    "Address": 322,
+    "Policy": "SupervisorReadWrite",
+    "PolicyValue": 2,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 238
+  },
+  {
+    "AddressMember": "Stval",
+    "Address": 323,
+    "Policy": "SupervisorReadWrite",
+    "PolicyValue": 2,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 239
+  },
+  {
+    "AddressMember": "Sip",
+    "Address": 324,
+    "Policy": "SupervisorReadWrite",
+    "PolicyValue": 2,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 240
+  },
+  {
+    "AddressMember": "VtId",
+    "Address": 2048,
+    "Policy": "HardwareUpdated",
+    "PolicyValue": 3,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 243
+  },
+  {
+    "AddressMember": "VtMask",
+    "Address": 2049,
+    "Policy": "HardwareUpdated",
+    "PolicyValue": 3,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 244
+  },
+  {
+    "AddressMember": "VtStatus",
+    "Address": 2050,
+    "Policy": "HardwareUpdated",
+    "PolicyValue": 3,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 245
+  },
+  {
+    "AddressMember": "VtCause",
+    "Address": 2051,
+    "Policy": "HardwareUpdated",
+    "PolicyValue": 3,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 246
+  },
+  {
+    "AddressMember": "IsaCaps",
+    "Address": 2064,
+    "Policy": "ReadOnly",
+    "PolicyValue": 1,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 249
+  },
+  {
+    "AddressMember": "LaneCaps",
+    "Address": 2065,
+    "Policy": "ReadOnly",
+    "PolicyValue": 1,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 250
+  },
+  {
+    "AddressMember": "BundleCaps",
+    "Address": 2066,
+    "Policy": "ReadOnly",
+    "PolicyValue": 1,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 251
+  },
+  {
+    "AddressMember": "SafetyCaps",
+    "Address": 2067,
+    "Policy": "ReadOnly",
+    "PolicyValue": 1,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 252
+  },
+  {
+    "AddressMember": "MemCaps",
+    "Address": 2068,
+    "Policy": "ReadOnly",
+    "PolicyValue": 1,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 253
+  },
+  {
+    "AddressMember": "VmxEnable",
+    "Address": 2080,
+    "Policy": "MachineReadWrite",
+    "PolicyValue": 0,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 256
+  },
+  {
+    "AddressMember": "VmxCaps",
+    "Address": 2081,
+    "Policy": "ReadOnly",
+    "PolicyValue": 1,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 257
+  },
+  {
+    "AddressMember": "VmxControl",
+    "Address": 2082,
+    "Policy": "MachineReadWrite",
+    "PolicyValue": 0,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 258
+  },
+  {
+    "AddressMember": "VmxExitReason",
+    "Address": 2083,
+    "Policy": "MachineReadWrite",
+    "PolicyValue": 0,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 259
+  },
+  {
+    "AddressMember": "VmxExitQual",
+    "Address": 2084,
+    "Policy": "MachineReadWrite",
+    "PolicyValue": 0,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 260
+  },
+  {
+    "AddressMember": "Cycle",
+    "Address": 3072,
+    "Policy": "HardwareUpdated",
+    "PolicyValue": 3,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 263
+  },
+  {
+    "AddressMember": "BundleRet",
+    "Address": 3073,
+    "Policy": "HardwareUpdated",
+    "PolicyValue": 3,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 264
+  },
+  {
+    "AddressMember": "InstrRet",
+    "Address": 3074,
+    "Policy": "HardwareUpdated",
+    "PolicyValue": 3,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 265
+  },
+  {
+    "AddressMember": "VmExitCnt",
+    "Address": 3075,
+    "Policy": "HardwareUpdated",
+    "PolicyValue": 3,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 266
+  },
+  {
+    "AddressMember": "BarrierCnt",
+    "Address": 3076,
+    "Policy": "HardwareUpdated",
+    "PolicyValue": 3,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 267
+  },
+  {
+    "AddressMember": "StealCnt",
+    "Address": 3077,
+    "Policy": "HardwareUpdated",
+    "PolicyValue": 3,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 268
+  },
+  {
+    "AddressMember": "ReplayCnt",
+    "Address": 3078,
+    "Policy": "HardwareUpdated",
+    "PolicyValue": 3,
+    "InitialValue": 0,
+    "InitialExpression": "0UL",
+    "SourceLine": 269
+  }
+]

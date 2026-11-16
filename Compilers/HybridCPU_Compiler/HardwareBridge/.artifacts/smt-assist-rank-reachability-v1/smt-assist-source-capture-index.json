@@ -1,0 +1,15 @@
+{
+  "schema": "circuitweave.assist-source-capture/v1",
+  "status": "one-listed-dirty-worktree-file-hash-checked",
+  "baseCommit": "1bfe41a49cf11c80fa6c6aee87accb54b78b331f",
+  "sourceTreeState": "active-Ise-worktree-dirty; exact listed bytes captured; base commit is not asserted as the byte source",
+  "scope": "TryInjectAssistCandidates rank3 early-gate and loop-quota projection; not full method/project symbol closure",
+  "files": [
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Assist\\Runtime\\MicroOpScheduler.Assist.cs",
+      "relativePath": "HybridCPU_ISE/CloseToHSL/Core/Pipeline/Assist/Runtime/MicroOpScheduler.Assist.cs",
+      "sha256": "8515039c3d770382fd448439d2453c01bd42397f3b525b413d411161bf8035a8",
+      "length": 19236
+    }
+  ]
+}

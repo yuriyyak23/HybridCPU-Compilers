@@ -1,0 +1,259 @@
+{
+  "schema": "circuitweave.assist-ranked-fact-bus-layout/v1",
+  "topModule": "assist_ordered_candidate_chain",
+  "packing": "Unsigned two-state fact input ports packed in child HWIR input-port order, no field crosses a 64-bit bus; lshr64_mask6 then trunc for nonzero offsets",
+  "fields": [
+    {
+      "rank": 0,
+      "childInput": "admission_bundle_shared_high",
+      "width": 64,
+      "packedInput": "rank0_facts_11",
+      "lsb": 0
+    },
+    {
+      "rank": 0,
+      "childInput": "admission_bundle_shared_low",
+      "width": 64,
+      "packedInput": "rank0_facts_10",
+      "lsb": 0
+    },
+    {
+      "rank": 0,
+      "childInput": "admission_candidate_shared_high",
+      "width": 64,
+      "packedInput": "rank0_facts_08",
+      "lsb": 0
+    },
+    {
+      "rank": 0,
+      "childInput": "admission_candidate_shared_low",
+      "width": 64,
+      "packedInput": "rank0_facts_07",
+      "lsb": 0
+    },
+    {
+      "rank": 0,
+      "childInput": "admission_domain_tag",
+      "width": 64,
+      "packedInput": "rank0_facts_04",
+      "lsb": 0
+    },
+    {
+      "rank": 0,
+      "childInput": "admission_owner_domain_certificate",
+      "width": 64,
+      "packedInput": "rank0_facts_05",
+      "lsb": 0
+    },
+    {
+      "rank": 0,
+      "childInput": "admission_phase_shared_high",
+      "width": 64,
+      "packedInput": "rank0_facts_13",
+      "lsb": 0
+    },
+    {
+      "rank": 0,
+      "childInput": "admission_phase_shared_low",
+      "width": 64,
+      "packedInput": "rank0_facts_12",
+      "lsb": 0
+    },
+    {
+      "rank": 0,
+      "childInput": "quota_prefetch_length",
+      "width": 64,
+      "packedInput": "rank0_facts_23",
+      "lsb": 0
+    },
+    {
+      "rank": 1,
+      "childInput": "admission_bundle_shared_high",
+      "width": 64,
+      "packedInput": "rank1_facts_11",
+      "lsb": 0
+    },
+    {
+      "rank": 1,
+      "childInput": "admission_bundle_shared_low",
+      "width": 64,
+      "packedInput": "rank1_facts_10",
+      "lsb": 0
+    },
+    {
+      "rank": 1,
+      "childInput": "admission_candidate_shared_high",
+      "width": 64,
+      "packedInput": "rank1_facts_08",
+      "lsb": 0
+    },
+    {
+      "rank": 1,
+      "childInput": "admission_candidate_shared_low",
+      "width": 64,
+      "packedInput": "rank1_facts_07",
+      "lsb": 0
+    },
+    {
+      "rank": 1,
+      "childInput": "admission_domain_tag",
+      "width": 64,
+      "packedInput": "rank1_facts_04",
+      "lsb": 0
+    },
+    {
+      "rank": 1,
+      "childInput": "admission_owner_domain_certificate",
+      "width": 64,
+      "packedInput": "rank1_facts_05",
+      "lsb": 0
+    },
+    {
+      "rank": 1,
+      "childInput": "admission_phase_shared_high",
+      "width": 64,
+      "packedInput": "rank1_facts_13",
+      "lsb": 0
+    },
+    {
+      "rank": 1,
+      "childInput": "admission_phase_shared_low",
+      "width": 64,
+      "packedInput": "rank1_facts_12",
+      "lsb": 0
+    },
+    {
+      "rank": 1,
+      "childInput": "quota_prefetch_length",
+      "width": 64,
+      "packedInput": "rank1_facts_23",
+      "lsb": 0
+    },
+    {
+      "rank": 2,
+      "childInput": "admission_bundle_shared_high",
+      "width": 64,
+      "packedInput": "rank2_facts_11",
+      "lsb": 0
+    },
+    {
+      "rank": 2,
+      "childInput": "admission_bundle_shared_low",
+      "width": 64,
+      "packedInput": "rank2_facts_10",
+      "lsb": 0
+    },
+    {
+      "rank": 2,
+      "childInput": "admission_candidate_shared_high",
+      "width": 64,
+      "packedInput": "rank2_facts_08",
+      "lsb": 0
+    },
+    {
+      "rank": 2,
+      "childInput": "admission_candidate_shared_low",
+      "width": 64,
+      "packedInput": "rank2_facts_07",
+      "lsb": 0
+    },
+    {
+      "rank": 2,
+      "childInput": "admission_domain_tag",
+      "width": 64,
+      "packedInput": "rank2_facts_04",
+      "lsb": 0
+    },
+    {
+      "rank": 2,
+      "childInput": "admission_owner_domain_certificate",
+      "width": 64,
+      "packedInput": "rank2_facts_05",
+      "lsb": 0
+    },
+    {
+      "rank": 2,
+      "childInput": "admission_phase_shared_high",
+      "width": 64,
+      "packedInput": "rank2_facts_13",
+      "lsb": 0
+    },
+    {
+      "rank": 2,
+      "childInput": "admission_phase_shared_low",
+      "width": 64,
+      "packedInput": "rank2_facts_12",
+      "lsb": 0
+    },
+    {
+      "rank": 2,
+      "childInput": "quota_prefetch_length",
+      "width": 64,
+      "packedInput": "rank2_facts_23",
+      "lsb": 0
+    },
+    {
+      "rank": 3,
+      "childInput": "admission_bundle_shared_high",
+      "width": 64,
+      "packedInput": "rank3_facts_11",
+      "lsb": 0
+    },
+    {
+      "rank": 3,
+      "childInput": "admission_bundle_shared_low",
+      "width": 64,
+      "packedInput": "rank3_facts_10",
+      "lsb": 0
+    },
+    {
+      "rank": 3,
+      "childInput": "admission_candidate_shared_high",
+      "width": 64,
+      "packedInput": "rank3_facts_08",
+      "lsb": 0
+    },
+    {
+      "rank": 3,
+      "childInput": "admission_candidate_shared_low",
+      "width": 64,
+      "packedInput": "rank3_facts_07",
+      "lsb": 0
+    },
+    {
+      "rank": 3,
+      "childInput": "admission_domain_tag",
+      "width": 64,
+      "packedInput": "rank3_facts_04",
+      "lsb": 0
+    },
+    {
+      "rank": 3,
+      "childInput": "admission_owner_domain_certificate",
+      "width": 64,
+      "packedInput": "rank3_facts_05",
+      "lsb": 0
+    },
+    {
+      "rank": 3,
+      "childInput": "admission_phase_shared_high",
+      "width": 64,
+      "packedInput": "rank3_facts_13",
+      "lsb": 0
+    },
+    {
+      "rank": 3,
+      "childInput": "admission_phase_shared_low",
+      "width": 64,
+      "packedInput": "rank3_facts_12",
+      "lsb": 0
+    },
+    {
+      "rank": 3,
+      "childInput": "quota_prefetch_length",
+      "width": 64,
+      "packedInput": "rank3_facts_23",
+      "lsb": 0
+    }
+  ]
+}

@@ -1,0 +1,747 @@
+{
+  "schema": "hardwarebridge.msbuild-project-graph/v1",
+  "disposition": "independent-evaluations-unqualified",
+  "rootInventorySha256": "3e4accc208ba3385563d13c9aeb8d169df517defab22859c1e76ea7e877332aa",
+  "projects": [
+    {
+      "project": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\Frontend\\Build\\ShadowFrontend.csproj",
+      "projectSha256": "8f72b41e7a7de1da10ce29d72c8b2a8e8ff0e1408a68188fd53b134a3e013675",
+      "properties": {
+        "Configuration": "Debug",
+        "TargetFramework": "net11.0",
+        "DefineConstants": "TRACE;DEBUG",
+        "LangVersion": "15.0",
+        "Nullable": "enable",
+        "AssemblyName": "ShadowFrontend"
+      },
+      "files": [
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\Frontend\\Contracts\\Contracts.cs",
+          "length": 6258,
+          "sha256": "0a6bca5f59d274a8de3d01ed5990245b2a1919a1e872e50dc1c44a14020c6771"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\Frontend\\Semantic\\CompactCodec.cs",
+          "length": 7851,
+          "sha256": "952258d874cd914474e2ab78b69527c3cedbf842ab33e1ab5689ef7c663e0b4a"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\Frontend\\Invalidation\\FreshnessState.cs",
+          "length": 3730,
+          "sha256": "80d1621f40b4face980016ae74f9c8452c1dcf918839501d48152bc0c4181ea2"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\Frontend\\Cache\\SemanticBundleCache.cs",
+          "length": 16146,
+          "sha256": "0d1cc5d21667e218306c876541fc1c68774da0c42ed513351d52b3aacbff3fa0"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\Frontend\\Replay\\HotCompatibility.cs",
+          "length": 2933,
+          "sha256": "df99ac99ea33b6b25c35cee4614724eee198660614ab072bfc63e73cd020c941"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\Frontend\\Telemetry\\FrontendTelemetry.cs",
+          "length": 5054,
+          "sha256": "2524962df119b285947e0e58ec0865f45a55f02be122e3f5c962ae9feca8afd0"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\Frontend\\Modeling\\TraceModel.cs",
+          "length": 11503,
+          "sha256": "b16d9bab4db3cb444cc10b7d3789625a85b8fdaffff149a25366896d2504c44f"
+        }
+      ],
+      "projectReferences": [],
+      "globalUsings": [
+        {
+          "identity": "System",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.Collections.Generic",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.IO",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.Linq",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.Net.Http",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.Net.Http.Json",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.Threading",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.Threading.Tasks",
+          "alias": null,
+          "static": null
+        }
+      ],
+      "analyzers": [
+        "C:\\Program Files\\dotnet\\sdk\\11.0.100\\Sdks\\Microsoft.NET.Sdk\\analyzers\\Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll",
+        "C:\\Program Files\\dotnet\\sdk\\11.0.100\\Sdks\\Microsoft.NET.Sdk\\analyzers\\Microsoft.CodeAnalysis.NetAnalyzers.dll"
+      ]
+    },
+    {
+      "project": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_ManagedRuntime\\HybridCPU.ManagedRuntime.csproj",
+      "projectSha256": "ff4f3338a10638bd2f533bd9896d1d328eed6ba3d63c098db41a1bf0967dd431",
+      "properties": {
+        "Configuration": "Debug",
+        "TargetFramework": "net11.0",
+        "DefineConstants": "TRACE;DEBUG",
+        "LangVersion": "15.0",
+        "Nullable": "enable",
+        "AssemblyName": "HybridCPU.ManagedRuntime"
+      },
+      "files": [
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_ManagedRuntime\\ManagedArgumentNullExceptionRuntimeV1.cs",
+          "length": 10131,
+          "sha256": "c7f5ce8178df8def66e53cfaddab03c61d72b3e964d1c0b5a5f757c8b70f9100"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_ManagedRuntime\\ManagedAsyncRuntimeV1.cs",
+          "length": 16128,
+          "sha256": "90e6cc4b62ba847bee4e0283d4dac2df5a18c76933ba85c84d16865394562eff"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_ManagedRuntime\\ManagedBootBlobRegistryV1.cs",
+          "length": 3159,
+          "sha256": "83cd1719039b7ae13599408af97b8728d76a71d6585ae715d3475e3624297a69"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_ManagedRuntime\\ManagedBootstrapRuntimeV1.cs",
+          "length": 14824,
+          "sha256": "278859f673db50a5bbb84a28bab1b046c2bc98cd97804ee65e62551b7fadfd82"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_ManagedRuntime\\ManagedByteArrayRuntimeV1.cs",
+          "length": 3166,
+          "sha256": "e1ea28286c85424d8ad996ed868c6c95fb8031da0ae65331a1a379214c05f9f0"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_ManagedRuntime\\ManagedCheckedArithmeticRuntimeV1.cs",
+          "length": 1360,
+          "sha256": "5be4874e8d6989b4d44e19f7377b0d03f50cfb9e39c58b5864b889fc0c64dde6"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_ManagedRuntime\\ManagedCoreShapesRuntimeV1.cs",
+          "length": 41550,
+          "sha256": "f003d803e400e4eb87d869258bdabd479369bdfb036c64e2704936feeee3814c"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_ManagedRuntime\\ManagedDelegateRuntimeV1.cs",
+          "length": 14530,
+          "sha256": "f8a18c0f618223f5ca2009ef2c829d6d43cfbc921a707b062537b9f32efff9d1"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_ManagedRuntime\\ManagedDispatchRuntimeV1.cs",
+          "length": 22361,
+          "sha256": "b4d2f88386ef189791e41343a4963dae7cee068750b82dd493f0ff4fa416d1f5"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_ManagedRuntime\\ManagedExceptionRuntimeV1.cs",
+          "length": 33859,
+          "sha256": "5af6c46f49eccb30366130107e0d3609b2de57468d56c6fdeaaf8bd63cd98cf6"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_ManagedRuntime\\ManagedExceptionStateV1.cs",
+          "length": 3189,
+          "sha256": "781bcba35288e7cbcd087534bd2202500b3c3380b46246d887e26047ddd0fe09"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_ManagedRuntime\\ManagedFixedRateClockV1.cs",
+          "length": 3181,
+          "sha256": "6b8562ffb94591ad795866fdc1f0a275413cf86590446a6a7354df41f1edca0e"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_ManagedRuntime\\ManagedHeapAllocatorV1.cs",
+          "length": 22559,
+          "sha256": "4b041027a6faaa73f9cfccddde57d2068c0dd4958bf2bb26222fa56dac08ebcf"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_ManagedRuntime\\ManagedImageStackMapLoaderV1.cs",
+          "length": 7808,
+          "sha256": "07ded98a2e18bba46b7e6ae76e67a1a403336b1492b5e4955e2cc719a8ba7159"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_ManagedRuntime\\ManagedImageTypeLoaderV1.cs",
+          "length": 15713,
+          "sha256": "61af49f3017eac188da8047c8f1b5e724fbb286cd50b5d17e5c5f12730fd750a"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_ManagedRuntime\\ManagedInteropRuntimeV1.cs",
+          "length": 10262,
+          "sha256": "0af957aa8fe272cc4cbbd791e4b26ce00751c35e8dd8b5611cadf3b31bec7ce1"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_ManagedRuntime\\ManagedMathRuntimeV1.cs",
+          "length": 509,
+          "sha256": "8d8fe62054fad238abbdd3c075b2314c17f2e1480e513d159a5130a91da5ef50"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_ManagedRuntime\\ManagedNonMovingGcV1.cs",
+          "length": 48062,
+          "sha256": "fe798bec2b837eef1c94740cac65c8d0c677e97b4a27cd0c48a170b8558f80fe"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_ManagedRuntime\\ManagedReferenceRuntimeV1.cs",
+          "length": 1214,
+          "sha256": "0f8c8ee8ab8ba51658713cca74ba9e239f10816d3c9f623329b4301705199227"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_ManagedRuntime\\ManagedReflectionRuntimeV1.cs",
+          "length": 6881,
+          "sha256": "e7869d3d7d7eb9aebb9d7c9b6a0df100c6f5c2d6c83b13f84c7942fb920c4317"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_ManagedRuntime\\ManagedSynchronizationRuntimeV1.cs",
+          "length": 15078,
+          "sha256": "63e78f5d0b6861d9f370a26c0f754d0ca6a79e4f6c2b84f8b8a8d4cb62e25f86"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_ManagedRuntime\\ManagedThreadingRuntimeV1.cs",
+          "length": 21554,
+          "sha256": "bd3fbff4e28c766d388c4c5e48d36bf708973457edcaba3652df69f0ee27e4e1"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_ManagedRuntime\\ManagedTrapMappingRuntimeV1.cs",
+          "length": 7441,
+          "sha256": "8b101a6df027d0f2c356d54f94d2645db0dae4739d0eb69708412cea41947e15"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_ManagedRuntime\\ManagedTypeSystemV1.cs",
+          "length": 20648,
+          "sha256": "e34e12d8de090a0c77decbf007c9d8a7ca5be32d3fcb89b928774ab6b162edcc"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_ManagedRuntime\\ManagedTypeTestRuntimeV1.cs",
+          "length": 1837,
+          "sha256": "550080d189606589c9ecdd5c6d38ab17be8343db0fbff050d0056ed9ada62695"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_ManagedRuntime\\ManagedValueArrayRuntimeV1.cs",
+          "length": 5924,
+          "sha256": "78c8d36fe551691f2d5699405e1af5ccb28ba6246f8822f34b9020c4cd5b2082"
+        }
+      ],
+      "projectReferences": [
+        "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_Platform.Contracts\\HybridCPU.Platform.Contracts.csproj",
+        "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_RuntimeKernel\\HybridCPU.RuntimeKernel.csproj"
+      ],
+      "globalUsings": [
+        {
+          "identity": "System",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.Collections.Generic",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.IO",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.Linq",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.Net.Http",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.Net.Http.Json",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.Threading",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.Threading.Tasks",
+          "alias": null,
+          "static": null
+        }
+      ],
+      "analyzers": [
+        "C:\\Program Files\\dotnet\\sdk\\11.0.100\\Sdks\\Microsoft.NET.Sdk\\analyzers\\Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll",
+        "C:\\Program Files\\dotnet\\sdk\\11.0.100\\Sdks\\Microsoft.NET.Sdk\\analyzers\\Microsoft.CodeAnalysis.NetAnalyzers.dll"
+      ]
+    },
+    {
+      "project": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ExternalRuntime.Contracts\\HybridCPU_ExternalRuntime.Contracts.csproj",
+      "projectSha256": "d9877312a7d55ce674d326ea88beaf7c08fe6844e093d3324897a2e3ab59ef4a",
+      "properties": {
+        "Configuration": "Debug",
+        "TargetFramework": "net11.0",
+        "DefineConstants": "TRACE;DEBUG",
+        "LangVersion": "15.0",
+        "Nullable": "enable",
+        "AssemblyName": "HybridCPU_ExternalRuntime.Contracts"
+      },
+      "files": [
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ExternalRuntime.Contracts\\ChildDomainContracts.cs",
+          "length": 11468,
+          "sha256": "309a93d5d83aa846e21dcf74db9ad81f4a79d8dadea33b372c5fe47edf3ab1be"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ExternalRuntime.Contracts\\ExternalArtifactBindResolutionContracts.cs",
+          "length": 1525,
+          "sha256": "51b5b614485f1e1a78354df6231c5cddbf2dd4d991a7694860470148921075e1"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ExternalRuntime.Contracts\\ExternalArtifactReleaseContracts.cs",
+          "length": 1157,
+          "sha256": "ddf42c65b426475c20802d64430d503dcd3acdfb9ac778175b8374e33c4df629"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ExternalRuntime.Contracts\\ExternalGenerationSetJsonConverter.cs",
+          "length": 2361,
+          "sha256": "0ef9b9ddb24028232cae9572b97e5737241f74d30ef3c9633a55312b897b6a33"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ExternalRuntime.Contracts\\ExternalOperationAdapterContracts.cs",
+          "length": 11327,
+          "sha256": "22043a3ac9d9daa0356e7d2bf39350adde0395f2d44ba8728f3adfb39740aa8a"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ExternalRuntime.Contracts\\ExternalOperationAdmissionBindingContracts.cs",
+          "length": 5089,
+          "sha256": "5b0b0f897d76cb828c6c8fb861f59dbe3eb7609386268de9528467843e06e9c8"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ExternalRuntime.Contracts\\ExternalOperationContracts.cs",
+          "length": 8963,
+          "sha256": "ca7c2766fa7ebadb4749f9f2e30495e71b3d387c692338f86ba291a0f915c9ea"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ExternalRuntime.Contracts\\ExternalOperationPublicationContracts.cs",
+          "length": 2966,
+          "sha256": "538a9ccf68e6c90644b75ab11262465896bc5b95ada78165d11789ad5eff4c74"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ExternalRuntime.Contracts\\ExternalOperationReplayContracts.cs",
+          "length": 8008,
+          "sha256": "cd6714b42340cb561b2983e51fd208f7289d669d9e9f5e66bdffff8f0d016143"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ExternalRuntime.Contracts\\ExternalOriginalChildCloseContracts.cs",
+          "length": 778,
+          "sha256": "3eefbbcc5bd4ecf4b678aec358d83aa83c03f469d787d0e8ad2e63c09cf3964c"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ExternalRuntime.Contracts\\ExternalOriginalChildCreateContracts.cs",
+          "length": 773,
+          "sha256": "34cb46065ec7d617fd825730e9469307397119cfee06554c6d9767dfa49f811e"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ExternalRuntime.Contracts\\ExternalOriginalChildExecutionStartContracts.cs",
+          "length": 997,
+          "sha256": "17feda38114c3a03765ccb5c6e70400b45e153ce8f658a62f9683a22f23c55ab"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ExternalRuntime.Contracts\\ExternalOriginalDomainBindContracts.cs",
+          "length": 990,
+          "sha256": "3104593945ff7cecb6f397690a9e91772f72674621cca4319617f88fcc3ff549"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ExternalRuntime.Contracts\\ExternalOriginalDomainCloseContracts.cs",
+          "length": 886,
+          "sha256": "e11d40f910d20c9b863d0e5d8f0feec16390441ee9befb7862591e59f5224a2f"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ExternalRuntime.Contracts\\ExternalOriginalExecutionTerminalContracts.cs",
+          "length": 1193,
+          "sha256": "cfbf1b127faf456b51a53a5baedc57fc542ced328066bddd5cf479a33a3e7983"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ExternalRuntime.Contracts\\ExternalOriginalGuestMapContracts.cs",
+          "length": 629,
+          "sha256": "e92767d2a4d3ad63daf49d8c79ff1470f1f69b83d378333893a106b070a7c0f8"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ExternalRuntime.Contracts\\ExternalOriginalGuestUnmapContracts.cs",
+          "length": 659,
+          "sha256": "a538ee44408be74f01362c0a5276a4253d1413edaaf06b85269d01fc794c9306"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ExternalRuntime.Contracts\\ExternalOriginalNestedChildContracts.cs",
+          "length": 1118,
+          "sha256": "514a181dfbe3fd77e1f04207c2f87008f718940bcaa2bf9e34db0d63d9ebfba4"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ExternalRuntime.Contracts\\ExternalRuntimeContracts.cs",
+          "length": 7355,
+          "sha256": "01fd968b10b0055ccf1ae73c10012e1f912efb9f935f8736256e27fb0eca3957"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ExternalRuntime.Contracts\\ExternalSecureComputeContracts.cs",
+          "length": 19467,
+          "sha256": "d09594ba8c7d4efb1f6271098160285e5ed9cc400045cbe40baacb051b741e78"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ExternalRuntime.Contracts\\ExternalSecureExecutionConsumption.cs",
+          "length": 4633,
+          "sha256": "dd70f22e933de40b613c07637e69529a7388eceba8b72cacb7a73d4347f4ffdb"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ExternalRuntime.Contracts\\ExternalSecureExecutionReservation.cs",
+          "length": 3215,
+          "sha256": "3133d7e316df1c540fab5e253b3c729f4f9c169b734ab6d9d7e4bd8d8acdf0b9"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ExternalRuntime.Contracts\\ExternalSecureMemoryRead.cs",
+          "length": 10223,
+          "sha256": "b18c6f07a9711c9f4b79fd630bd35aaf844d344bcb08f841b37d8d291dba57f7"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ExternalRuntime.Contracts\\ExternalSecureNoEffectExecution.cs",
+          "length": 4139,
+          "sha256": "41b5991475fbf8cd5fa5e9b6675f5e7fc3d9345c8201024c7fbb690e8a11b243"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ExternalRuntime.Contracts\\ExternalSecureRegisterLocalExecution.cs",
+          "length": 3507,
+          "sha256": "86ff6f2bb8837ce489b315292b88a91f77ef988f5707b4057c908e8c865f65cf"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ExternalRuntime.Contracts\\ExternalSecureRegisterLocalRequest.cs",
+          "length": 2236,
+          "sha256": "ee8dec910c4b881ca98f178f5b5d750258c43df2e1028383edde62421ce7ce1b"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ExternalRuntime.Contracts\\OriginalChildEventContracts.cs",
+          "length": 1492,
+          "sha256": "ca3d6be221f1aff568a8353b00ca384ad72b4ee8782f0204a5af97568dade6c5"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ExternalRuntime.Contracts\\OriginalParentDeviceNoEffectContracts.cs",
+          "length": 637,
+          "sha256": "1025a3163550607d60a28910bb65bedc1410c4e7f2d168a25fd4b24436036445"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ExternalRuntime.Contracts\\OriginalVirtualIoContainmentContracts.cs",
+          "length": 945,
+          "sha256": "bb511e6d50b17df2fb3e10ba797e96fffa1ca083f62fbe880f313bd93004bd9d"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ExternalRuntime.Contracts\\OriginalVirtualIoContracts.cs",
+          "length": 3467,
+          "sha256": "5546e69a8fdd61aa07c2f84d31e0d96d08ea51b8ff534f4d73790967e8421355"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ExternalRuntime.Contracts\\OriginalVirtualIoSnapshotReleaseContracts.cs",
+          "length": 1349,
+          "sha256": "0ef498a24a2f543c9de591f5cd6f20ade6557dbb5e9d7f11fc509525257371cc"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ExternalRuntime.Contracts\\OriginalVirtualIoTransferContracts.cs",
+          "length": 3212,
+          "sha256": "1ea3d56f83e0393529c09b9e4ece6f646ee313a8f6b03ed1b51b84a7917d1d71"
+        }
+      ],
+      "projectReferences": [],
+      "globalUsings": [
+        {
+          "identity": "System",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.Collections.Generic",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.IO",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.Linq",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.Net.Http",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.Net.Http.Json",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.Threading",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.Threading.Tasks",
+          "alias": null,
+          "static": null
+        }
+      ],
+      "analyzers": [
+        "C:\\Program Files\\dotnet\\sdk\\11.0.100\\Sdks\\Microsoft.NET.Sdk\\analyzers\\Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll",
+        "C:\\Program Files\\dotnet\\sdk\\11.0.100\\Sdks\\Microsoft.NET.Sdk\\analyzers\\Microsoft.CodeAnalysis.NetAnalyzers.dll"
+      ]
+    },
+    {
+      "project": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_Platform.Contracts\\HybridCPU.Platform.Contracts.csproj",
+      "projectSha256": "f74768ba7b902c381fde2889a8d931cdb6084a865e206b10073a4e15d9577ad1",
+      "properties": {
+        "Configuration": "Debug",
+        "TargetFramework": "net11.0",
+        "DefineConstants": "TRACE;DEBUG",
+        "LangVersion": "15.0",
+        "Nullable": "enable",
+        "AssemblyName": "HybridCPU.Platform.Contracts"
+      },
+      "files": [
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_Platform.Contracts\\AsyncRuntimeContractsV1.cs",
+          "length": 1915,
+          "sha256": "b3fe22a6102af6ac124da7529fc1394d468a83a002c402ffe7534fbca4a0dcf9"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_Platform.Contracts\\BootBlobServiceContractV1.cs",
+          "length": 627,
+          "sha256": "7acaf24725f55223b5e841d896455005669d588a30116a2e24333c791a9e5f0f"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_Platform.Contracts\\ConsoleServiceContractV1.cs",
+          "length": 810,
+          "sha256": "770c8fb29bf95a88c50e81f1e7ff37c91cdf6d485d30c7ffdc6ab8e42c6161f1"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_Platform.Contracts\\ExternalServiceEcallContractV1.cs",
+          "length": 2359,
+          "sha256": "0940d520f2a1697e45f23dce94f084c282dfab085a52193cda5dbf84a7772ae1"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_Platform.Contracts\\FramebufferServiceContractV1.cs",
+          "length": 1381,
+          "sha256": "f2fd1263b6f636cdccc32aa370a86ee0637dad20b966287f439de8cccbdf6863"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_Platform.Contracts\\InputServiceContractV1.cs",
+          "length": 615,
+          "sha256": "d48409582e6732245cccfa3356b6c45827000cd7200b6d14b1928a444c79a145"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_Platform.Contracts\\KernelThreadingContractsV1.cs",
+          "length": 3009,
+          "sha256": "9d1f004ab040f6a5c47642205198e7994eb80b4524157f84e7e38f0d86c18bfc"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_Platform.Contracts\\ManagedExceptionTransferV1.cs",
+          "length": 1813,
+          "sha256": "59d73a03fdfeafc04fe4126731b44dfb25a8439fe204633491ff70a7b859e64b"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_Platform.Contracts\\ManagedFinallyContinuationV1.cs",
+          "length": 1307,
+          "sha256": "8ae13a6e2376e5591064c246cf1773e9d97dcf89596a167556868de69ba4d171"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_Platform.Contracts\\ManagedInteropContractsV1.cs",
+          "length": 8469,
+          "sha256": "ba660478d5d4874bd0b104860d92bda7c86cfe6661eaac3b032975a0cdd7651e"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_Platform.Contracts\\ManagedReflectionContractsV1.cs",
+          "length": 6275,
+          "sha256": "41f9a5f3f0038a32479d102d888b325a7c3ee6b64c43e862113c317aab577e42"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_Platform.Contracts\\ManagedRuntimeEcallContractV1.cs",
+          "length": 4545,
+          "sha256": "82ac68a9f1ee45d4b032a99e55ecdbdb1ff5a7779a321de2f7d3e111044bea9d"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_Platform.Contracts\\ManagedSynchronizationContractsV1.cs",
+          "length": 6840,
+          "sha256": "48fd6fe1aba9ba667ad3f28fa63ccdb00e8a2a21cd4fc29f0504e23a8b801cd5"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_Platform.Contracts\\PlatformContractsV1.cs",
+          "length": 29068,
+          "sha256": "026d12cae44cdb2f813475a29304e74d2a7d607210240d97c0751341377dd5ec"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_Platform.Contracts\\VirtualClockServiceContractV1.cs",
+          "length": 1152,
+          "sha256": "2707ca84fc5803ff88fe5b5d0507dd63cf050daef622c56954be4f4759f88054"
+        }
+      ],
+      "projectReferences": [],
+      "globalUsings": [
+        {
+          "identity": "System",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.Collections.Generic",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.IO",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.Linq",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.Net.Http",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.Net.Http.Json",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.Threading",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.Threading.Tasks",
+          "alias": null,
+          "static": null
+        }
+      ],
+      "analyzers": [
+        "C:\\Program Files\\dotnet\\sdk\\11.0.100\\Sdks\\Microsoft.NET.Sdk\\analyzers\\Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll",
+        "C:\\Program Files\\dotnet\\sdk\\11.0.100\\Sdks\\Microsoft.NET.Sdk\\analyzers\\Microsoft.CodeAnalysis.NetAnalyzers.dll"
+      ]
+    },
+    {
+      "project": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_RuntimeKernel\\HybridCPU.RuntimeKernel.csproj",
+      "projectSha256": "5088a4a030463f9d64e7acfc27b4938cdda493e067bd37fee36353b3af069f84",
+      "properties": {
+        "Configuration": "Debug",
+        "TargetFramework": "net11.0",
+        "DefineConstants": "TRACE;DEBUG",
+        "LangVersion": "15.0",
+        "Nullable": "enable",
+        "AssemblyName": "HybridCPU.RuntimeKernel"
+      },
+      "files": [
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_RuntimeKernel\\RuntimeKernelEcallServicesV1.cs",
+          "length": 2811,
+          "sha256": "6c763991020de23c5b0d7e5eb0cc5bdd0d9819358cbc0e94bbb679b121c2bb0e"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_RuntimeKernel\\RuntimeKernelHostServicesV1.cs",
+          "length": 17973,
+          "sha256": "30141ada65bd794a529f5b2cddf79034ba0fc3f46e6d09ac0230275af76a919c"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_RuntimeKernel\\RuntimeKernelSynchronizationV1.cs",
+          "length": 7308,
+          "sha256": "e34424c56ac79e075349aee37c69514dc05eedc8d794ac0b7a6b10f1c79bb939"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_RuntimeKernel\\RuntimeKernelThreadingV1.cs",
+          "length": 17322,
+          "sha256": "beb9d9637469eaa560e22b34576ca47c76b636e53469f4d7975def9386375024"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_RuntimeKernel\\RuntimeKernelTimersV1.cs",
+          "length": 4572,
+          "sha256": "8b8b18c065e7dc8bc65326fa26f32b1ca1b5c23ed7f80b00ca2c1e168df6ee57"
+        },
+        {
+          "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_RuntimeKernel\\RuntimeKernelV1.cs",
+          "length": 18442,
+          "sha256": "c8d9ef1de6223facd918033a4816e792482b707a5425956469fe98f74ec61049"
+        }
+      ],
+      "projectReferences": [
+        "C:\\Users\\Yuriy\\Desktop\\HybridCPU Compilers\\Compilers\\HybridCPU_Platform.Contracts\\HybridCPU.Platform.Contracts.csproj"
+      ],
+      "globalUsings": [
+        {
+          "identity": "System",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.Collections.Generic",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.IO",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.Linq",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.Net.Http",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.Net.Http.Json",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.Threading",
+          "alias": null,
+          "static": null
+        },
+        {
+          "identity": "System.Threading.Tasks",
+          "alias": null,
+          "static": null
+        }
+      ],
+      "analyzers": [
+        "C:\\Program Files\\dotnet\\sdk\\11.0.100\\Sdks\\Microsoft.NET.Sdk\\analyzers\\Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll",
+        "C:\\Program Files\\dotnet\\sdk\\11.0.100\\Sdks\\Microsoft.NET.Sdk\\analyzers\\Microsoft.CodeAnalysis.NetAnalyzers.dll"
+      ]
+    }
+  ]
+}

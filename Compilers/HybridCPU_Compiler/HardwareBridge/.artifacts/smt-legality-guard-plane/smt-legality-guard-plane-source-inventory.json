@@ -1,0 +1,118 @@
+{
+  "schema": "circuitweave.source-coverage-index/v1",
+  "disposition": "incomplete-unqualified",
+  "project": "HybridCPU_ISE/HybridCPU_ISE.csproj",
+  "configuration": "Debug",
+  "defines": [
+    "TRACE",
+    "TESTING",
+    "DEBUG"
+  ],
+  "scope": "SafetyVerifier.EvaluateSmtLegality guard order plus domain-isolation probe; certificate content and runtime cache lifecycle are abstract inputs.",
+  "semanticReportSha256": "49ffb2b0833d7f03a7e9c7a0ae19c3ec307c4c83d9767e380a5d106422aecf58",
+  "checkedFiles": 2,
+  "commit": "1bfe41a49cf11c80fa6c6aee87accb54b78b331f",
+  "modelTreeState": "dirty-model-worktree; exact listed input bytes captured; commit is base identity, not asserted byte source",
+  "symbols": [
+    {
+      "symbol": "global::YAKSys_Hybrid_CPU.Core.SafetyVerifier",
+      "assembly": "CircuitWeave.SmtLegalityGuardPlane",
+      "kind": "Class",
+      "memberCount": 4,
+      "blockingReason": "Source-bounded guard plane only; replay cache refresh and certificate content remain abstract; no full type inventory.",
+      "declarations": [
+        {
+          "location": {
+            "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Safety\\SafetyVerifier.SmtLegality.cs",
+            "startLine": 5,
+            "startColumn": 12
+          },
+          "memberIds": [
+            "M:YAKSys_Hybrid_CPU.Core.SafetyVerifier.EvaluateSmtLegality("
+          ]
+        },
+        {
+          "location": {
+            "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Safety\\SafetyVerifier.Guards.cs",
+            "startLine": 6,
+            "startColumn": 12
+          },
+          "memberIds": [
+            "M:YAKSys_Hybrid_CPU.Core.SafetyVerifier.EvaluateSmtBoundaryGuard(",
+            "M:YAKSys_Hybrid_CPU.Core.SafetyVerifier.TryRejectSmtOwnerDomainGuard(",
+            "M:YAKSys_Hybrid_CPU.Core.SafetyVerifier.EvaluateDomainIsolationProbe("
+          ]
+        }
+      ],
+      "members": [
+        {
+          "id": "M:YAKSys_Hybrid_CPU.Core.SafetyVerifier.EvaluateSmtLegality(",
+          "kind": "Method",
+          "locations": [
+            {
+              "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Safety\\SafetyVerifier.SmtLegality.cs",
+              "startLine": 14,
+              "startColumn": 35
+            }
+          ]
+        },
+        {
+          "id": "M:YAKSys_Hybrid_CPU.Core.SafetyVerifier.EvaluateSmtBoundaryGuard(",
+          "kind": "Method",
+          "locations": [
+            {
+              "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Safety\\SafetyVerifier.Guards.cs",
+              "startLine": 284,
+              "startColumn": 9
+            }
+          ]
+        },
+        {
+          "id": "M:YAKSys_Hybrid_CPU.Core.SafetyVerifier.TryRejectSmtOwnerDomainGuard(",
+          "kind": "Method",
+          "locations": [
+            {
+              "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Safety\\SafetyVerifier.Guards.cs",
+              "startLine": 256,
+              "startColumn": 22
+            }
+          ]
+        },
+        {
+          "id": "M:YAKSys_Hybrid_CPU.Core.SafetyVerifier.EvaluateDomainIsolationProbe(",
+          "kind": "Method",
+          "locations": [
+            {
+              "file": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Safety\\SafetyVerifier.Guards.cs",
+              "startLine": 49,
+              "startColumn": 9
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "captureVerification": {
+    "schema": "circuitweave.source-capture-check/v1",
+    "status": "producer-reported-listed-inputs-match",
+    "semanticReportSha256": "49ffb2b0833d7f03a7e9c7a0ae19c3ec307c4c83d9767e380a5d106422aecf58",
+    "sourceCaptureSha256": "ecca68c47d368cea660886280b0d048e4f1cf56113b27c68b9043c23676d983f",
+    "projectGraphSha256": "d1545a671ebd657cb5d6e3db4c6ccfff75eaa1cbba3bf5e184f865b0cb39c0d0",
+    "checkedFiles": 2,
+    "rootProject": "not-captured",
+    "scope": "Project graph SHA is the separately audited Debug compile closure; SHA and capture index attest these two exact dirty-worktree inputs only, not full project closure."
+  },
+  "capturedSourceFiles": [
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Safety\\SafetyVerifier.SmtLegality.cs",
+      "sha256": "89cb7e9f737815d9526bed00186c62f324ebaf805c1520a2ed5ebd1349b529a4",
+      "length": 2335
+    },
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Safety\\SafetyVerifier.Guards.cs",
+      "sha256": "f87ba64048e2d0a22642b254fe3eebd696553d3b8b4355b831b32ca77acbbf16",
+      "length": 13097
+    }
+  ],
+  "sourcePinsSha256": "8099ee7942065f501e697849349d4c3fb63a859d91c55107419c1fdea8a8ab35"
+}

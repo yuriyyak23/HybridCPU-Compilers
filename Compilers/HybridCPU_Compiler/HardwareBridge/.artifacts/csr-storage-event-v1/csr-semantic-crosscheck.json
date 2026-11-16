@@ -1,0 +1,14 @@
+{
+  "schema": "circuitweave.csr-hwir-software-semantics-crosscheck/v1",
+  "status": "passed",
+  "comparison": "independent HWIR interpreter vs separately coded CsrFile dictionary/policy oracle",
+  "vectors": 3360,
+  "registeredAddresses": 40,
+  "addressInputs": 42,
+  "privilegeValues": 8,
+  "operations": 5,
+  "stateVariants": 2,
+  "integratedCallEventVectors": 24,
+  "integratedCallEventResult": "passed for body gate, pipeline enable, abstract reservation success/failure and ulong wrap boundary",
+  "scope": "combinational one-event outputs and next-value muxes; no reservation timing, exception runtime, physical memory, clock, reset, RTL or Golden equivalence"
+}

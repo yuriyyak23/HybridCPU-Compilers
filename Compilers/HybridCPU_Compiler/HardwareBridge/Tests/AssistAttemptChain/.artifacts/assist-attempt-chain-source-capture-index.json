@@ -1,0 +1,14 @@
+{
+  "schema": "circuitweave.assist-attempt-chain-source-capture/v1",
+  "modelCommit": "1bfe41a49cf11c80fa6c6aee87accb54b78b331f",
+  "sourceTreeState": "dirty-listed-input-captured",
+  "files": [
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Pipeline\\Assist\\Runtime\\MicroOpScheduler.Assist.cs",
+      "sha256": "8515039c3d770382fd448439d2453c01bd42397f3b525b413d411161bf8035a8",
+      "length": 19236
+    }
+  ],
+  "projectGraphPath": "C:\\Users\\Yuriy\\Desktop\\CircuitWeave-main\\artifacts/processor-20261114/publication-inputs/hybridcpu-debug-project-graph-v3.json",
+  "projectGraphSha256": "3022562eb291dd8fede2b3a2811dc778d081d6a739f6327a07a05713b2015181"
+}

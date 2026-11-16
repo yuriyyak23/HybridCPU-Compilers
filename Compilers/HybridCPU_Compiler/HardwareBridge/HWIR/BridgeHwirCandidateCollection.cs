@@ -37,17 +37,17 @@ public static class BridgeHwirCandidateCollection
         var u1 = new HwBitVectorType(1); var u2 = new HwBitVectorType(2); var u3 = new HwBitVectorType(3); var u32 = new HwBitVectorType(32);
         var ports = new List<HwPortContract>(); var nodes = new List<HwNode>(); var instances = new List<HwInstanceNode>();
         ports.Add(new("owner_vt", HwPortDirection.Input, u32)); ports.Add(new("collected_count", HwPortDirection.Output, u3));
-        foreach (var p in child.Ports.Where(p => !(p.Direction == HwPortDirection.Input && (p.Name == "count" || p.Name.StartsWith("input", StringComparison.Ordinal))) && !(p.Direction == HwPortDirection.Output && p.Name == "valid"))) ports.Add(p);
+        foreach (var p in child.Ports.Where(p => !(p.Direction == HwPortDirection.Input && (p.Name == "count" || p.Name == "owner_vt" || p.Name.StartsWith("input", StringComparison.Ordinal))) && !(p.Direction == HwPortDirection.Output && p.Name == "valid"))) ports.Add(p);
         ports.Add(new("valid", HwPortDirection.Output, u1));
         var fields = child.Ports.Where(p => p.Direction == HwPortDirection.Input && p.Name.StartsWith("input0_", StringComparison.Ordinal) && p.Name != "input0_vt").Select(p => (name: p.Name[7..], type: p.Type)).ToArray();
         for (int i = 0; i < 4; i++)
         {
-            ports.Add(new("rank" + i, HwPortDirection.Input, u32)); ports.Add(new("vt" + i + "_ready", HwPortDirection.Input, u1)); ports.Add(new("vt" + i + "_present", HwPortDirection.Input, u1)); ports.Add(new("vt" + i + "_is_loadstore", HwPortDirection.Input, u1)); ports.Add(new("ordered_vt" + i, HwPortDirection.Output, u2));
+            ports.Add(new("rank" + i, HwPortDirection.Input, u32)); ports.Add(new("vt" + i + "_ready", HwPortDirection.Input, u1)); ports.Add(new("vt" + i + "_present", HwPortDirection.Input, u1)); ports.Add(new("ordered_vt" + i, HwPortDirection.Output, u2));
             foreach (var field in fields) ports.Add(new("vt" + i + "_" + field.name, HwPortDirection.Input, field.type));
         }
         nodes.Add(new HwConstantNode("zero1", u1, "0", origin)); nodes.Add(new HwConstantNode("one1", u1, "1", origin)); nodes.Add(new HwConstantNode("zero3", u3, "000", origin)); nodes.Add(new HwConstantNode("one3", u3, "001", origin)); nodes.Add(new HwConstantNode("minus_one32", u32, new string('1', 32), origin));
         for (int i = 0; i < 4; i++) { nodes.Add(new HwConstantNode("v" + i, u2, Convert.ToString(i, 2).PadLeft(2, '0'), origin)); nodes.Add(new HwConstantNode("v32_" + i, u32, Convert.ToString(i, 2).PadLeft(32, '0'), origin)); nodes.Add(new HwConstantNode("p" + i, u3, Convert.ToString(i, 2).PadLeft(3, '0'), origin)); }
-        var allFields = fields.Concat(new[] { (name: "ready", type: u1), (name: "present", type: u1), (name: "is_loadstore", type: u1) }).ToArray();
+        var allFields = fields.Concat(new[] { (name: "ready", type: u1), (name: "present", type: u1) }).ToArray();
         var values = new Dictionary<(int, string), string>();
         foreach (var field in fields) for (int i = 0; i < 4; i++) { var zero = "initial_" + i + "_" + field.name; nodes.Add(new HwConstantNode(zero, field.type, new string('0', field.type.Width), origin)); values[(i, field.name)] = zero; }
         string[] collectedVt = ["v0", "v0", "v0", "v0"]; string count = "zero3";

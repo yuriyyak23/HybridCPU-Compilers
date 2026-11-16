@@ -1,0 +1,24 @@
+{
+  "schema": "circuitweave.vector-pod-csr-candidate-run/v1",
+  "status": "StructuralOnly",
+  "activeBaseCommit": "1bfe41a49cf11c80fa6c6aee87accb54b78b331f",
+  "goldenCommit": "6946ccab9d888f7dae0a4d8e18480f436138acd9",
+  "sourceSha256": {
+    "vectorConfig": "7106965a6adbd61eed397ef3501610b0f5e8cfc9af5d312409c05fe09b777c92",
+    "microOpControl": "a9f311292cef6cf97ace5516ffa9601bd3e1a272cce56d7cf229dba04b7a9d80",
+    "architecturalState": "424c6b27d64b133331c3733b39aea9c7993520f74851c4b369675efe8efb9c5a",
+    "csrAddresses": "a2be00ba7d3248bc0aa4e3a49e238a5e0afdd919b5cf1c0d9d2e0bfa01893ef9",
+    "goldenVectorConfig": "d0410f900ba0dfd29d69a59e4edd9663b595b26ab434f75c8c4f8b44a9b7062c",
+    "goldenMicroOpControl": "47f53ec0db804c0badf84cb92a152eb8bb9869535c4d2571af7db3a8ad016c0c",
+    "goldenArchitecturalState": "1a91fd218dcfb0005562dc1fbcb705f08a941a391bf366da3f3f775cf4dbfa11"
+  },
+  "goldenMethodBodyCheck": "active and pinned Golden tokens must match for the four CSR routing/packing methods and SetMask/SetPriority/GetPriority before compile succeeds",
+  "hwirSha256": "d7cec726a9ff746e52e75fdd414112c7a53cbf11fa4389be9c398b9e48d1c299",
+  "mlirSha256": "0e0c7510eb03b172a72e2d4bc727ccf58fc1d4ad7d9b12f21daeaf20f5fd0afe",
+  "vectorCount": 363584,
+  "expectedVectorFileSha256": "4c22577a9dce6fca268a4296d0d975fed3fe354685c1a0a705cef8be41dba101",
+  "statefulImplementation": false,
+  "physicalClockResetStallHandshake": "unmodeled",
+  "goldenEquivalence": false,
+  "note": "Combinational read/next-state oracle only; vectors are reference-model checks and do not establish CPU state timing or active/Golden sequential equivalence."
+}

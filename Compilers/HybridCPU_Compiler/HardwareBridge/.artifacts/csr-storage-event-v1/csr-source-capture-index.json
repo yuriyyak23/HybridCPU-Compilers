@@ -1,0 +1,14 @@
+{
+  "schema": "circuitweave.csr-source-capture-index/v1",
+  "status": "one-listed-source-file-hash-checked",
+  "baseCommit": "1bfe41a49cf11c80fa6c6aee87accb54b78b331f",
+  "scope": "one active CsrFile.cs file only; not project or symbol closure",
+  "files": [
+    {
+      "path": "C:\\Users\\Yuriy\\Desktop\\HybridCPU ISE\\HybridCPU_ISE\\CloseToHSL\\Core\\Architecture\\Registers\\CSR\\CsrFile.cs",
+      "relativePath": "HybridCPU_ISE/CloseToHSL/Core/Architecture/Registers/CSR/CsrFile.cs",
+      "sha256": "2dc2c172d8248ad2fed0a3832b39008b0449f302e75280b8fef46b2d499ad470",
+      "length": 14638
+    }
+  ]
+}

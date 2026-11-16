@@ -1,0 +1,6 @@
+{
+  "vectors": 4710,
+  "oracle": "separately coded fair-rank \u002B collection \u002B four-candidate guard/A/B retry-state contract",
+  "status": "passed",
+  "scope": "4,704 ranking/collection vectors plus six directed duplicate-retry and boundary/owner/domain guard cases; selected certificate result, full replay-template match, and outer policy remain explicit inputs. Fast-template consumption, class capacity lookup, Stage B HardPinned lane6, repeat suppression, and occupancy/counter updates execute in source-bound HWIR. No clocked lifecycle, rejection side-effect counters or Golden equivalence"
+}
