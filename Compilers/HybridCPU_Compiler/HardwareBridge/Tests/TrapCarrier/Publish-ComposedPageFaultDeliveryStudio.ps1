@@ -92,7 +92,26 @@ if($ActiveSecondStageRebindRaceTrace){
     $copy['golden-second-stage-rebind-race.json']=$GoldenSecondStageRebindRaceTrace
     $copy['second-stage-rebind-race-comparison.json']=$SecondStageRebindRaceComparison
 }
+function Assert-ComposedReceiptBindings([string]$snapshotPath) {
+    $receiptPath = Join-Path $snapshotPath 'composed-rtl-receipt.json'
+    $receipt = Get-Content -LiteralPath $receiptPath -Raw | ConvertFrom-Json
+    if ($receipt.schema -cne 'circuitweave.processor-composed-pagefault-delivery-rtl-check/v2') {
+        throw 'Unsupported composed RTL receipt schema.'
+    }
+    foreach ($binding in @(
+        @{Field='candidateRtlSha256'; File='composed-systemverilog'},
+        @{Field='vectorsSha256'; File='vectors.jsonl'}
+    )) {
+        $claim = $receipt.($binding.Field)
+        if ($claim -isnot [string] -or $claim -cnotmatch '^[0-9a-f]{64}$') {
+            throw "Invalid composed receipt digest: $($binding.Field)."
+        }
+        $actual = (Get-FileHash -LiteralPath (Join-Path $snapshotPath $binding.File) -Algorithm SHA256).Hash.ToLowerInvariant()
+        if ($claim -cne $actual) { throw "Composed receipt digest mismatch: $($binding.Field)." }
+    }
+}
 foreach($name in $copy.Keys){Copy-Item -LiteralPath $copy[$name] -Destination (Join-Path $snapshot $name)}
+Assert-ComposedReceiptBindings $snapshot
 $stageEnumPath='HybridCPU_ISE/CloseToHSL/Core/Pipeline/ExecutionFlow/StageFlow/CPU_Core.Pipeline.Helpers.PipelineStage.cs'
 $stageEnumIdentity='pipeline-stage-enum/v1|f84c179da79ff204159a006aceb006e8eae865060d0c0e40db8a774d75b6bfa4|5a9e7287988f863e67cbeb29bed1376204746ab84590515387c02c7d0f3606c8'
 function Digest([string]$s){[Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes($s))).ToLowerInvariant()}

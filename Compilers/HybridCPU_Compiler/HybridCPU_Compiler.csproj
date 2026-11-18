@@ -30,10 +30,12 @@
     <Compile Remove="NativeAot\**\*.cs" />
     <Compile Remove="Release\**\*.cs" />
     <Compile Remove="ReleaseQualification\**\*.cs" />
-    <Compile Remove="Analyzers\**\*.cs" />
-    <Compile Remove="Generators\**\*.cs" />
-    <Compile Remove="Profiles\**\*.cs" />
-    <Compile Remove="Roslyn\**\*.cs" />
+	<Compile Remove="Analyzers\**\*.cs" />
+	<Compile Remove="Generators\**\*.cs" />
+	<Compile Remove="Profiles\**\*.cs" />
+	<Compile Remove="Roslyn\**\*.cs" />
+	<Compile Remove="HardwareBridge\**\*.cs" />
+	<Compile Remove="HardwareBridge_intel8080\**\*.cs" />
 		<Compile Remove="Tools\**\*.cs" />
 		<Compile Remove="RefPlan6\**\*.cs" />
 		<Compile Remove="RefPlan7\**\*.cs" />

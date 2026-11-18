@@ -3,6 +3,9 @@
   <PropertyGroup>
     <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory).artifacts\obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
     <OutputPath>$(MSBuildThisFileDirectory).artifacts\bin\$(MSBuildProjectName)\</OutputPath>
+    <!-- Honor the caller's isolated artifacts root when a bridge candidate is built from Producer. -->
+    <BaseIntermediateOutputPath Condition="'$(ArtifactsPath)' != ''">$(ArtifactsPath)\obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
+    <OutputPath Condition="'$(ArtifactsPath)' != ''">$(ArtifactsPath)\bin\$(MSBuildProjectName)\</OutputPath>
     <DefaultItemExcludes>$(DefaultItemExcludes);$(MSBuildThisFileDirectory).artifacts\**</DefaultItemExcludes>
   </PropertyGroup>
 </Project>

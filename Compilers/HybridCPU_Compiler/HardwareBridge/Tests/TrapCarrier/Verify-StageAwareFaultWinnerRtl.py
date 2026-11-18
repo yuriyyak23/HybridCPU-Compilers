@@ -278,14 +278,24 @@ def expected(row: dict) -> tuple[int, int, int]:
     return 0, 0, 255
 
 
+def read_runtime_trace_rows(path: str) -> list[dict]:
+    text = pathlib.Path(path).read_text(encoding="utf-8-sig")
+    try:
+        payload = json.loads(text)
+    except json.JSONDecodeError:
+        payload = [json.loads(line) for line in text.splitlines() if line.strip()]
+    rows = payload if isinstance(payload, list) else [payload]
+    if any(not isinstance(row, dict) for row in rows):
+        raise ValueError(f"runtime trace must contain JSON objects: {path}")
+    return rows
+
+
 def attach_runtime_metadata(rows: list[dict], active_path: str, golden_path: str) -> int:
     def read(path: str) -> dict[str, dict]:
         found = {}
-        for line in pathlib.Path(path).read_text(encoding="utf-8").splitlines():
-            if line.strip():
-                row = json.loads(line)
-                if row.get("scenario") in {"writeback-over-memory", "memory-over-execute", "dual-memory-winner"}:
-                    found[row["scenario"]] = row
+        for row in read_runtime_trace_rows(path):
+            if row.get("scenario") in {"writeback-over-memory", "memory-over-execute", "dual-memory-winner"}:
+                found[row["scenario"]] = row
         return found
     active, golden = read(active_path), read(golden_path)
     mapping = {"runtime-writeback-over-memory": "writeback-over-memory",
@@ -553,11 +563,15 @@ def main() -> None:
     composed_receipt = None
     if args.composed_rtl:
         composed_rtl = pathlib.Path(args.composed_rtl).resolve()
-        composed_text = composed_rtl.read_text(encoding="utf-8-sig")
-        (out / "processor-pagefault-delivery.sv").write_text(composed_text, encoding="utf-8")
+        composed_bytes = composed_rtl.read_bytes()
+        composed_text = composed_bytes.decode("utf-8-sig")
+        staged_composed_rtl = out / "processor-pagefault-delivery.sv"
+        staged_composed_rtl.write_bytes(composed_bytes)
         with tempfile.TemporaryDirectory(dir=out) as temp:
-            result = run(args.iverilog, args.vvp, composed_rtl, make_composed_tb(rows), pathlib.Path(temp))
+            result = run(args.iverilog, args.vvp, staged_composed_rtl, make_composed_tb(rows), pathlib.Path(temp))
             if result.returncode: raise RuntimeError("composed page-fault top mismatch: " + result.stdout + result.stderr)
+        if staged_composed_rtl.read_bytes() != composed_bytes:
+            raise RuntimeError("composed RTL changed during verification")
         connections = list(__import__("re").finditer(r"(\.winner_fault_address\s+)\(_select_winner_payload_winner_fault_address\)", composed_text))
         if len(connections) < 2: raise RuntimeError("delivery-instance winner payload mutation anchor missing")
         connection = connections[-1]
@@ -602,7 +616,9 @@ def main() -> None:
         with tempfile.TemporaryDirectory(dir=out) as temp:
             changed_address = run(args.iverilog, args.vvp, failing_address_mutant, make_composed_tb(rows), pathlib.Path(temp))
             if changed_address.returncode == 0: raise RuntimeError("failing-virtual-address mutation escaped detection")
-        composed_receipt = {"candidate": "PASS", "candidateRtlSha256": sha(composed_rtl.read_bytes()),
+        composed_receipt = {"schema": "circuitweave.processor-composed-pagefault-delivery-rtl-check/v2",
+                            "candidate": "PASS", "candidateRtlSha256": sha(composed_bytes),
+                            "vectorsSha256": sha(vector_bytes),
                             "composedHwirSha256": manifest["composedHwirSha256"],
                             "composedMlirSha256": manifest["composedMlirSha256"],
                             "vectorCount": len(rows), "runtimeDerivedVectors": 3 + translation_fault_runtime_vectors + scalar_memory_runtime_count + second_stage_runtime_count + second_stage_scalar_runtime_count,

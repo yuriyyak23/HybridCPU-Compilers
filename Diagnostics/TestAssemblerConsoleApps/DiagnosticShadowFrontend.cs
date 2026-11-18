@@ -26,7 +26,7 @@ internal static class DiagnosticShadowFrontend
     {
         // Bootstrap/factories call this before execution. Re-registering an existing
         // core must not reset its cache lifetime or erase warm-reuse evidence.
-        if (!Cores.Any(reference => reference.TryGetTarget(out var existing) && ReferenceEquals(existing, core)))
+        if (!Cores.Any(reference => reference.TryGetTarget(out Processor.CPU_Core? existing) && ReferenceEquals(existing, core)))
         {
             core.ConfigureShadowFrontend(_mode);
             Cores.Add(new(core));
@@ -36,7 +36,7 @@ internal static class DiagnosticShadowFrontend
 
     public static void ConfigureBootstrappedCores()
     {
-        foreach (var core in Processor.CPU_Cores)
+        foreach (Processor.CPU_Core? core in Processor.CPU_Cores)
             if (core is not null) ConfigureNewCore(core);
     }
 
@@ -45,7 +45,7 @@ internal static class DiagnosticShadowFrontend
         var snapshots = Cores.Select((reference, index) => new
         {
             Registration = index,
-            Snapshot = reference.TryGetTarget(out var core) ? core.ReadShadowFrontendSnapshot() : null
+            Snapshot = reference.TryGetTarget(out Processor.CPU_Core? core) ? core.ReadShadowFrontendSnapshot() : null
         }).ToArray();
         writer.WriteJson(ArtifactFileName, new
         {

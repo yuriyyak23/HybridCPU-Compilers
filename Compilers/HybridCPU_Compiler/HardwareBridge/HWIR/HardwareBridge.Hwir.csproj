@@ -25,6 +25,11 @@
     <Compile Include="BridgeHwirIssuePacketNonScalarPhysicalLaneMask.cs" />
     <Compile Include="BridgeHwirLaneChooser.cs" />
     <Compile Include="BridgeHwirLaneMaterialization.cs" />
+    <Compile Include="BridgeHwirPacketOwnerPartialGrant.cs" />
+    <Compile Include="BridgeHwirCoarseMemoryConflict.cs" />
+    <Compile Include="BridgeHwirSingleLaneStoreAdmission.cs" />
+    <Compile Include="BridgeHwirLegacyDeferredStorePrevalidation.cs" />
+    <Compile Include="BridgeHwirSelectedStoreRevalidation.cs" />
     <Compile Include="BridgeHwirClassAdmission.cs" />
     <Compile Include="BridgeHwirClassCapacity.cs" />
     <Compile Include="BridgeHwirAdmissionDecision.cs" />
@@ -46,6 +51,7 @@
     <Compile Include="BridgeHwirFairnessUpdate.cs" />
     <Compile Include="BridgeHwirOrderedAdmission.cs" />
     <Compile Include="BridgeHwirExplicitScalarLoadLogicalEvent.cs" />
+    <Compile Include="BridgeHwirSharedScalarReadLogicalEvent.cs" />
     <Compile Include="BridgeHwirPipelineMemoryLogicalEvent.cs" />
     <Compile Include="BridgeHwirPowerControlCsr.cs" />
     <Compile Include="BridgeHwirCsrAccess.cs" />

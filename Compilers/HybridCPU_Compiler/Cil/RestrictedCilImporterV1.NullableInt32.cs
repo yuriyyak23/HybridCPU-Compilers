@@ -1,3 +1,4 @@
+using System.Numerics;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using HybridCPU.Compiler.Core.Target;
@@ -400,7 +401,7 @@ public sealed partial class RestrictedCilImporterV1
         Dictionary<int, (System.Numerics.BigInteger Scale, System.Numerics.BigInteger Adjustment)> boundExpressions = [];
         HashSet<int> targets = rows.SelectMany(ControlFlowTargets).ToHashSet();
         List<DecodedInstruction> boundRows = rows.ToList();
-        foreach (var edge in edges) {
+        foreach ((int Source, int Target) edge in edges) {
             int latch = boundRows.FindIndex(row => row.Offset == edge.Source);
             if (latch < 3 || boundRows[latch - 1].Encoding is not (0x58 or 0x59 or 0x5a)) continue;
             bool offset = boundRows[latch - 1].Encoding is 0x58 or 0x59;
@@ -444,7 +445,7 @@ public sealed partial class RestrictedCilImporterV1
         // A child's complete seed through latch must lie inside its parent's body,
         // before the complete parent induction update; crossing cycles reject.
         for (int first = 0; first < regions.Count; first++) for (int second = first + 1; second < regions.Count; second++) {
-            var outer = regions[first]; var inner = regions[second];
+            (int Start, int Body, int End, int Increment, int Exit, int StartIndex, int Latch, int Target) outer = regions[first]; (int Start, int Body, int End, int Increment, int Exit, int StartIndex, int Latch, int Target) inner = regions[second];
             if (outer.Start > inner.Start) (outer, inner) = (inner, outer);
             if (outer.End < inner.Start) continue;
             if (outer.Start == inner.Start || inner.End >= outer.End ||
@@ -452,7 +453,7 @@ public sealed partial class RestrictedCilImporterV1
         }
         HashSet<(int Source, int Target)> proven = [];
         Dictionary<int, (int Counter, System.Numerics.BigInteger Minimum, System.Numerics.BigInteger Maximum)> domains = [];
-        foreach (var region in regions) {
+        foreach ((int Start, int Body, int End, int Increment, int Exit, int StartIndex, int Latch, int Target) region in regions) {
             Dictionary<int, int> childExits = regions.Where(child => child.Start > region.Start && child.End < region.End)
                 .ToDictionary(child => child.End, child => child.Exit);
             // Termination abstraction only: a proven child's backedge goes to
@@ -470,18 +471,18 @@ public sealed partial class RestrictedCilImporterV1
             if (boundLocal >= 0) {
                 // Only a proven enclosing induction variable supplies a local
                 // bound. It is invariant throughout this child invocation.
-                var ancestors = regions.Where(parent => parent.Start < region.Start && parent.End > region.End &&
-                    domains.TryGetValue(parent.End, out var domain) && domain.Counter == boundLocal).ToArray();
+                (int Start, int Body, int End, int Increment, int Exit, int StartIndex, int Latch, int Target)[] ancestors = regions.Where(parent => parent.Start < region.Start && parent.End > region.End &&
+                    domains.TryGetValue(parent.End, out (int Counter, BigInteger Minimum, BigInteger Maximum) domain) && domain.Counter == boundLocal).ToArray();
                 if (ancestors.Length != 1 || localTypes[boundLocal] != localTypes[counter] ||
                     slice.Any(row => NullableInt32LocalIndex(row, true) == boundLocal) ||
                     rows.Any(row => row.Encoding == 0x12 && row.Literal == boundLocal)) return null;
-                var domain = domains[ancestors[0].End];
-                var expression = boundExpressions.TryGetValue(rows[region.Latch - 1].Offset, out var boundExpression) ?
+                (int Counter, BigInteger Minimum, BigInteger Maximum) domain = domains[ancestors[0].End];
+                (BigInteger Scale, BigInteger Adjustment) expression = boundExpressions.TryGetValue(rows[region.Latch - 1].Offset, out (BigInteger Scale, BigInteger Adjustment) boundExpression) ?
                     boundExpression : (Scale: System.Numerics.BigInteger.One, Adjustment: System.Numerics.BigInteger.Zero);
-                var first = domain.Minimum * expression.Scale;
-                var last = domain.Maximum * expression.Scale;
-                var minimum = System.Numerics.BigInteger.Min(first, last);
-                var maximum = System.Numerics.BigInteger.Max(first, last);
+                BigInteger first = domain.Minimum * expression.Scale;
+                BigInteger last = domain.Maximum * expression.Scale;
+                BigInteger minimum = System.Numerics.BigInteger.Min(first, last);
+                BigInteger maximum = System.Numerics.BigInteger.Max(first, last);
                 System.Numerics.BigInteger maximumCarrier = unsigned ? (wide ? ulong.MaxValue : uint.MaxValue) : wide ? long.MaxValue : int.MaxValue;
                 // Even unchecked source arithmetic must not wrap: a wrapped
                 // bound is not an affine monotone function of the ancestor.
@@ -504,13 +505,13 @@ public sealed partial class RestrictedCilImporterV1
             HashSet<(int Source, int Target)>? proof = NullableInt32CountedBackedges(slice,
                 localTypes: localTypes, immutableBoundParameters: parameters, allowConstantInduction: true);
             if (proof is null || proof.Count != 1 || !proof.Contains((region.End, region.Target))) return null;
-            if (TryInductionConstant(slice[0], unsigned, wide, out var seed) &&
-                TryInductionConstant(slice[^3], unsigned, wide, out var limitValue) &&
-                TryInductionConstant(slice[^7], unsigned, wide, out var stride) && stride > 0) {
+            if (TryInductionConstant(slice[0], unsigned, wide, out BigInteger seed) &&
+                TryInductionConstant(slice[^3], unsigned, wide, out BigInteger limitValue) &&
+                TryInductionConstant(slice[^7], unsigned, wide, out BigInteger stride) && stride > 0) {
                 bool inclusive = unsigned ? rows[region.Latch].Encoding is 0x34 or 0x41 or 0x36 or 0x43 : rows[region.Latch].Encoding is 0x2f or 0x3c or 0x31 or 0x3e;
-                var distance = System.Numerics.BigInteger.Max(0, (descending ? seed - limitValue : limitValue - seed) + (inclusive ? 1 : 0));
-                var change = (distance + stride - 1) / stride * stride;
-                var final = descending ? seed - change : seed + change;
+                BigInteger distance = System.Numerics.BigInteger.Max(0, (descending ? seed - limitValue : limitValue - seed) + (inclusive ? 1 : 0));
+                BigInteger change = (distance + stride - 1) / stride * stride;
+                BigInteger final = descending ? seed - change : seed + change;
                 domains.Add(region.End, (counter, System.Numerics.BigInteger.Min(seed, final), System.Numerics.BigInteger.Max(seed, final)));
             }
             DecodedInstruction bound = rows[region.Latch - 1];
@@ -518,7 +519,7 @@ public sealed partial class RestrictedCilImporterV1
             if (argument >= 0 && rows.Any(row => row.Encoding is 0x0f or 0x10 && row.Literal == argument)) return null;
             proven.Add((region.End, region.Target));
         }
-        foreach (var region in regions) foreach (DecodedInstruction row in rows) {
+        foreach ((int Start, int Body, int End, int Increment, int Exit, int StartIndex, int Latch, int Target) region in regions) foreach (DecodedInstruction row in rows) {
             if (row.Offset >= region.Start && row.Offset <= region.End) continue;
             // Every iteration can enter a child only at its complete seed.
             // Neither parent nor sibling edges may bypass child initialization.
