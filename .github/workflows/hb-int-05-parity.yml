@@ -25,7 +25,8 @@ jobs:
         run: |
           set -euo pipefail
           python3 --version
-          python3 -m unittest discover -v -s Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/Tests -p 'test_*.py'
+          python3 -m unittest discover -v -s Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/Tests -p 'test_*.py' 2>&1 | tee "$RUNNER_TEMP/hb-int-05-unit.log"
+          sha256sum "$RUNNER_TEMP/hb-int-05-unit.log"
       - name: Verify tests did not mutate checked-in Bridge source bytes
         shell: bash
         run: |
