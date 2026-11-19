@@ -69,18 +69,22 @@ This is not a binding authorization, full-model import, compiler-independent
 attestation, RTL emission or equivalence proof. The existing compiler/producer
 coordinator is not used by this bounded CLI path.
 
-The project references the sibling `CircuitWeave-main` checkout via a relative path;
-both repositories and the HybridCPU Compilers checkout must have the expected
-sibling layout. It does not use or modify the ISE worktree or the compiler CIL path.
-Run from CircuitWeave-main:
+The project is a **regression-only opt-in** fixture requiring an explicitly supplied
+`CircuitWeaveFrontendRoslynProject` MSBuild property (the checked-out Core .csproj).
+No directory name or sibling path is inferred. It does not use or modify the Golden
+ISE worktree or parent compiler CIL path. See
+[HB-INT-01 compatibility](../Docs/HB_INT_01_Portable_Compatibility.md).
+Run the **original bounded P14 fixture suite** only through the explicit
+revision-checked compatibility launcher in the Core checkout:
 
-```powershell
-dotnet run --project tests/CircuitWeave.P14.Cli
-dotnet run --project tests/CircuitWeave.Golden.AddWord.Smoke -- `
-  (Resolve-Path tests/CircuitWeave.P14.Cli/fixtures/ScalarAluOps.golden.txt).Path `
-  (Resolve-Path samples/HybridCPU/bindings.v0.2.json).Path
+```bash
+bash eng/cw-int-02-bridge-compat.sh /absolute/path/to/bridge-checkout <reviewed-bridge-40-hex> <reviewed-core-40-hex>
 ```
 
+The default Core-only P14 command tests the typed `MissingBridge` refusal,
+not source/RTL vectors. Other older smoke projects that still embed a sibling
+BridgeHwir reference require migration and are **NotRun** in the portable
+build; they are not production dependencies. No source file is modified.
 
 ## SubWord candidate
 

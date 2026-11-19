@@ -68,8 +68,15 @@
     <Compile Include="BridgeHwirVmxValidationCurrent.cs" />
     <Compile Include="BridgeHwirVectorSegmentReadAdmission.cs" />
     <Compile Include="..\SourceSnapshot\BridgeSourceSnapshotV1.cs" Link="BridgeSourceSnapshotV1.cs" />
-    <ProjectReference Include="..\..\..\..\..\CircuitWeave-main\src\CircuitWeave.Frontend.Roslyn\CircuitWeave.Frontend.Roslyn.csproj" />
+    <!-- Regression-only adapter; caller pins the checked-out Core project explicitly. -->
+    <ProjectReference Include="$(CircuitWeaveFrontendRoslynProject)" Condition="'$(CircuitWeaveFrontendRoslynProject)' != ''" />
     <Reference Include="Microsoft.CodeAnalysis"><HintPath>$(MSBuildSDKsPath)/../Roslyn/bincore/Microsoft.CodeAnalysis.dll</HintPath><Private>true</Private></Reference>
     <Reference Include="Microsoft.CodeAnalysis.CSharp"><HintPath>$(MSBuildSDKsPath)/../Roslyn/bincore/Microsoft.CodeAnalysis.CSharp.dll</HintPath><Private>true</Private></Reference>
   </ItemGroup>
+  <Target Name="RequireExplicitCoreFrontendForBridgeFixtures" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(CircuitWeaveFrontendRoslynProject)' == ''"
+           Text="HBINT0101 MissingCoreFrontend: BridgeHwir is regression-only. Supply explicit CircuitWeaveFrontendRoslynProject from a pinned Core checkout." />
+    <Error Condition="'$(CircuitWeaveFrontendRoslynProject)' != '' and !Exists('$(CircuitWeaveFrontendRoslynProject)')"
+           Text="HBINT0102 MissingCoreFrontend: the requested Core Roslyn project does not exist." />
+  </Target>
 </Project>

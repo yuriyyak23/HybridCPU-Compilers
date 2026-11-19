@@ -188,6 +188,7 @@ internal static class BridgeSelfTests
             Require(Capture(source with { BodyReferenceIndices = new[] { 0 } }).SnapshotDigest !=
                     Capture(source with { MetadataReferenceIndices = new[] { 0 } }).SnapshotDigest,
                 "Body/metadata reference selection not bound into snapshot.");
+            BridgeIndexV2Tests.Run();
             HbInt06ProtocolTests.Run();
             Console.WriteLine("PASS: HardwareBridge self-tests (software candidate-only).");
             return 0;
