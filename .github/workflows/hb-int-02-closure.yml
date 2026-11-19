@@ -7,6 +7,9 @@ on:
     paths:
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/segmented_csc_capture_v2.py'
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/test_segmented_csc_capture_v2.py'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/stage_core_v2.py'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/test_stage_core_v2.py'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/Docs/HB_INT_02_03_Core_V2_Staging.md'
       - '.github/workflows/hb-int-02-closure.yml'
 permissions:
   contents: read
@@ -29,3 +32,16 @@ jobs:
         run: |
           set -o pipefail
           python3 -m unittest -v Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/test_segmented_csc_capture_v2.py 2>&1 | tee "$RUNNER_TEMP/hb02-2.log"
+      - name: Pinned Csc capture to Core v2 transport, first execution (unqualified)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m unittest -v Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/test_stage_core_v2.py 2>&1 | tee "$RUNNER_TEMP/hb0203-1.log"
+          sha256sum "$RUNNER_TEMP/hb0203-1.log"
+      - name: Repeat stage and mutation tests from clean temporary fixtures
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m unittest -v Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/test_stage_core_v2.py 2>&1 | tee "$RUNNER_TEMP/hb0203-2.log"
+          sha256sum "$RUNNER_TEMP/hb0203-2.log"
+          echo "NOT RUN: independent Core v2 file ingestion and actual Golden Csc capture"
