@@ -5,6 +5,7 @@ on:
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/HardwareBridge.Hwir.csproj'
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/README.md'
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/Docs/HB_INT_01_Portable_Compatibility.md'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/Docs/HB_INT_01_Pinned_OptIn.md'
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/PortableDependencyBoundary.Tests.py'
       - '.github/workflows/hb-int01-detached-boundary.yml'
   workflow_dispatch:
@@ -34,15 +35,79 @@ jobs:
           cd checkout-with-arbitrary-bridge-name
           dotnet --info
           dotnet build Compilers/HybridCPU_Compiler/HardwareBridge/HardwareBridge.Companion.csproj -c Release
-      - name: Missing opt-in Core must fail explicitly
+      - name: Standalone default HWIR source identity builds without Core
         run: |
           set -euo pipefail
           cd checkout-with-arbitrary-bridge-name
-          if dotnet build Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/HardwareBridge.Hwir.csproj -c Release > /tmp/hb-int01-refusal.log 2>&1; then
-            echo 'ERROR: no Core frontend but fixture build succeeded'; exit 1
+          dotnet build Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/HardwareBridge.Hwir.csproj -c Release
+          sha256sum Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/bin/Release/net11.0/HardwareBridge.Hwir.dll
+      - name: Explicit legacy fixture without Core must fail
+        run: |
+          set -euo pipefail
+          cd checkout-with-arbitrary-bridge-name
+          if dotnet msbuild Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/HardwareBridge.Hwir.csproj -t:ValidatePinnedBridgeHwirFixtures -p:EnableBridgeHwirLegacyFixtures=true > /tmp/hb-int01-refusal.log 2>&1; then
+            echo 'ERROR: unpinned Core fixture unexpectedly passed'; exit 1
           fi
           cat /tmp/hb-int01-refusal.log
           grep -q 'HBINT0101' /tmp/hb-int01-refusal.log
           sha256sum /tmp/hb-int01-refusal.log
       - name: Deferred opt-in native and external Core checks
         run: echo 'NotRun: explicit pinned cross-repo P14, Golden source, CIRCT, RTL and physical qualification'
+  windows-pinned-legacy:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: bridge-arbitrary-name
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: yuriyyak23/CircuitWeave
+          ref: 555672232e46cb4e8b157e2d1b1db1e873c4194e
+          path: independently-named-core
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '11.0.100-rc.2.26504.105'
+      - name: Exact SDK, independently pinned Core and legacy source fixture build
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $core = Join-Path $env:GITHUB_WORKSPACE 'independently-named-core'
+          $bridge = Join-Path $env:GITHUB_WORKSPACE 'bridge-arbitrary-name'
+          $hwir = Join-Path $bridge 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/HardwareBridge.Hwir.csproj'
+          $frontend = Join-Path $core 'src/CircuitWeave.Frontend.Roslyn/CircuitWeave.Frontend.Roslyn.csproj'
+          $sdk = '11.0.100-rc.2.26504.105'
+          $pin = '555672232e46cb4e8b157e2d1b1db1e873c4194e'
+          dotnet --info
+          if ((dotnet --version).Trim() -cne $sdk) { throw 'SDK pin mismatch' }
+          if ((git -C $core rev-parse HEAD).Trim() -cne $pin) { throw 'Core pin mismatch' }
+          $args = @($hwir, '-c:Release', '-p:EnableBridgeHwirLegacyFixtures=true', "-p:CircuitWeaveRepoRoot=$core", "-p:CircuitWeaveFrontendRoslynProject=$frontend", "-p:CircuitWeaveExpectedHeadSha=$pin", "-p:BridgeExpectedSdkVersion=$sdk")
+          & dotnet build @args 2>&1 | Tee-Object (Join-Path $env:RUNNER_TEMP 'hb-int01-windows-build.log')
+          if ($LASTEXITCODE -ne 0) { throw "Real pinned HWIR build failed: $LASTEXITCODE" }
+          Get-FileHash (Join-Path $env:RUNNER_TEMP 'hb-int01-windows-build.log') -Algorithm SHA256
+          Get-FileHash (Join-Path (Split-Path $hwir) 'bin/Release/net11.0/HardwareBridge.Hwir.dll') -Algorithm SHA256
+      - name: Wrong SDK, pin and missing repo negative conditions
+        shell: pwsh
+        run: |
+          $core = Join-Path $env:GITHUB_WORKSPACE 'independently-named-core'
+          $bridge = Join-Path $env:GITHUB_WORKSPACE 'bridge-arbitrary-name'
+          $hwir = Join-Path $bridge 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/HardwareBridge.Hwir.csproj'
+          $frontend = Join-Path $core 'src/CircuitWeave.Frontend.Roslyn/CircuitWeave.Frontend.Roslyn.csproj'
+          $pin = '555672232e46cb4e8b157e2d1b1db1e873c4194e'
+          $cases = @(
+            @{ label='wrong-sdk'; sdk='0.0.0-mutated'; pin=$pin; core=$core; frontend=$frontend; expected='HBINT0104' },
+            @{ label='wrong-pin'; sdk='11.0.100-rc.2.26504.105'; pin=('0' * 40); core=$core; frontend=$frontend; expected='HBINT0103' },
+            @{ label='missing-core'; sdk='11.0.100-rc.2.26504.105'; pin=$pin; core=(Join-Path $env:RUNNER_TEMP 'missing-core'); frontend=$frontend; expected='HBINT0102' }
+          )
+          foreach ($case in $cases) {
+            $args = @($hwir, '-t:ValidatePinnedBridgeHwirFixtures', '-p:EnableBridgeHwirLegacyFixtures=true', "-p:CircuitWeaveRepoRoot=$($case.core)", "-p:CircuitWeaveFrontendRoslynProject=$($case.frontend)", "-p:CircuitWeaveExpectedHeadSha=$($case.pin)", "-p:BridgeExpectedSdkVersion=$($case.sdk)")
+            $log = Join-Path $env:RUNNER_TEMP "hb-int01-$($case.label).log"
+            & dotnet msbuild @args *> $log
+            if ($LASTEXITCODE -eq 0) { throw "Negative scenario unexpectedly succeeded: $($case.label)" }
+            if (-not (Select-String -Path $log -SimpleMatch $case.expected -Quiet)) { Get-Content $log; throw "Wrong refusal: $($case.label)" }
+            Get-FileHash $log -Algorithm SHA256
+          }
+      - name: Golden and native qualification deliberately not executed
+        run: echo 'NotRun: actual Golden checkout source SHA, native ToolBridge, RTL acceptance, physical signoff'
