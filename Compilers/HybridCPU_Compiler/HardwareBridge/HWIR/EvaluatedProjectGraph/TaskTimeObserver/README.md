@@ -41,7 +41,7 @@ verification, not a proof of a Golden build, and not a basis for promoting
 CI job:
 \`.github/workflows/hb-r0-tasktime-csc-observer.yml\`
 
-SDK: \`11.0.100-rc.2.26504.105\`. Linux Ubuntu 24.04 + Python 3.13.
+SDK: \`11.0.100\`. Linux Ubuntu 24.04 + Python 3.13.
 The local equivalent, **only on a prepared host with that exact SDK**:
 
 \`\`\`bash
