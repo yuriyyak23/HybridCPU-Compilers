@@ -28,18 +28,21 @@ jobs:
         run: |
           set -Eeuo pipefail
           sdk='11.0.100-rc.2.26504.105'
+          work="$RUNNER_TEMP/hb-int-03-csc-link"
+          mkdir -p "$work/obj" "$work/bin"
+          printf '%s\n' '{"sdk":{"version":"11.0.100-rc.2.26504.105","rollForward":"disable","allowPrerelease":true}}' > "$work/global.json"
+          cd "$work"
+          echo "actual SDK=$(dotnet --version) available SDKs:"
+          dotnet --list-sdks
           test "$(dotnet --version)" = "$sdk"
-          sdk_dir="$(dotnet --list-sdks | awk -v v="$sdk" '$1==v {gsub(/[][]/,"",$2); print $2}')"
-          test -n "$sdk_dir"
-          csc="$sdk_dir/$sdk/Roslyn/bincore/csc.dll"
+          csc="$DOTNET_ROOT/sdk/$sdk/Roslyn/bincore/csc.dll"
+          echo "actual CSC=$csc"
           test -f "$csc"
           export HB_CSC_PATH="$csc"
           export HB_SDK_VERSION="$sdk"
           echo "SDK=$sdk RUN_SHA=$GITHUB_SHA"
           dotnet --info
           project="$GITHUB_WORKSPACE/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CscLinkFixture/HardwareBridge.CscLink.FixtureTests.csproj"
-          work="$RUNNER_TEMP/hb-int-03-csc-link"
-          mkdir -p "$work/obj" "$work/bin"
           set +e
           dotnet restore "$project" -p:BaseIntermediateOutputPath="$work/obj/" -p:BaseOutputPath="$work/bin/" 2>&1 | tee "$work/restore.log"
           restore_exit=${PIPESTATUS[0]}
