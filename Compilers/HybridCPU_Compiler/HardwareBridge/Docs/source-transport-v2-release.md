@@ -95,8 +95,8 @@ relabel `metadata-only` as executable. Both primary and owned-body remain
 - `project_csc_to_core_v2.py`: **deprecated primary-only compatibility**
   entrypoint, with its existing root-list input, `index.json`,
   `capture-crosswalk.json`, and `src/` + `metadata/` layout unchanged.
-  It now **refuses captured owned-body** rather than quietly promoting it
-  to `source`. Existing primary-only fixtures remain replayable. Migration
+  It now **refuses any non-primary source kind** (including `owned-body`
+  and `metadata-only`) rather than quietly promoting it to `source`. Existing primary-only fixtures remain replayable. Migration
   to release staging requires creating a **new reviewed root-selectors/v1**
   manifest, its independent raw SHA, and pinning the HB02 closure. No silent
   conversion or old-interface deletion.
