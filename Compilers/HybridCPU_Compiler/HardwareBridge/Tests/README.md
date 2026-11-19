@@ -71,6 +71,10 @@ dotnet run --project Compilers/HybridCPU_Compiler/HardwareBridge/Tests/GoldenRaw
 
 This .NET 11-only project compiles the actual production snapshot, fixed AddWord word DTO and raw trace codec directly, with **no** ProjectReference to the software compiler, Roslyn, CircuitWeave or native tools. It checks the new contract independently while the original Companion/CIL integration suite is still exercised separately. The baseline compiler Core may fail with unrelated `HybridCPU.Compiler.Core.IR.Artifacts` missing types (`CS0234/CS0246`): this is an explicit **Failed/Blocked integration gate**, not grounds for marking it green or removing the original tests. The CI workflow keeps that failure visible in a separate job.
 
+## HB-INT-03 Candidate method graph mutations
+
+`BridgeIndexV2Tests.Run()` now also covers graph/root/PE/PDB internal-consistency refusals on synthetic Candidate payloads. Run the isolated production codec host with `dotnet run --project Compilers/HybridCPU_Compiler/HardwareBridge/Tests/HardwareBridge.V2.ContractTests.csproj -c Release`. Results are software contract tests only and do **not** waive the independently failing Companion Csc build; see [policy](../Docs/HB_INT_03_Candidate_Graph_Coherence.md).
+
 ## HB-INT-04 source-bound vector contract (opt-in, no Core compiler dependency)
 
 ```sh
