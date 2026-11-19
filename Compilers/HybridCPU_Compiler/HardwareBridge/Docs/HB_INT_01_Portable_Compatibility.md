@@ -19,7 +19,7 @@ dotnet build "$BRIDGE_ROOT/Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/Hard
 
 The caller must ensure these paths and commits are trustworthy. An absent or missing explicit project path fails with `HBINT0101` / `HBINT0102`. The fixed `CircuitWeave-main` dependency has been removed; the Bridge HWIR project is **not** a prerequisite of `HardwareBridge.Companion.csproj`.
 
-The optional P14 Core compatibility launcher is `eng/cw-int-02-bridge-compat.sh <bridge-checkout> <40-hex-bridge-revision>` in the Core repository. This verifies the actual checkout HEAD against the pin, and passes the absolute Core project as an MSBuild property. Its old BridgeHwir source-specific cases remain candidate-only; it is NOT a new Core IR owner or independent RTL verification gate.
+The optional P14 Core compatibility launcher is `eng/cw-int-02-bridge-compat.sh <bridge-checkout> <40-hex-bridge-revision> <40-hex-core-revision>` in the Core repository. This verifies the actual checkout HEAD against the pin, and passes the absolute Core project as an MSBuild property. Its old BridgeHwir source-specific cases remain candidate-only; it is NOT a new Core IR owner or independent RTL verification gate.
 
 ## Compatibility and incomplete gates
 
