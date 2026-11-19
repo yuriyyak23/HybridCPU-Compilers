@@ -94,7 +94,11 @@ class PortableDependencyBoundary(unittest.TestCase):
         self.assertNotIn("NETCoreSdkVersion", changed)
 
     def test_no_source_write_or_software_authority_upgrade(self):
-        self.assertFalse(list(self.hwir.iter("Exec")) or list(self.companion.iter("Exec")))
+        self.assertEqual([x.get("Command") for x in self.hwir.iter("Exec")], [
+            'git -C "$(CircuitWeaveRepoRoot)" rev-parse HEAD',
+            'git -C "$(CircuitWeaveRepoRoot)" status --porcelain --untracked-files=all',
+        ])
+        self.assertFalse(list(self.companion.iter("Exec")))
         self.assertNotIn("CircuitWeave", self.companion_text)
         # The only always-compiled HWIR file is an existing read-only snapshot.
         unconditional = [c.get("Include") for group in self.hwir.findall("ItemGroup")
