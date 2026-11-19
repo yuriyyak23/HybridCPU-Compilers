@@ -34,7 +34,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          dotnet run --project Compilers/HybridCPU_Compiler/HardwareBridge/Tests/GoldenRawTrace.ContractTests.csproj -c Release
+          dotnet run --project Compilers/HybridCPU_Compiler/HardwareBridge/Tests/GoldenRawTrace.ContractTests.csproj -c Release 2>&1 | tee "$RUNNER_TEMP/hb-int-04-raw-test.log"
+          sha256sum "$RUNNER_TEMP/hb-int-04-raw-test.log"
 
   legacy-companion:
     name: Existing Companion baseline (separate, never masked)
