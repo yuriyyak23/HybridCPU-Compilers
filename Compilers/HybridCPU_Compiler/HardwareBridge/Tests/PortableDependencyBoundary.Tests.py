@@ -30,7 +30,7 @@ class PortableDependencyBoundary(unittest.TestCase):
         cls.parent = project(cls.parent_text)
 
     def test_default_hwir_requires_no_core_checkout(self):
-        self.assertEqual(references(self.hwir), ["$(CircuitWeaveFrontendRoslynProject)"])
+        self.assertEqual(references(self.hwir), ["$(CircuitWeaveRepoRoot)/src/CircuitWeave.Frontend.Roslyn/CircuitWeave.Frontend.Roslyn.csproj"])
         groups = list(self.hwir.findall("ItemGroup"))
         project_refs = [g for g in groups if any(i.tag == "ProjectReference" for i in g)]
         self.assertEqual(len(project_refs), 1)
@@ -71,10 +71,12 @@ class PortableDependencyBoundary(unittest.TestCase):
         self.assertTrue(core_has_bridge_backlink(mutated))
 
     def test_mutation_inadvertent_fixed_sibling(self):
-        mutated = self.hwir_text.replace("$(CircuitWeaveFrontendRoslynProject)",
-                                         "../../CircuitWeave-main/src/CircuitWeave.Frontend.Roslyn/CircuitWeave.Frontend.Roslyn.csproj")
+        mutated = self.hwir_text.replace(
+            'Include="$(CircuitWeaveRepoRoot)/src/CircuitWeave.Frontend.Roslyn/CircuitWeave.Frontend.Roslyn.csproj"',
+            'Include="../../CircuitWeave-main/src/CircuitWeave.Frontend.Roslyn/CircuitWeave.Frontend.Roslyn.csproj"')
         self.assertNotIn("CircuitWeave-main", self.hwir_text)
         self.assertIn("CircuitWeave-main", mutated)
+        self.assertTrue(any("CircuitWeave-main" in ref for ref in references(project(mutated))))
         self.assertFalse(any("CircuitWeave-main" in ref for ref in references(self.hwir)))
 
     def test_mutation_lost_revision_pin(self):
