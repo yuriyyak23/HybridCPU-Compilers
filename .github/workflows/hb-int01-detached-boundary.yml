@@ -83,6 +83,10 @@ jobs:
           dotnet --info
           if ((dotnet --version).Trim() -cne $sdk) { throw 'SDK pin mismatch' }
           if ((git -C $core rev-parse HEAD).Trim() -cne $pin) { throw 'Core pin mismatch' }
+          # Build the Core-owned frontend independently from a differently named checkout.
+          & dotnet build $frontend -c Release 2>&1 | Tee-Object (Join-Path $env:RUNNER_TEMP 'hb-int01-core-frontend-build.log')
+          if ($LASTEXITCODE -ne 0) { throw "Independent Core frontend build failed: $LASTEXITCODE" }
+          Get-FileHash (Join-Path $env:RUNNER_TEMP 'hb-int01-core-frontend-build.log') -Algorithm SHA256
           $args = @($hwir, '-c:Release', '-p:EnableBridgeHwirLegacyFixtures=true', "-p:CircuitWeaveRepoRoot=$core", "-p:CircuitWeaveFrontendRoslynProject=$frontend", "-p:CircuitWeaveExpectedHeadSha=$pin", "-p:BridgeExpectedSdkVersion=$sdk")
           & dotnet build @args 2>&1 | Tee-Object (Join-Path $env:RUNNER_TEMP 'hb-int01-windows-build.log')
           if ($LASTEXITCODE -ne 0) { throw "Real pinned HWIR build failed: $LASTEXITCODE" }
