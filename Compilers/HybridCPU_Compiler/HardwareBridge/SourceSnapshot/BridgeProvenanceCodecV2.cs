@@ -202,15 +202,19 @@ public static class BridgeProvenanceCodecV2
                 throw new ArgumentException("HBINT03_V2_ROOT: root does not identify exactly one imported body.");
         }
 
+        long directCalleeCount = 0;
         foreach (BridgeMethodFactV1 method in facts.Methods)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (method.DirectCallees.Any(id => string.IsNullOrWhiteSpace(id) ||
-                !methods.ContainsKey(id)) ||
+            directCalleeCount = checked(directCalleeCount + method.DirectCallees.Count);
+            if (directCalleeCount > facts.Edges.Count ||
+                method.DirectCallees.Any(id => string.IsNullOrWhiteSpace(id) ||
+                    !methods.ContainsKey(id)) ||
                 method.DirectCallees.Distinct(StringComparer.Ordinal).Count() != method.DirectCallees.Count)
-                throw new ArgumentException("HBINT03_V2_CLOSURE: direct callee is missing or duplicated.");
+                throw new ArgumentException("HBINT03_V2_CLOSURE: direct callee is missing, duplicated or exceeds edges.");
         }
         var edges = new HashSet<string>(StringComparer.Ordinal);
+        var connected = new HashSet<(string Caller, string Callee)>();
         foreach (BridgeEdgeFactV1 edge in facts.Edges)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -220,13 +224,13 @@ public static class BridgeProvenanceCodecV2
                 !methods.ContainsKey(edge.Callee) ||
                 !caller.DirectCallees.Contains(edge.Callee, StringComparer.Ordinal))
                 throw new ArgumentException("HBINT03_V2_CLOSURE: graph edge is unowned or not in the direct callee set.");
+            connected.Add((edge.Caller, edge.Callee));
         }
         foreach (BridgeMethodFactV1 method in facts.Methods)
         {
             cancellationToken.ThrowIfCancellationRequested();
             foreach (string callee in method.DirectCallees)
-                if (!facts.Edges.Any(e => e is not null &&
-                    e.Caller == method.StableIdentity && e.Callee == callee))
+                if (!connected.Contains((method.StableIdentity, callee)))
                     throw new ArgumentException("HBINT03_V2_CLOSURE: direct callee has no graph edge.");
         }
         foreach (BridgeMapRowV1 map in facts.SourceMaps)
