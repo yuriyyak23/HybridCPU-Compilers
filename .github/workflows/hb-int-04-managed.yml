@@ -12,8 +12,8 @@ permissions:
   contents: read
 
 jobs:
-  managed-contract:
-    name: Managed contract / ${{ matrix.os }}
+  raw-contract:
+    name: Raw trace managed contract / ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -30,12 +30,27 @@ jobs:
           set -euo pipefail
           git rev-parse HEAD
           dotnet --info
-      - name: Run real standalone tests (no native/EDA claim)
+      - name: Real bounded raw trace codec tests (no Core / Golden runtime)
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet run --project Compilers/HybridCPU_Compiler/HardwareBridge/Tests/GoldenRawTrace.ContractTests.csproj -c Release
+
+  legacy-companion:
+    name: Existing Companion baseline (separate, never masked)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '11.0.x'
+      - name: Existing standalone integration tests
         shell: bash
         run: |
           set -euo pipefail
           dotnet run --project Compilers/HybridCPU_Compiler/HardwareBridge/Tests/HardwareBridge.SelfTests.csproj -c Release
-      - name: Build opt-in companion
+      - name: Build Companion independently even if prior tests failed
+        if: always()
         shell: bash
         run: |
           set -euo pipefail
