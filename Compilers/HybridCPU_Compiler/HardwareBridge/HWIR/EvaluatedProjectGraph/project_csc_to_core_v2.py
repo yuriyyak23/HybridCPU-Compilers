@@ -102,7 +102,8 @@ def exact_index(capture_dir):
     rows = data["entries"]
     if len(rows) > MAX_ROWS:
         reject("Core v2 bounded importer limit exceeded")
-    allowed = {"nodeId", "kind", "role", "logicalPath", "path", "sha256", "bytes", "chunks"}
+    # HB-INT-02 canonical JSON uses alphabetical object-key order.
+    allowed = ("bytes", "chunks", "kind", "logicalPath", "nodeId", "path", "role", "sha256")
     total = 0
     for row in rows:
         strict_keys(row, allowed)
