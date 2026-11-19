@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import stat
@@ -143,7 +144,8 @@ def command_files(argv, cwd):
     for token in argv:
         lower = token.lower()
         # Paths have to be admitted as source tokens, including POSIX absolute /tmp/A.cs.
-        if lower.endswith(".cs") and (os.path.isabs(token) or not token.startswith(("/", "-"))):
+        if lower.endswith(".cs") and (not token.startswith(("/", "-")) or
+                (os.path.isabs(token) and not re.match(r"^/[a-z][a-z0-9+-]*:", lower))):
             sources.append(str(safe_path(str(Path(token) if os.path.isabs(token) else cwd / token))))
             continue
         kind = next((k for prefix, k in file_input if lower.startswith(prefix)), None)
