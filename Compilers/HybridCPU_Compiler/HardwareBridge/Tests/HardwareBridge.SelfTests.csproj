@@ -9,6 +9,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="BridgeSelfTests.cs" />
+    <Compile Include="GoldenRawTraceTests.cs" />
     <ProjectReference Include="..\HardwareBridge.Companion.csproj" />
   </ItemGroup>
 </Project>
