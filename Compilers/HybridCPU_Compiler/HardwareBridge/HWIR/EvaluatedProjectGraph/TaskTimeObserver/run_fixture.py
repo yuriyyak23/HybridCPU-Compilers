@@ -102,7 +102,8 @@ def run():
             "--artifacts-path", str(temp / "logger-artifacts"),
             "-p:UseSharedCompilation=false", "-m:1", "-nr:false"
         ], temp, env, receipts)
-        candidates = list((temp / "logger-artifacts").rglob("CscTaskLogger.dll"))
+        candidates = [p for p in (temp / "logger-artifacts").rglob("CscTaskLogger.dll")
+                      if "bin" in p.parts and "ref" not in p.parts and "refint" not in p.parts]
         if len(candidates) != 1:
             raise RuntimeError("ambiguous logger assembly outputs")
         logger_dll = candidates[0]
