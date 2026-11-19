@@ -9,7 +9,7 @@ must be a new file outside the model and compiler trees. Its read-only fixture
 checks `GlobalPropertiesToRemove` and conditional source selection:
 
 ```powershell
-pwsh -File HWIR/EvaluatedProjectGraph/Test-EvaluatedProjectGraph.ps1 -SdkDirectory 'C:\Program Files\dotnet\sdk\11.0.100'
+pwsh -File HWIR/EvaluatedProjectGraph/Test-EvaluatedProjectGraph.ps1 -SdkDirectory '<InstalledNet11SdkRoot>'
 ```
 
 `SemanticClosureAudit` parses captured root files using the target-time defines,
@@ -43,9 +43,9 @@ this does not prove complete ProjectReference global-property propagation.
 
 ```powershell
 dotnet run --project ImportInventory/ImportInventory.csproj -- `
-  'C:\Users\Yuriy\Desktop\HybridCPU ISE\HybridCPU_ISE\HybridCPU_ISE.csproj' `
-  'C:\Program Files\dotnet\sdk\11.0.100' `
-  'C:\Users\Yuriy\Desktop\CircuitWeave-Studio-main\eng\new-root-imports.json'
+  '<GoldenRoot>/HybridCPU_ISE\HybridCPU_ISE.csproj' `
+  '<InstalledNet11SdkRoot>' `
+  '<ExternalOutputRoot>/new-root-imports.json'
 ```
 
 The output must be a new file outside the model tree. The SDK path must match
@@ -69,11 +69,13 @@ This is not a binding authorization, full-model import, compiler-independent
 attestation, RTL emission or equivalence proof. The existing compiler/producer
 coordinator is not used by this bounded CLI path.
 
-The project is a **regression-only opt-in** fixture requiring an explicitly supplied
-`CircuitWeaveFrontendRoslynProject` MSBuild property (the checked-out Core .csproj).
-No directory name or sibling path is inferred. It does not use or modify the Golden
-ISE worktree or parent compiler CIL path. See
-[HB-INT-01 compatibility](../Docs/HB_INT_01_Portable_Compatibility.md).
+The project defaults to a portable, source-snapshot-only DTO assembly without
+any Core ProjectReference. To enable the old source-linked BridgeHwir regression
+compilers, set EnableBridgeHwirLegacyFixtures=true and provide the reviewed Core
+root, frontend project, exact HEAD SHA and .NET SDK version as described in
+[HB-INT-01 pinned opt-in migration](../Docs/HB_INT_01_Pinned_OptIn.md).
+No sibling directory name is inferred. Golden/ISE source is never an output tree.
+The existing Core P14 launcher also needs the corresponding Core-owned update.
 Run the **original bounded P14 fixture suite** only through the explicit
 revision-checked compatibility launcher in the Core checkout:
 
@@ -127,13 +129,13 @@ displays the distinction. This remains a candidate, not a full Processor import.
 $workspace = Join-Path $env:TEMP 'cw-working-addword-v2'
 New-Item -ItemType Directory -Force $workspace | Out-Null
 dotnet run --project src/CircuitWeave.Cli -- studio publish-working-addword `
-  --working-source 'C:\Users\Yuriy\Desktop\HybridCPU ISE\HybridCPU_ISE\CloseToHSL\Core\Execution\Scalar\ALU\ScalarAluOps.cs' `
-  --git-root 'C:\Users\Yuriy\Desktop\HybridCPU ISE' `
+  --working-source '<GoldenRoot>/HybridCPU_ISE\CloseToHSL\Core\Execution\Scalar\ALU\ScalarAluOps.cs' `
+  --git-root '<GoldenRoot>' `
   --manifest (Resolve-Path samples/HybridCPU/bindings.v0.2.json).Path --output $workspace `
-  --source-inventory 'C:\Users\Yuriy\Desktop\CircuitWeave-Studio-main\eng\hybridcpu-debug-source-coverage-index-v2.json' `
-  --inventory-report 'C:\Users\Yuriy\Desktop\CircuitWeave-Studio-main\eng\hybridcpu-debug-member-dependencies-v2.json' `
-  --source-capture 'C:\Users\Yuriy\Desktop\CircuitWeave-Studio-main\eng\hybridcpu-debug-source-bytes-v2.json' `
-  --project-graph 'C:\Users\Yuriy\Desktop\CircuitWeave-Studio-main\eng\hybridcpu-debug-project-graph-v2.json'
+  --source-inventory '<ExternalOutputRoot>/hybridcpu-debug-source-coverage-index-v2.json' `
+  --inventory-report '<ExternalOutputRoot>/hybridcpu-debug-member-dependencies-v2.json' `
+  --source-capture '<ExternalOutputRoot>/hybridcpu-debug-source-bytes-v2.json' `
+  --project-graph '<ExternalOutputRoot>/hybridcpu-debug-project-graph-v2.json'
 powershell -NoProfile -ExecutionPolicy Bypass -File tests/CircuitWeave.P14.Cli/CapturedWorkingTree.Tests.ps1
 ```
 
@@ -157,8 +159,8 @@ framework negotiation, all global properties, imports, generators or resolved
 references. Example (choose a new output path):
 
 ```powershell
-& 'C:\Users\Yuriy\Desktop\HybridCPU Compilers\Compilers\HybridCPU_Compiler\HardwareBridge\HWIR\CompareProjectReferenceProperties.ps1' `
-  -RootInventory 'C:\Users\Yuriy\Desktop\CircuitWeave-Studio-main\eng\hybridcpu-debug-source-bytes-v2.json' `
-  -ProjectGraph 'C:\Users\Yuriy\Desktop\CircuitWeave-Studio-main\eng\hybridcpu-debug-project-graph-v2.json' `
-  -Output 'C:\Users\Yuriy\Desktop\CircuitWeave-Studio-main\eng\new-reference-comparison.json'
+& '<BridgeRoot>/Compilers/HybridCPU_Compiler/HardwareBridge/HWIR\CompareProjectReferenceProperties.ps1' `
+  -RootInventory '<ExternalOutputRoot>/hybridcpu-debug-source-bytes-v2.json' `
+  -ProjectGraph '<ExternalOutputRoot>/hybridcpu-debug-project-graph-v2.json' `
+  -Output '<ExternalOutputRoot>/new-reference-comparison.json'
 ```
