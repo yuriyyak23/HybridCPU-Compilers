@@ -190,6 +190,8 @@ internal static class BridgeIndexV2Tests
         Check(oldBytes.SequenceEqual(BridgeSidecarCodecV1.Write(snapshot, rejected)),
             "v1 bytes changed after v2 exercise");
         Console.WriteLine("PASS: HB-INT-03 strict v2 contract/unit mutations (test-only software facts).");
+        // Filesystem publishing is a separate opt-in contract and is exercised by
+        // the standalone v2 host; do not treat this in-memory PASS as staging proof.
 
         BridgeV2Input[] ChangedSourceInputs() =>
             new[] { inputs[0] with { Bytes = Encoding.UTF8.GetBytes(sourceText + " ") }, inputs[1] };
