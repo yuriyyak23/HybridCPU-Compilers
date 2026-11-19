@@ -51,7 +51,7 @@ module tb_cw8080_pair_cpu;
         repeat(2) @(posedge clk);
         #1 reset=0;
         while(!halted && cycles<300) begin @(posedge clk); #1; cycles++; end
-        check(halted && pc==16'h0012,"pair program reaches HLT");
+        check(halted && pc==16'h0013,"pair program reaches HLT with PC advanced");
         check({b,c}==16'hffff,"INX/DCX wrap BC and preserve both bytes");
         check({d,e}==16'h0001,"LXI D captures low then high byte");
         check({h,l}==16'h0001 && carry,"DAD updates HL and carry from 17-bit sum");

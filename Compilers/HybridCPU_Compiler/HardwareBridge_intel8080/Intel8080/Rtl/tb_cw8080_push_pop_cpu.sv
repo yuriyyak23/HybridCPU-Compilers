@@ -33,10 +33,10 @@ module tb_cw8080_push_pop_cpu;
       mem[18]=8'h76;                                  // HLT
       repeat(2) @(posedge clk); #1 reset=0;
       while(!halted&&cycles<400) begin @(posedge clk); #1; cycles++; end
-      check(halted&&pc==18,"PUSH/POP PSW and register pairs reach HLT");
+      check(halted&&pc==19,"PUSH/POP PSW and register pairs reach HLT with PC advanced");
       check(sp==16'h1000,"PUSH/POP restores SP");
       check({b,c}==16'h1234,"PUSH/POP BC preserves pair order");
-      check(a==8'h5b,"POP PSW restores accumulator");
+      check(a==8'h10,"POP PSW restores accumulator");
       check(!sign&&!zero&&!parity&&carry&&!aux_carry,"POP PSW restores 8080 flag bit layout from ADI result");
       check(writes==4&&reads==4,"BC and PSW stack transfers each use two acknowledged bytes");
       check(mem[16'h0ffe]==8'h03&&mem[16'h0fff]==8'h10,"PUSH PSW stores flags then accumulator in little-endian stack order");

@@ -1,4 +1,4 @@
-﻿# Intel 8080 RTL adapter assets
+# Intel 8080 RTL adapter assets
 
 The initial RTL/testbench copies in the 8080 artifact tree are preserved. The working `cw8080_subset_cpu.sv` and `tb_cw8080_subset_cpu.sv` in this adapter now contain a later manual revision; their versioned artifact copies are:
 
@@ -32,7 +32,7 @@ This is not behaviorally equivalent to all source helper paths: `Utils.Increment
 
 The integrated RTL decodes every register/(HL) arithmetic and logical opcode from `0x80` through `0xBF`: ADD, ADC, SUB, SBB, ANA, XRA, ORA, and CMP. CMP updates flags without writing A; arithmetic includes carry/borrow and auxiliary nibble carry/borrow; logical operations clear CY and AC according to Intel 8080 Assembly Language Programming Manual Rev C. `CMP M` is covered by the integrated test program. The source dispatch contains only 29 of the 64 encodings; the generated template lists the 35 manual RTL-only opcodes per family.
 
-Observed source divergences include `ORA_M` not clearing CY/AC, and earlier INR/DCR helper issues. The RTL follows the documented architectural behavior, so source-model equivalence is not implied. The integrated testbench now exercises SUB/SBB, ANA/XRA/ORA, CMP M and the previous MOV/INR/DCR/HALT/IRQ cases. No HDL compiler/simulator is currently available; these tests are authored but not run.
+Observed source divergences include `AOR` computing AND (and being called by ORI), source XOR/ORA_M deriving CY from result bit 0 through `CalcSZPC(byte)`, and XOR/ORA_M preserving AC; earlier INR/DCR helper issues also remain. The RTL follows the selected architectural behavior, so source-model equivalence is not implied. The integrated testbench exercises SUB/SBB, ANA/XRA/ORA, CMP M and the previous MOV/INR/DCR/HALT/IRQ cases. Current candidate-specific Icarus x86 runs are tracked separately in `artifacts/8080/RTL_TRACEABILITY_20261118.md`; the adapter benches themselves remain unqualified.
 
 Current versioned copies are `artifacts/8080/rtl/cw8080_subset_cpu_mov_incdec_alu.sv` and `artifacts/8080/tests/tb_cw8080_subset_cpu_mov_incdec_alu.sv`; the matching editable template is `artifacts/8080/hardware-model-8080-bridge-derived-alu-v2.cwtemplate.json`. Hashes and per-group source/manual status are recorded in the template.
 
@@ -75,4 +75,92 @@ All eight immediate ALU encodings are now decoded: ADI, ACI, SUI, SBI, ANI, XRI,
 
 The memory-address FSM now also handles STAX/LDAX through BC/DE, STA/LDA at a 16-bit immediate address, SHLD/LHLD as two acknowledged byte transfers in little-endian order, XTHL through stack reads and writes without changing SP, XCHG, PCHL, and SPHL. The addressed-memory bench checks those transfers with alternating ready stalls.
 
+## Current candidate-side smoke evidence (2026-11-19)
+
+The Windows `Test-Intel8080Rtl.ps1` adapter benches above still have status NOT RUN when `iverilog` is not on Windows PATH; they are separate from the runner candidate. The x86 golden harness invokes Icarus through WSL on `artifacts/8080/audit-20261116-codex-01/cw8080_subset_cpu_irq_daa_candidate.sv`. Its current 22-program corpus passed, including two architectural DCR auxiliary-carry boundary cases (`10h -> 0Fh` sets AC; `11h -> 10h` clears AC) and a flag/branch case covering INR/DCR carry preservation and JC/JNC/JNZ/JZ. This exposed and corrected a stale DCR predicate in that candidate snapshot; the editable bridge RTL already had the selected low-nibble-equals-zero predicate. Rev C marks AC affected by DCR but does not spell out its truth table; the candidate's rule is pinned by explicit tests. The run is `artifacts/8080/golden-runs/20261119-002013-025782/summary.log`, with model/source divergences retained in the audit and template. These directed checks do not qualify the legacy adapter benches, prove full instruction coverage, or validate cycle timing.
+
+## DAD source projection and candidate check (2026-11-19)
+
+`BuildDadBehaviorProjection` now pins the four source dispatch wrappers, `Registers.DAD`, `Flags.CalcCarryFlag(int)`, and their source hashes. The source projection records the 17-bit widened sum, low-16 HL result, CY bit, preserved S/Z/P/AC, and PC+1; source `return 10` is explicitly emulator cycles, not a hardware schedule. CircuitWeave admitted/lowered only `zext(HL)+zext(operand)` as one `i17` MLIR output at `artifacts/8080/dad-circuitweave-sum17-20261119/`. A direct 8080 assembly test exercised DAD B/D/H/SP, carry/no-carry results, retained flags and SHLD memory writes on the runner candidate; log: `artifacts/8080/runs/8080-run-20261119-003525-192155/simulation.log`. This is a directed partial-candidate check; it does not establish external CIRCT SystemVerilog conversion, whole-CPU verification, or cycle timing.
+
 DAA (`0x27`) was added as a manual hardware extension because it is absent from the emulator dispatch. It follows the two-step decimal correction in the [Intel 8080 Assembly Language Programming Manual Rev C](https://mark-ogden.uk/files/intel/publications/98-004C%208080%20Assembly%20Language%20Programming%20Manual-Jan76.pdf): adjust low nibble using AC, then high nibble using adjusted A and CY; AC reflects low correction carry, CY is set on high correction carry and otherwise retained, and SZP are recomputed. The DAA bench includes `9B -> 01` with CY/AC set and an incoming-CY/no-new-high-carry case. The latest aggregate template is `artifacts/8080/hardware-model-8080-bridge-derived-daa-v5.cwtemplate.json`; all 166 source-dispatch entries appear in its instruction descriptors, plus manual DAA/SPHL mappings. Export now refuses to write if any source dispatch opcode lacks a descriptor. It registers eleven benches. RTL validation remains NOT RUN because Icarus Verilog is unavailable.
+
+## Current candidate-side verification update (2026-11-18)
+
+The `NOT RUN` notes above describe the adapter's older versioned RTL copies and the 2026-11-14 environment. A separate manually revised partial CPU candidate is now tested with Icarus under WSL; see `CircuitWeave-main/artifacts/8080/RTL_TRACEABILITY_20261118.md` and its per-run logs. The adapter copy and original template are not silently promoted by those candidate tests.
+
+A narrow source-backed ADD projection is also available at `CircuitWeave-main/artifacts/8080/bridge-add-projection-20261118/`. CircuitWeave emits MLIR for the 9-bit sum only; the multi-output ADD block is a separate manual-schema SystemVerilog candidate and has an exhaustive 65,536-vector test. This is not a full generated or verified processor.
+
+The ADD source projection is pinned to reviewed SHA-256 snapshots for `Ops.cs`, `Flags.cs`, and `Utils.cs`; any source edit blocks export until the equations are reviewed again. The x86 → 8080 → reference → RTL runner also passed an explicit `7Fh + 01h` smoke at `CircuitWeave-main/artifacts/8080/runs/x86-add-szpc-smoke-20261118/`; it is subset validation, not an independent conformance test.
+
+The analogous ADC slice is under `CircuitWeave-main/artifacts/8080/bridge-add-adc-projection-20261118/`: source-pinned C# projection, CircuitWeave MLIR for `A + operand + CY_in` only, and separate manual-schema multi-output SV with a 131,072-vector exhaustive Icarus test. The x86 corpus exercises the available `ADC AL,BL` dispatch with carry-in clear/set. ADC opcodes `8Ah` and `8Fh` remain absent from the emulator's dispatch.
+
+The SBB projection in `CircuitWeave-main/artifacts/8080/bridge-arithmetic-projections-sbb-20261118/` keeps the C# AC equation separate from Intel-spec RTL AC. C# omits CY-in when it computes AC; for `11h-01h-1`, source AC is 1 while RTL/spec AC is 0. CircuitWeave emits only the wrapped 16-bit subtract result; the manual-schema SV exhaustive test checks both AC interpretations.
+
+## DAD evidence refresh (2026-11-19)
+
+Use artifacts/8080/hardware-model-8080-evidence-dad-v7-20261119.cwtemplate.json as the newest aggregate editable snapshot. Its seven candidate evidence entries all report PASS, including the 22-case corpus and the new DAD run; the separate adapter HDL runner is still NOT RUN.
+
+Latest direct candidate run: `artifacts/8080/runs/8080-run-20261119-003805-175702/`. The simulator differential compared modeled state and the complete 64 KiB memory; `image-byte-check.log` confirms the test image contains DAD B/D/H/SP at the asserted addresses. CircuitWeave emitted only the scalar i17 sum MLIR; full CPU RTL was not generated. See `artifacts/8080/dad-projection-validation-20261119.md`.
+
+## x86 frontend/runner update (2026-11-19)
+
+The latest committed smoke corpus has 24 programs: `artifacts/8080/golden-runs/20261119-004537-891806/summary.log`. New cases execute a single x86 `CALL`/`RET` subroutine through assembler, reference and RTL and test BL/CL absolute memory load/store lowered through HL. CALL checks return address bytes `CD 0E 00`, RET `C9`, result, `SP=0100h`, and the two stack bytes. Non-AL memory test asserts `LXI H` and `MOV M,r`/`MOV r,M` machine bytes. The translator treats H/L as internal scratch and does not promise they retain 8080 values.
+
+## Latest aggregate snapshot (2026-11-19)
+
+The newest editable aggregate is `artifacts/8080/hardware-model-8080-evidence-call-ret-v8-20261119.cwtemplate.json`. It records 166/166 dispatch descriptors and eight PASS candidate log entries, including the 24-case x86-to-8080 corpus at `artifacts/8080/golden-runs/20261119-004537-891806/summary.log`. The CALL/RET and non-AL absolute memory tests exercise an existing manual candidate through the frontend, assembler, partial reference and RTL. This does not change the adapter runner's NOT RUN status or claim a complete verified processor.
+
+## Nested call runner evidence (2026-11-19)
+
+The newest runner corpus now has 25 passing x86-shaped programs, including simple and nested CALL/RET. Nested coverage asserts each saved return address at `SP-4..SP-1`, restored `SP=0100h`, result A and memory, plus assembled CALL/RET bytes. See `artifacts/8080/golden-runs/20261119-005051-841369/summary.log` and aggregate template `artifacts/8080/hardware-model-8080-evidence-nested-call-v9-20261119.cwtemplate.json`. This remains a partial RTL candidate with a partial hand-written reference oracle.
+
+## DAA exhaustive check (2026-11-19)
+
+The bridge RTL and the separate x86-runner candidate each passed all 1024 A/AC-in/CY-in combinations using an architectural `POP PSW; DAA` path and alternating ready. This uncovered and fixed the runner candidate's original-A high-adjust shortcut for invalid BCD values; Rev C examines the high nibble after low correction. The failure, correction, rule and non-conformance limits are documented at `artifacts/8080/daa-exhaustive-validation-20261119.md`. Bridge/artifact RTL SHA-256 equality is recorded in `artifacts/8080/daa-exhaustive-bridge-run-20261119/rtl-hash-check.log`.
+
+Latest editable template: `artifacts/8080/hardware-model-8080-evidence-daa-exhaustive-v10-20261119.cwtemplate.json`. Latest 25-case x86 corpus: `artifacts/8080/golden-runs/20261119-010031-541835/summary.log`. Neither exhaustive DAA vectors nor that corpus establish full CPU conformance or cycle timing.
+
+## x86 DAA integration update (2026-11-19)
+
+`DAA` and `STC` now pass through the bounded x86 frontend; DAA maps to 27h and STC to 37h. Four golden programs test packed-decimal boundaries and incoming carry. The latest corpus has 29 PASS programs at `artifacts/8080/golden-runs/20261119-143523-873163/summary.log`; the aggregate template is `artifacts/8080/hardware-model-8080-evidence-x86-daa-v11-20261119.cwtemplate.json`. DAA translation selects Intel 8080 Rev C semantics; x86 behavior for arbitrary invalid BCD values may differ. Complete CPU equivalence and timing are not implied.
+
+## NOT and carry-control frontend coverage (2026-11-19)
+
+The x86 subset adds `NOT AL`→CMA, `CLC`→STC+CMC, and direct `CMC`. The test keeps stale Z/P flags through NOT and confirms carry-only behavior through CLC/CMC. Latest 30-case corpus: `artifacts/8080/golden-runs/20261119-144129-023534/summary.log`; test detail: `artifacts/8080/x86-not-flags-validation-20261119.md`; latest template: `artifacts/8080/hardware-model-8080-evidence-x86-not-flags-v12-20261119.cwtemplate.json`.
+
+## x86 TEST smoke coverage (2026-11-19)
+
+The x86 runner supports the restricted `TEST AL,imm8/r8` forms by saving A in hidden L, executing ANI/ANA, and restoring A. The 33-program corpus passes against the partial reference and RTL candidate; see `artifacts/8080/golden-runs/20261119-144658-350519/summary.log`. Three cases assert zero/sign/register outcomes and bytes. x86 AF is undefined; 8080 AC is checked as 8080 behavior. No general TEST mapping or full-core claim is made.
+
+## x86 CMP frontend extension (2026-11-19)
+
+Non-AL compare forms are lowered by saving AL in hidden L and executing CMP/CPI with the selected register as accumulator. The latest four CMP-specific cases are included in the 37-case golden corpus. Unsigned/equality branch behavior is asserted; x86 AF/8080 AC equivalence and OF-based signed conditions are not claimed.
+
+The x86-to-RTL candidate corpus now has 38 passing programs (artifacts/8080/golden-runs/20261119-150812-735796/summary.log), including CMP BL,AL preservation/encoding. This remains a partial manually authored candidate and partial-reference comparison, not full-core validation.
+
+
+## WSL-backed bridge RTL runner update (2026-11-19)
+
+`Test-Intel8080Rtl.ps1` now accepts `-Simulator wsl-iverilog` and uses WSL Icarus/VVP while keeping compiled programs and logs under the selected `artifacts/8080` output directory. A malformed SystemVerilog loop literal in the ADD/ADC bench was corrected. The integrated subset bench also had a bad test program: it loaded `01h` into D but executed `SUB B` using A; the program now loads A explicitly before SUB and its subsequent PC checks were shifted. The full eleven-bench run passed at `artifacts/8080/tests/rtl-validation-wsl-v5-20261119/rtl-test.log`. This suite validates the editable bridge RTL; it is separate from the x86 runner candidate.
+
+## Source dispatch versus manual RAL
+
+The template classifies RLC/RRC/RAR as source-dispatched and RAL (`17h`) as manual/spec-only. Current `Cpu._ops` has no reachable RAL dispatch and `Ops.RAL` is absent, although RTL implements the documented instruction.
+
+## Current bridge RTL validation (2026-11-19)
+
+The WSL-enabled runner compiled and executed all eleven benches with Icarus 12.0; see `artifacts/8080/tests/rtl-validation-wsl-v5-20261119/rtl-test.log` and scope/bench corrections in `artifacts/8080/bridge-rtl-wsl-validation-20261119.md`. The integrated test suite passes; its ALU bench reports 262,144 exhaustive vectors, while DAA has five directed cases here and the separate 1,024-vector bridge DAA sweep is retained in `artifacts/8080/daa-exhaustive-bridge-run-20261119/simulation.log`. This is still partial RTL verification.
+
+Latest aggregate editable snapshot: `artifacts/8080/hardware-model-8080-bridge-derived-x86-cmp-wsl-rtl-v16-20261119.cwtemplate.json`. It records RTL runner PASS and corrects RAL (`17h`) to manual/spec-only because it has no reachable source dispatch or source method.
+Run the current bridge suite with a fresh artifact path:
+
+```powershell
+.\Test-Intel8080Rtl.ps1 -Simulator wsl-iverilog -OutputDirectory C:\Users\Yuriy\Desktop\CircuitWeave-main\artifacts\8080\tests\rtl-validation-<unique-name>
+```
+
+The runner refuses an existing output directory and output paths outside `artifacts/8080`.
+
+### SUB/SBB/CMP auxiliary carry
+
+The Intel-manual carry-out interpretation is now implemented for SUB/SBB/CMP: ALU nibble subtraction's bit 4 is borrow, so AC receives its inverse. The updated integrated SUB/SBB/CMP checks and CPI test pass in the full eleven-bench Icarus/WSL run at rtifacts/8080/tests/rtl-validation-ac-sub-fix-rerun-20261119/rtl-test.log. This is partial behavior coverage; the independent x86 status mapping still must exclude AF equivalence for subtract.

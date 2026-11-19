@@ -159,7 +159,7 @@ module cw8080_immediate_exec (
                     carry<=sum[8]; pc<=pc+16'd2;
                     // Source Ops.ADI uses CalcSZPC and does not update AuxCarry.
                 end
-                8'h76: halted<=1'b1;
+                8'h76: begin halted<=1'b1; pc<=pc+16'd1; end
                 default: begin end
             endcase
         end

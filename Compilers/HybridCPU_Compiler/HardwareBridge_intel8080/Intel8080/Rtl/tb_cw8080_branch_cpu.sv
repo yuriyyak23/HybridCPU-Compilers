@@ -30,7 +30,7 @@ module tb_cw8080_branch_cpu;
         mem[16'h0015]=8'h76; // HLT
         repeat(2) @(posedge clk); #1 reset=0;
         while(!halted&&cycles<300) begin @(posedge clk); #1; cycles++; end
-        check(halted&&pc==16'h0015,"conditional and unconditional branches reach HLT");
+        check(halted&&pc==16'h0016,"conditional and unconditional branches reach HLT");
         check(b==8'h5a,"JZ takes target and JNZ preserves fallthrough when false");
         check(zero&& !sign && parity && !carry && !aux_carry,"branch instructions preserve condition flags");
         check(!unsupported&&stalls>0,"branch address reads complete under ready stalls");

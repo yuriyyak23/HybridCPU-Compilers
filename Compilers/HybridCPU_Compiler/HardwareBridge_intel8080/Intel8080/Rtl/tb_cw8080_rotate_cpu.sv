@@ -18,7 +18,7 @@ module tb_cw8080_rotate_cpu;
       mem[5]=8'h3f; mem[6]=8'h17; mem[7]=8'h0f; mem[8]=8'h37; mem[9]=8'h3f; mem[10]=8'h76;
       repeat(2) @(posedge clk); #1 reset=0;
       while(!halted&&cycles<160) begin @(posedge clk); #1; cycles++; end
-      check(halted&&pc==10,"rotate and carry-control program reaches HLT");
+      check(halted&&pc==11,"rotate and carry-control program reaches HLT with PC advanced");
       check(a==8'h7e&&carry==0,"RLC/RAR/CMA/CMC/RAL/RRC/STC/CMC results");
       check(!sign&&!zero&&!parity&&!aux_carry,"rotate and accumulator control instructions preserve SZPA flags");
       check(!unsupported,"all tested accumulator operations decode");

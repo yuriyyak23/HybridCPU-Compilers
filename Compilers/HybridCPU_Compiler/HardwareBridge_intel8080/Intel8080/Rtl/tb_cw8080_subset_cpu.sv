@@ -96,15 +96,17 @@ module tb_cw8080_subset_cpu;
         mem[16'h0016]=8'h0c; // INR C: FF -> 00 (not mapped in source _ops)
         mem[16'h0017]=8'h0d; // DCR C: 00 -> FF; hardware must preserve CY
         mem[16'h0018]=8'h16; mem[16'h0019]=8'h01; // MVI D,01 (manual RTL-only opcode)
-        mem[16'h001a]=8'h90; // SUB B: 01 - FF = 02, borrow
-        mem[16'h001b]=8'h99; // SBB C with borrow in: 02 - FF - 1 = 02
-        mem[16'h001c]=8'ha7; // ANA A: clears CY and AC per Intel manual
-        mem[16'h001d]=8'haa; // XRA D (D=01), result 03
-        mem[16'h001e]=8'hb0; // ORA B (B=FF)
-        mem[16'h001f]=8'hbe; // CMP M (M=01), leaves A unchanged
-        mem[16'h0020]=8'h36; mem[16'h0021]=8'ha5; // MVI M,A5 through acknowledged write
-        mem[16'h0022]=8'hfb; // EI
-        mem[16'h0023]=8'h76; // HLT: EI delay must mature despite halt
+        mem[16'h001a]=8'h3e; mem[16'h001b]=8'h01; // MVI A,01 before SUB
+        mem[16'h001c]=8'h90; // SUB B: 01 - FF = 02, borrow
+        mem[16'h001d]=8'h99; // SBB C with borrow in: 02 - FF - 1 = 02
+        mem[16'h001e]=8'ha7; // ANA A: clears CY and AC per Intel manual
+        mem[16'h001f]=8'haa; // XRA D (D=01), result 03
+        mem[16'h0020]=8'hb0; // ORA B (B=FF)
+        mem[16'h0021]=8'hbe; // CMP M (M=01), leaves A unchanged
+        mem[16'h0022]=8'h36; mem[16'h0023]=8'ha5; // MVI M,A5 through acknowledged write
+        mem[16'h0024]=8'hfb; // EI
+        mem[16'h0025]=8'h76; // HLT: EI delay must mature despite halt
+        mem[16'h0026]=8'h76; // A later HLT is the resume point after the injected DI
         repeat (2) @(posedge clk);
         write_transfers = 0;
         #1 reset = 0;
@@ -148,23 +150,23 @@ module tb_cw8080_subset_cpu;
         check(pc == 16'h0018 && c == 8'hff && !zero && sign && parity && aux_carry && !carry,
               "DCR C preserves CY despite the emulator's source helper side effect");
 
-        while (!(pc == 16'h001b && d == 8'h01 && a == 8'h02 && carry && aux_carry && !sign && !zero && !parity) && cycles < 350) begin @(posedge clk); #1; cycles++; end
-        check(pc == 16'h001b && d == 8'h01 && a == 8'h02 && carry && aux_carry && !sign && !zero && !parity, "MVI D writes its immediate, then SUB B sets borrow and auxiliary borrow");
-        while (!(pc == 16'h001c && dut.opcode == 8'h99 && dut.state == 4'd0 && a == 8'h02 && carry && aux_carry) && cycles < 360) begin @(posedge clk); #1; cycles++; end
-        check(pc == 16'h001c && dut.opcode == 8'h99 && dut.state == 4'd0 && a == 8'h02 && carry && aux_carry, "SBB C consumes CY as borrow");
-        while (!(pc == 16'h001d && a == 8'h02 && !carry && !aux_carry) && cycles < 370) begin @(posedge clk); #1; cycles++; end
-        check(pc == 16'h001d && a == 8'h02 && !carry && !aux_carry, "ANA A clears CY and AC");
-        while (!(pc == 16'h001e && a == 8'h03) && cycles < 380) begin @(posedge clk); #1; cycles++; end
-        check(pc == 16'h001e && a == 8'h03 && !carry && !aux_carry, "XRA D computes XOR and logical flags");
-        while (!(pc == 16'h001f && a == 8'hff && sign && !zero && parity && !carry && !aux_carry) && cycles < 390) begin @(posedge clk); #1; cycles++; end
-        check(pc == 16'h001f && a == 8'hff && sign && !zero && parity && !carry && !aux_carry, "ORA B computes OR and logical flags");
-        while (!(pc == 16'h0020 && a == 8'hff && sign && !zero && !parity && !carry && !aux_carry) && cycles < 400) begin @(posedge clk); #1; cycles++; end
-        check(pc == 16'h0020 && a == 8'hff && sign && !zero && !parity && !carry && !aux_carry, "CMP M sets subtraction flags without changing A");
-        while (!(pc == 16'h0022 && mem[16'h0000] == 8'ha5 && write_transfers == 5) && cycles < 420) begin @(posedge clk); #1; cycles++; end
-        check(pc == 16'h0022 && mem[16'h0000] == 8'ha5 && write_transfers == 5, "MVI M holds its immediate through an acknowledged memory write");
-        while (!halted && cycles < 440) begin @(posedge clk); #1; cycles++; end
+        while (!(pc == 16'h001d && d == 8'h01 && a == 8'h02 && carry && !aux_carry && !sign && !zero && !parity) && cycles < 380) begin @(posedge clk); #1; cycles++; end
+        check(pc == 16'h001d && d == 8'h01 && a == 8'h02 && carry && !aux_carry && !sign && !zero && !parity, "SUB B sets full borrow and clears AC when low-nibble borrow occurs");
+        while (!(pc == 16'h001e && dut.opcode == 8'h99 && dut.state == 4'd0 && a == 8'h02 && carry && !aux_carry) && cycles < 390) begin @(posedge clk); #1; cycles++; end
+        check(pc == 16'h001e && dut.opcode == 8'h99 && dut.state == 4'd0 && a == 8'h02 && carry && !aux_carry, "SBB C consumes CY as borrow and computes AC from nibble carry-out");
+        while (!(pc == 16'h001f && a == 8'h02 && !carry && !aux_carry) && cycles < 400) begin @(posedge clk); #1; cycles++; end
+        check(pc == 16'h001f && a == 8'h02 && !carry && !aux_carry, "ANA A clears CY and AC");
+        while (!(pc == 16'h0020 && a == 8'h03) && cycles < 410) begin @(posedge clk); #1; cycles++; end
+        check(pc == 16'h0020 && a == 8'h03 && !carry && !aux_carry, "XRA D computes XOR and logical flags");
+        while (!(pc == 16'h0021 && a == 8'hff && sign && !zero && parity && !carry && !aux_carry) && cycles < 420) begin @(posedge clk); #1; cycles++; end
+        check(pc == 16'h0021 && a == 8'hff && sign && !zero && parity && !carry && !aux_carry, "ORA B computes OR and logical flags");
+        while (!(pc == 16'h0022 && a == 8'hff && sign && !zero && !parity && !carry && aux_carry) && cycles < 430) begin @(posedge clk); #1; cycles++; end
+        check(pc == 16'h0022 && a == 8'hff && sign && !zero && !parity && !carry && aux_carry, "CMP M sets subtraction flags and AC carry-out without changing A");
+        while (!(pc == 16'h0024 && mem[16'h0000] == 8'ha5 && write_transfers == 5) && cycles < 450) begin @(posedge clk); #1; cycles++; end
+        check(pc == 16'h0024 && mem[16'h0000] == 8'ha5 && write_transfers == 5, "MVI M holds its immediate through an acknowledged memory write");
+        while (!halted && cycles < 470) begin @(posedge clk); #1; cycles++; end
         check(halted, "program reaches HLT under alternating ready stalls");
-        check(pc == 16'h0023, "HLT retains its opcode address");
+        check(pc == 16'h0026, "HLT leaves PC at the next sequential instruction");
         check(!unsupported, "all executed opcodes are in the supported subset");
         check(!io_req, "subset performs no I/O transfers");
         check(stall_cycles > 0, "memory request/ready stalls were exercised");
@@ -172,22 +174,22 @@ module tb_cw8080_subset_cpu;
         check(!mem_req, "HALT state stops issuing memory requests");
         repeat (3) begin
             @(posedge clk); #1;
-            check(halted && !mem_req && pc == 16'h0023 && a == 8'hff,
+            check(halted && !mem_req && pc == 16'h0026 && a == 8'hff,
                   "HALT holds architectural state and bus idle without an interrupt");
         end
 
         irq = 1'b1;
         irq_opcode = 8'hf3; // Inject DI; it wakes the halted CPU and disables further IRQs.
         while (!irq_ack && cycles < 250) begin @(posedge clk); #1; cycles++; end
-        check(irq_ack && !halted && pc == 16'h0023,
+        check(irq_ack && !halted && pc == 16'h0026,
               "enabled IRQ wakes HALT, acknowledges once, and does not consume a memory byte");
         irq = 1'b0;
         @(posedge clk); #1;
         check(!irq_ack && !dut.interrupts_enabled,
               "injected DI executes and IRQ acknowledge is one cycle");
         while (!halted && cycles < 500) begin @(posedge clk); #1; cycles++; end
-        check(halted && pc == 16'h0023 && !mem_req && !unsupported,
-              "CPU returns to bus-idle HALT after executing the injected opcode");
+        check(halted && pc == 16'h0027 && !mem_req && !unsupported,
+              "IRQ resumes at the next byte, executes the following HLT, and returns to bus-idle halt");
         $display("PASS integrated partial CPU program in %0d cycles with %0d memory stalls", cycles, stall_cycles);
         $finish;
     end

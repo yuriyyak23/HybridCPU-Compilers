@@ -25,10 +25,13 @@ module tb_cw8080_immediate_alu_cpu;
       mem[16]=8'hfe; mem[17]=8'h90;     // CPI 90 => FF flags, A preserved
       mem[18]=8'h76;
       repeat(2) @(posedge clk); #1 reset=0;
+      while(!(pc==16'h000c&&a==8'h00&&!carry&&aux_carry)&&cycles<150) begin @(posedge clk); #1; cycles++; end
+      check(pc==16'h000c&&a==8'h00&&!carry&&aux_carry,
+            "ANI sets 8080 AC from OR of input bit 3 when result is zero");
       while(!halted&&cycles<300) begin @(posedge clk); #1; cycles++; end
-      check(halted&&pc==18,"all immediate ALU instructions consume one operand and reach HLT");
+      check(halted&&pc==19,"all immediate ALU instructions consume one operand and HLT advances PC");
       check(a==8'h8f,"ADI/ACI/SUI/SBI/ANI/XRI/ORI update A; CPI preserves A");
-      check(sign&&!zero&&parity&&carry&&!aux_carry,"CPI computes sign/parity/borrow and auxiliary borrow");
+      check(sign&&!zero&&parity&&carry&&aux_carry,"CPI computes sign/parity/borrow and auxiliary carry-out");
       check(!unsupported,"all eight immediate ALU opcodes decode");
       $display("PASS immediate ALU subset in %0d cycles",cycles); $finish;
     end

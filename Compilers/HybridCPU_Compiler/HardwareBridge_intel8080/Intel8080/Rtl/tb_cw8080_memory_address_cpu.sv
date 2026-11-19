@@ -50,13 +50,13 @@ module tb_cw8080_memory_address_cpu;
       mem[16'h0040]=8'h76;                            // HLT via PCHL
       repeat(2) @(posedge clk); #1 reset=0;
       while(!halted&&cycles<350) begin @(posedge clk); #1; cycles++; end
-      check(halted&&pc==16'h0040,"direct/indirect transfers, XTHL, XCHG and PCHL reach HLT");
+      check(halted&&pc==16'h0041,"direct/indirect transfers, XTHL, XCHG and PCHL reach HLT with PC advanced");
       check(a==8'h55,"LDAX/LDA load accumulator from selected addresses");
       check(mem[16'h2000]==8'h55&&mem[16'h2001]==8'h55&&mem[16'h2002]==8'h55,"STAX/STA store A at BC, DE and immediate address");
       check(mem[16'h2003]==8'h34&&mem[16'h2004]==8'h12,"SHLD stores HL to consecutive addresses");
       check({h,l}==16'h0040,"PCHL target is loaded into HL and used as the final PC");
       check(sp==16'h3000&&{d,e}==16'h5678,"XTHL exchanges stack words without changing SP and XCHG swaps DE/HL");
-      check(mem[16'h3000]==8'h34&&mem[16'h3001]==8'h12,"XTHL writes prior HL to stack memory");
+      check(mem[16'h3000]==8'h00&&mem[16'h3001]==8'h30,"XTHL writes prior HL (3000h) to stack memory");
       check(writes==7&&stalls>0,"single and paired writes complete only on ready");
       check(!unsupported,"addressed memory, XTHL, XCHG, PCHL and SPHL decode");
       $display("PASS addressed memory subset in %0d cycles with %0d stalls",cycles,stalls); $finish;

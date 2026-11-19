@@ -348,10 +348,19 @@ module cw8080_subset_cpu (
                             parity <= ~^alu_result;
                             if (opcode[5:3] <= 3'b011 || opcode[5:3] == 3'b111) begin
                                 carry <= alu_ext[8];
-                                aux_carry <= alu_nibble_ext[4];
+                                // SUB/SBB/CMP use the carry-out of the equivalent
+                                // two's-complement nibble addition. The widened
+                                // subtraction expression's bit 4 is borrow, so
+                                // invert it for Intel 8080 auxiliary carry.
+                                if (opcode[5:3] == 3'b010 || opcode[5:3] == 3'b011 || opcode[5:3] == 3'b111)
+                                    aux_carry <= ~alu_nibble_ext[4];
+                                else
+                                    aux_carry <= alu_nibble_ext[4];
                             end else begin
                                 carry <= 1'b0;
-                                aux_carry <= 1'b0;
+                                // Intel 8080 ANA/ANI set AC to the logical OR
+                                // of bit 3 in the two inputs (8085 differs).
+                                aux_carry <= (opcode[5:3] == 3'b100) ? (accumulator[3] | source_value[3]) : 1'b0;
                             end
                             memory_operand_valid <= 1'b0;
                             immediate_operand_valid <= 1'b0;
@@ -383,7 +392,8 @@ module cw8080_subset_cpu (
                     end else if (is_mvi || opcode == 8'hd3 || opcode == 8'hdb) begin
                         state <= IMM_FETCH;
                     end else if (opcode == 8'h76) begin
-                        pc <= pc - 16'd1; // Source Ops.HLT leaves PC on the HLT opcode.
+                        // The opcode fetch already advanced PC to the next
+                        // sequential byte, as specified for Intel 8080 HLT.
                         halted <= 1'b1;
                         state <= HALTED;
                     end else if (opcode == 8'hf3) begin

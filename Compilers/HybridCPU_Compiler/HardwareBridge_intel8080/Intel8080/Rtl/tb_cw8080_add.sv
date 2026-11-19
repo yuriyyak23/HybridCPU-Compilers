@@ -61,9 +61,9 @@ module tb_cw8080_add;
         imm_opcode=8'hc6; imm_byte=1; tick();
         check(imm_pc==4 && imm_a==0 && imm_z && imm_p && imm_cy && imm_ac==0, "ADI carry and preserve AC");
         imm_opcode=8'h76; tick();
-        check(halted && imm_pc==4, "HLT stops and preserves PC");
+        check(halted && imm_pc==5, "HLT stops with PC at the next sequential byte");
         imm_opcode=8'h00; tick();
-        check(halted && imm_pc==4 && imm_a==0, "halted sequencer holds state");
+        check(halted && imm_pc==5 && imm_a==0, "halted sequencer holds state");
         tick();
         check(exec_a==0 && {exec_s,exec_z,exec_p,exec_cy,exec_ac}==0, "instruction slice reset");
         exec_reset=0; exec_b=8'h01; exec_opcode=8'h80; execute=1; tick();
@@ -91,7 +91,7 @@ module tb_cw8080_add;
 
         reg_a=8'h10; reg_b=8'h01; reg_c=8'h02; reg_d=8'h03; reg_e=8'h04;
         reg_h=8'h05; reg_l=8'h06; reg_m=8'h07; dec_carry_in=1'b1;
-        for (int op=0x80; op<=0x8f; op++) begin
+        for (int op=8'h80; op<=8'h8f; op++) begin
             opcode=op[7:0]; #1;
             check(supported && writes_a, "ADD/ADC opcode accepted and writes A");
             if (op<8'h88) check(dec_result==reg_a+((op[2:0]==0)?reg_b:(op[2:0]==1)?reg_c:(op[2:0]==2)?reg_d:(op[2:0]==3)?reg_e:(op[2:0]==4)?reg_h:(op[2:0]==5)?reg_l:(op[2:0]==6)?reg_m:reg_a), "ADD source register decode");

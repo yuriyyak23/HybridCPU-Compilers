@@ -46,7 +46,7 @@ module tb_cw8080_stack_cpu;
         mem[16'h0030]=8'h76; // must be skipped by untaken CZ
         repeat(2) @(posedge clk); #1 reset=0;
         while(!halted&&cycles<500) begin @(posedge clk); #1; cycles++; end
-        check(halted&&pc==16'h0021,"nested CALL/RET, conditional CALL skip, JMP and RST return reach HLT");
+        check(halted&&pc==16'h0022,"nested CALL/RET, conditional CALL skip, JMP and RST return reach HLT with PC advanced");
         check(stack_pointer==16'h1000,"all taken calls, returns and RST balance SP");
         check(c==8'h33,"nested callee effects survive both returns");
         check(writes==6&&reads==6,"three pushes and three pops use two acknowledged bytes each");

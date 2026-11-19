@@ -14,7 +14,13 @@ foreach(var candidate in new[]{Path.GetDirectoryName(selectionPath)!,Path.GetDir
 var selected=JsonSerializer.Deserialize<string[]>(File.ReadAllText(selectionPath))??throw new InvalidDataException("Selection must be a JSON string array.");
 var irPath=Path.Combine(Path.GetDirectoryName(output)!,"opcode-ir-candidate.json");
 var methodIrPath=Path.Combine(Path.GetDirectoryName(output)!,"ops-method-ir.json");
-foreach(var candidate in new[]{output,irPath,methodIrPath}) if(File.Exists(candidate)||Directory.Exists(candidate)) throw new IOException("Output already exists; refusing overwrite: "+candidate);
+var addBehaviorPath=Path.Combine(Path.GetDirectoryName(output)!,"add-behavior-projection.json");
+var adcBehaviorPath=Path.Combine(Path.GetDirectoryName(output)!,"adc-behavior-projection.json");
+var sbbBehaviorPath=Path.Combine(Path.GetDirectoryName(output)!,"sbb-behavior-projection.json");
+var subBehaviorPath=Path.Combine(Path.GetDirectoryName(output)!,"sub-behavior-projection.json");
+var dadBehaviorPath=Path.Combine(Path.GetDirectoryName(output)!,"dad-behavior-projection.json");
+var logicalBehaviorPath=Path.Combine(Path.GetDirectoryName(output)!,"logical-behavior-projection.json");
+foreach(var candidate in new[]{output,irPath,methodIrPath,addBehaviorPath,adcBehaviorPath,sbbBehaviorPath,subBehaviorPath,dadBehaviorPath,logicalBehaviorPath}) if(File.Exists(candidate)||Directory.Exists(candidate)) throw new IOException("Output already exists; refusing overwrite: "+candidate);
 var model=Analyzer.Analyze(root,selected);
 Directory.CreateDirectory(Path.GetDirectoryName(output)!);
 using(var stream=new FileStream(output,FileMode.CreateNew,FileAccess.Write,FileShare.None))
@@ -24,4 +30,16 @@ using(var irStream=new FileStream(irPath,FileMode.CreateNew,FileAccess.Write,Fil
 var methodIr=Analyzer.BuildMethodIr(model,selected);
 using(var methodStream=new FileStream(methodIrPath,FileMode.CreateNew,FileAccess.Write,FileShare.None))
     JsonSerializer.Serialize(methodStream,new { schema="hardwarebridge.intel8080.ops-method-ir/v1", disposition="source-mapped structural C# syntax projection; not executable hardware semantics", methods=methodIr },new JsonSerializerOptions{WriteIndented=true});
-Console.WriteLine($"Analyzed {model.Files.Count} files, {model.Types.Count} types, {model.Opcodes.Count} opcode entries, {methodIr.Count} Ops methods; IR candidates: {irPath}, {methodIrPath}. Sources were not built or run.");
+using(var addStream=new FileStream(addBehaviorPath,FileMode.CreateNew,FileAccess.Write,FileShare.None))
+    JsonSerializer.Serialize(addStream,Analyzer.BuildAddBehaviorProjection(model),new JsonSerializerOptions{WriteIndented=true});
+using(var adcStream=new FileStream(adcBehaviorPath,FileMode.CreateNew,FileAccess.Write,FileShare.None))
+    JsonSerializer.Serialize(adcStream,Analyzer.BuildAdcBehaviorProjection(model),new JsonSerializerOptions{WriteIndented=true});
+using(var sbbStream=new FileStream(sbbBehaviorPath,FileMode.CreateNew,FileAccess.Write,FileShare.None))
+    JsonSerializer.Serialize(sbbStream,Analyzer.BuildSbbBehaviorProjection(model),new JsonSerializerOptions{WriteIndented=true});
+using(var subStream=new FileStream(subBehaviorPath,FileMode.CreateNew,FileAccess.Write,FileShare.None))
+    JsonSerializer.Serialize(subStream,Analyzer.BuildSubBehaviorProjection(model),new JsonSerializerOptions{WriteIndented=true});
+using(var dadStream=new FileStream(dadBehaviorPath,FileMode.CreateNew,FileAccess.Write,FileShare.None))
+    JsonSerializer.Serialize(dadStream,Analyzer.BuildDadBehaviorProjection(model),new JsonSerializerOptions{WriteIndented=true});
+using(var logicalStream=new FileStream(logicalBehaviorPath,FileMode.CreateNew,FileAccess.Write,FileShare.None))
+    JsonSerializer.Serialize(logicalStream,Analyzer.BuildLogicalBehaviorProjection(model),new JsonSerializerOptions{WriteIndented=true});
+Console.WriteLine($"Analyzed {model.Files.Count} files, {model.Types.Count} types, {model.Opcodes.Count} opcode entries, {methodIr.Count} Ops methods; projections: {irPath}, {methodIrPath}, {addBehaviorPath}, {adcBehaviorPath}, {sbbBehaviorPath}, {subBehaviorPath}, {dadBehaviorPath}, {logicalBehaviorPath}. Sources were not built or run.");

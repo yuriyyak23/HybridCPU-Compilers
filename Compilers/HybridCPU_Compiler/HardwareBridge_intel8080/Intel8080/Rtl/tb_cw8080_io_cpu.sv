@@ -31,7 +31,7 @@ module tb_cw8080_io_cpu;
       mem[6]=8'h76;                       // HLT
       repeat(2) @(posedge clk); #1 reset=0;
       while(!halted&&cycles<200) begin @(posedge clk); #1; cycles++; end
-      check(halted&&pc==6,"IN/OUT immediate ports advance PC and reach HLT");
+      check(halted&&pc==7,"IN/OUT immediate ports advance PC and reach HLT");
       check(outs==1&&ins==1,"one acknowledged output and input transaction");
       check(a==8'ha7,"IN samples the ready-cycle port data");
       check(stalls>0,"I/O request waits for ready");
