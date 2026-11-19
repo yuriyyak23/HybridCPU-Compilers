@@ -212,6 +212,10 @@ def main(args):
     require(GIT.fullmatch(args.bridge_sha or "") and GIT.fullmatch(args.core_sha or ""), "reviewed exact SHA required")
     require(git(bridge, ["rev-parse", "HEAD"]) == args.bridge_sha, "wrong Bridge SHA")
     require(git(core, ["rev-parse", "HEAD"]) == args.core_sha, "wrong Core SHA")
+    require(not git(core, ["status", "--porcelain=v1", "--untracked-files=all"]),
+            "dirty pinned Core checkout; HEAD does not describe worktree bytes")
+    require(not git(bridge, ["status", "--porcelain=v1", "--untracked-files=all"]),
+            "dirty pinned Bridge checkout; HEAD does not describe worktree bytes")
     check_sha(args.closure_sha, "Csc closure SHA")
     check_sha(args.roots_sha, "roots manifest SHA")
     require(re.fullmatch(r"11\.0\.[0-9A-Za-z.+-]+", args.sdk), "explicit .NET 11 SDK version required")
@@ -338,6 +342,7 @@ def main(args):
         closure = stage_index["ClosureSha256"]
         receipt["coreIndexSha256"] = digest
         receipt["coreClosureSha256"] = closure
+        receipt["rootSelectors"] = stage_index["Roots"]
         receipt["coreIndexChunks"] = [
             {"ordinal": i, "path": d["Path"], "sha256": d["Sha256"],
              "bytes": d["Bytes"], "rows": d["Rows"]}
