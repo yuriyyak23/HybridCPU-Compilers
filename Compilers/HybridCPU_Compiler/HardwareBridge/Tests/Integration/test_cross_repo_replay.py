@@ -74,8 +74,21 @@ class ReplayRefusals(unittest.TestCase):
 
     def test_real_golden_dirty_checkout_rejected_before_observer(self):
         args = self.replay_args(scope="golden")
+        # Separate clean pinned Bridge/Core clones: the Golden-only mutation
+        # must reach the Golden guard, not the earlier Core checkout guard.
+        for name in ("bridge", "core"):
+            target = self.base / ("clean-" + name)
+            subprocess.run(["git", "clone", "-q", str(self.golden), str(target)], check=True)
+            setattr(args, name, str(target))
         (self.golden / "untracked.generated.cs").write_bytes(b"// dirty\n")
         with self.assertRaisesRegex(r.Blocked, "dirty Golden checkout"):
+            r.main(args)
+        self.assertFalse(Path(args.output).exists())
+
+    def test_dirty_core_checkout_rejected_before_copy(self):
+        args = self.replay_args()
+        (self.golden / "dirty-core.cs").write_bytes(b"// dirty\n")
+        with self.assertRaisesRegex(r.Blocked, "dirty pinned Core checkout"):
             r.main(args)
         self.assertFalse(Path(args.output).exists())
 
