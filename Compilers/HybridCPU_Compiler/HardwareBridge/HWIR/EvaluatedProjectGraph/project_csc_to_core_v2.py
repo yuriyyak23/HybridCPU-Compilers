@@ -116,8 +116,8 @@ def exact_index(capture_dir):
         if row["kind"] in SOURCE_KINDS:
             if row["role"] not in ("primary", "owned-body", "metadata-only"):
                 reject("unknown source owner role")
-            if row["role"] == "owned-body":
-                reject("DEPRECATED legacy projection refuses owned-body: use reviewed stage_core_v2")
+            if row["role"] != "primary":
+                reject("DEPRECATED legacy projection refuses non-primary source role: use reviewed stage_core_v2")
             try:
                 # Core OwnedFileReader requires strict UTF-8 source inputs.
                 decoder = __import__("codecs").getincrementaldecoder("utf-8")("strict")
