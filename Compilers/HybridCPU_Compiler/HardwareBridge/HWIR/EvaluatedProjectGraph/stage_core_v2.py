@@ -34,6 +34,8 @@ def load(path, ceiling):
 
 def check_roots(path, reviewed_sha):
     f = capture.safe_path(str(path))
+    if f.stat().st_size > 65536:
+        refuse("oversized root manifest")
     raw = f.read_bytes()
     if not re.fullmatch(r"[0-9a-f]{64}", reviewed_sha) or capture.sha(raw) != reviewed_sha:
         refuse("wrong/missing independently reviewed root manifest SHA")
@@ -98,6 +100,9 @@ def role(row):
             "metadata-only": "metadata-only"}[ownership]
 
 def verify(output, reviewed_capture, reviewed_roots):
+    if (not isinstance(reviewed_capture, str) or not re.fullmatch(r"[0-9a-f]{64}", reviewed_capture)
+        or not isinstance(reviewed_roots, str) or not re.fullmatch(r"[0-9a-f]{64}", reviewed_roots)):
+        refuse("missing reviewed hash inputs")
     base = capture.safe_path(os.path.abspath(output), file=False)
     roots, _ = check_roots(base / "roots-manifest.json", reviewed_roots)
     index_file = capture.safe_path(str(base / "bridge-index.json"))
@@ -133,7 +138,11 @@ def verify(output, reviewed_capture, reviewed_roots):
         lines = contents.splitlines(keepends=True)
         if len(lines) != item["Rows"] or any(not x.endswith(b"\n") for x in lines):
             refuse("changed JSONL row count")
-        rows.extend(json.loads(x[:-1], object_pairs_hook=capture.pairs_unique) for x in lines)
+        for line in lines:
+            item = json.loads(line[:-1], object_pairs_hook=capture.pairs_unique)
+            if json_bytes(item) != line[:-1]:
+                refuse("noncanonical Core JSONL row")
+            rows.append(item)
         aggregate.update(contents)
     if aggregate.hexdigest().upper() != index["ClosureSha256"] or len(rows) != len(mapping["Rows"]):
         refuse("changed closure digest / row count")
@@ -154,6 +163,11 @@ def verify(output, reviewed_capture, reviewed_roots):
         f = capture.safe_path(str(base / expected_path))
         if f.stat().st_size != row["Bytes"] or sha(f.read_bytes()) != row["Sha256"]:
             refuse("mutated output file bytes")
+        if category == "source":
+            try:
+                f.read_bytes().decode("utf-8", errors="strict")
+            except UnicodeDecodeError:
+                refuse("Core source must be UTF-8")
     if [x["Path"] for x in rows] != sorted(x["Path"] for x in rows):
         refuse("reordered Core source list")
     expected = {"bridge-index.json", "capture-map.json", "roots-manifest.json"} | {
@@ -167,6 +181,9 @@ def verify(output, reviewed_capture, reviewed_roots):
             actual.add(child.relative_to(base).as_posix())
     if actual != expected:
         refuse("extra/missing transport files")
+    actual_dirs = {x.relative_to(base).as_posix() for x in base.rglob("*") if x.is_dir()}
+    if actual_dirs != {"inputs", "bridge-index"}:
+        refuse("unexpected output directory")
     return index["ClosureSha256"]
 
 def stage(bundle, reviewed_capture, roots_file, reviewed_roots, output, timeout_seconds=300,
