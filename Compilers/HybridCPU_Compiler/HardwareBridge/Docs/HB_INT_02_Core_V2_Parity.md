@@ -61,3 +61,26 @@ wire contract; PR #14 must be reviewed/merged before this stacked parity test.
 Any true Core reader handoff still needs separately pinned Core ownership and
 a re-read of external expected source SHA/PE/PDB. These remain **Blocked**,
 as do complete HybridCPU-v2 CPU, RTL acceptance, FPGA/ASIC and Physical signoff.
+
+
+## Actual Windows QA receipt (2026-11-19)
+
+[GitHub Actions run #44570684887](https://github.com/yuriyyak23/HybridCPU-Compilers/actions/runs/44570684887) finished **success** on Windows 2025 with the pinned .NET 11 SDK. The real compiler/simulator/Golden execution stages were not run.
+
+| Executed test | Actual exit | Captured stdout/stderr SHA-256 |
+|---|---:|---|
+| Production .NET 11 index + JSONL parity | 0 | 90B51D5F511195E91EA8F7E1B4669CBEADF6396457E177A8E37042B824EE3E67 |
+| Source mutation must refuse | 1 (expected) | BA942439E6A7B1AD5E404519D4A80815A88E33CC6A078813772D86DBCB273EA5 |
+| Index mutation must refuse | 1 (expected) | 4E08DC30F235D74BA2028E48E2318369D2F9BEC69F08E59E103EAD76AF225D21 |
+| Metadata/source role mutation must refuse | 1 (expected) | A50AD8B6C495E977AC1CA4C2551894273D66A733BE71A7E7094B0FE122117301 |
+
+Actual produced synthetic Core v2 closure SHA-256:
+8107F7A9B676F2A39558A3FF333FABE9E547E63A45F1E57EF4104AC679A83520.
+Core-shaped index SHA-256:
+8F4B195CE064F06DC24C67383BD57A3497A5FBCCE959BB64360605AF18F50E7E.
+Synthetic Golden source file SHA unchanged before/after:
+B9AC59DEF0DC4295FBD37A0E0B9F34CED224A60DC01E1C9C7BCEF866E7ADEB7C.
+Actual built executable .dll SHA-256:
+4FF7B5CF48B192FB77D1B346524BCB46A76026FD15B08BF85C1EAD3F5AB2A9B0.
+
+**Scope-limited Passed:** Python projection fixture and existing production Bridge v2 .NET byte parity only. Actual Core-owned reader applied to these emitted files, approved Golden Csc, independent source/body evidence and RTL/Physical signoff remain **Blocked/NotRun**. No Golden HybridCPU-v2 files were written.
