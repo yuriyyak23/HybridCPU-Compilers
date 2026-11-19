@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import types
 import unittest
 import uuid
 
@@ -34,6 +35,60 @@ class ReplayRefusals(unittest.TestCase):
         self.assertEqual(a, b)
         self.assertEqual(a['files'], 2)
         self.assertEqual(a['status'], '')
+    def replay_args(self, scope="fixture"):
+        roots = self.base / 'roots.json'
+        roots.write_bytes(b'{"Schema":"fixture-only"}')
+        head = r.git(self.golden, ["rev-parse", "HEAD"])
+        return types.SimpleNamespace(
+            bridge=str(self.golden), core=str(self.golden), golden=str(self.golden),
+            output=str(Path(tempfile.gettempdir()) / ("hb-test-refusal-" + uuid.uuid4().hex)),
+            bridge_sha=head, core_sha=head, golden_sha=head, scope=scope,
+            closure_sha="0" * 64, roots=str(roots), roots_sha=r.sha_file(roots)[0],
+            sdk="11.0.100-rc.2.26504.105", dotnet=sys.executable,
+            graph=str(self.base / 'graph.json'), observation=str(self.base / 'obs.json'),
+            observer_argv=None, observer_argv_sha=None, observer_exe_sha=None,
+            graph_sha=None, observation_sha=None, pe=None, pdb=None, pe_sha=None,
+            pdb_sha=None, facts_argv=None, facts_argv_sha=None, facts_exe_sha=None,
+            facts=None, facts_sha=None, timeout=10)
+
+    def test_wrong_core_checkout_sha_blocks_before_copy_or_execution(self):
+        args = self.replay_args()
+        args.core_sha = "0" * 40
+        with self.assertRaisesRegex(r.Blocked, "wrong Core SHA"):
+            r.main(args)
+        self.assertFalse(Path(args.output).exists())
+
+    def test_wrong_bridge_checkout_sha_blocks(self):
+        args = self.replay_args()
+        args.bridge_sha = "0" * 40
+        with self.assertRaisesRegex(r.Blocked, "wrong Bridge SHA"):
+            r.main(args)
+        self.assertFalse(Path(args.output).exists())
+
+    def test_wrong_reviewed_root_manifest_sha_blocks(self):
+        args = self.replay_args()
+        args.roots_sha = "0" * 64
+        with self.assertRaisesRegex(r.Blocked, "reviewed roots manifest byte mismatch"):
+            r.main(args)
+        self.assertFalse(Path(args.output).exists())
+
+    def test_real_golden_dirty_checkout_rejected_before_observer(self):
+        args = self.replay_args(scope="golden")
+        (self.golden / "untracked.generated.cs").write_bytes(b"// dirty\n")
+        with self.assertRaisesRegex(r.Blocked, "dirty Golden checkout"):
+            r.main(args)
+        self.assertFalse(Path(args.output).exists())
+
+    def test_stale_pe_pdb_byte_pin_never_equals_changed_payload(self):
+        pe = self.base / "a.dll"
+        pdb = self.base / "a.pdb"
+        pe.write_bytes(b"fixture-pe")
+        pdb.write_bytes(b"fixture-pdb")
+        before = {name: r.sha_file(path)[0] for name,path in (("PE", pe), ("PDB",pdb))}
+        pdb.write_bytes(b"fixture-stale-pdb")
+        self.assertNotEqual(r.sha_file(pdb)[0], before["PDB"])
+        self.assertEqual(r.sha_file(pe)[0], before["PE"])
+
     def test_byte_mutation(self):
         before = r.inventory(self.golden)
         (self.golden / 'A.cs').write_bytes(b'class B {}\n')
