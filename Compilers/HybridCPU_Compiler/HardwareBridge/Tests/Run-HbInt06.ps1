@@ -149,7 +149,8 @@ finally {
     $report | ConvertTo-Json -Depth 14 | Set-Content -LiteralPath $file -Encoding utf8NoBOM
     $sha = (Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash
     Write-Host "HB-INT-06 report: $file SHA256=$sha"
-    Write-Host "Golden pre=$($before.TreeSha256) post=$($report.GoldenAfter.TreeSha256); unchanged=$($report.SourceUnchanged)"
+    $afterDigest = if ($null -eq $report.GoldenAfter) { "NOTRUN" } else { $report.GoldenAfter.TreeSha256 }
+    Write-Host "Golden pre=$($before.TreeSha256) post=$afterDigest; unchanged=$($report.SourceUnchanged)"
     foreach ($entry in $report.Commands) {
         Write-Host "EXEC $($entry.Name): status=$($entry.Status) exit=$($entry.ExitCode) stdoutSHA=$($entry.StdoutSha256) stderrSHA=$($entry.StderrSha256)"
     }
