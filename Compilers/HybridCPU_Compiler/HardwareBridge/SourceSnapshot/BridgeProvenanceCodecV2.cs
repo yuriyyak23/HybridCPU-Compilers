@@ -83,6 +83,9 @@ public static class BridgeProvenanceCodecV2
                  facts.PdbSha256 is not null)
             throw new ArgumentException("HBINT03_V2_REJECTED: rejected facts cannot claim compiler pins.");
 
+        if (candidate)
+            CheckCandidateGraphCoherence(source, facts, cancellationToken);
+
         BridgeV2Transport transport = BridgeSegmentIndexV2.Write(source.Roots, inputs, cancellationToken);
         var sourceRows = transport.Inputs.Where(x => x.Role == "source").ToArray();
         if (sourceRows.Length != source.Documents.Count)
@@ -143,6 +146,92 @@ public static class BridgeProvenanceCodecV2
             throw new ArgumentException("HBINT03_V2_SIZE: envelope too large.");
         cancellationToken.ThrowIfCancellationRequested();
         return result;
+    }
+
+    // Candidate-only *software fact* closure sanity. The existing Companion
+    // source compiler is the producer of these facts; this does not verify
+    // PE/CIL, prove method semantics or replace Core exact-symbol admission.
+    // The current v1 facts DTO cannot uniquely carry generic root instantiations,
+    // so no generic root is admissible as a v2 Candidate until a paired contract.
+    private static void CheckCandidateGraphCoherence(
+        BridgeSourceSnapshotV1 source, BridgeCompilerFactsV1 facts,
+        CancellationToken cancellationToken)
+    {
+        if (facts.Methods is not { Count: > 0 and <= 256 } ||
+            facts.RootIdentities is null || facts.RootIdentities.Count != source.Roots.Count ||
+            facts.Edges is null || facts.Edges.Count > 16384 || facts.SourceMaps is null ||
+            facts.RootIdentities.Any(string.IsNullOrWhiteSpace) ||
+            facts.RootIdentities.Distinct(StringComparer.Ordinal).Count() != facts.RootIdentities.Count)
+            throw new ArgumentException("HBINT03_V2_GRAPH: absent, duplicate or oversized graph identities.");
+
+        var methods = new Dictionary<string, BridgeMethodFactV1>(StringComparer.Ordinal);
+        foreach (BridgeMethodFactV1 method in facts.Methods)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (method is null ||
+                string.IsNullOrWhiteSpace(method.StableIdentity) ||
+                string.IsNullOrWhiteSpace(method.AssemblyIdentity) ||
+                string.IsNullOrWhiteSpace(method.ModuleName) ||
+                string.IsNullOrWhiteSpace(method.DeclaringType) ||
+                string.IsNullOrWhiteSpace(method.MethodName) ||
+                string.IsNullOrWhiteSpace(method.CanonicalSignature) ||
+                method.MetadataToken <= 0 ||
+                method.IdentityDigest is not { Length: 64 } ||
+                !method.IdentityDigest.All(Uri.IsHexDigit) ||
+                method.ImportStatus != "Success" ||
+                method.DirectCallees is null ||
+                !methods.TryAdd(method.StableIdentity, method))
+                throw new ArgumentException("HBINT03_V2_METHOD: incomplete, duplicate or unadmitted method fact.");
+        }
+        var rootIds = new HashSet<string>(StringComparer.Ordinal);
+        foreach (BridgeRootSelectorV1 root in source.Roots)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            // Generic instantiation is absent from BridgeMethodFactV1. Do not
+            // equate an otherwise matching type/name with an exact body owner.
+            if (root is null || root.TypeArguments is null || root.MethodArguments is null ||
+                root.TypeArguments.Count != 0 || root.MethodArguments.Count != 0)
+                throw new ArgumentException("HBINT03_V2_ROOT: generic root ownership is unqualified.");
+
+            string[] matches = facts.RootIdentities.Where(id =>
+                methods.TryGetValue(id, out BridgeMethodFactV1? m) &&
+                m.DeclaringType == root.TypeName &&
+                m.MethodName == root.MethodName &&
+                (root.MetadataToken is null || m.MetadataToken == root.MetadataToken)).ToArray();
+            if (matches.Length != 1 || !rootIds.Add(matches[0]))
+                throw new ArgumentException("HBINT03_V2_ROOT: root does not identify exactly one imported body.");
+        }
+
+        foreach (BridgeMethodFactV1 method in facts.Methods)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (method.DirectCallees.Any(id => string.IsNullOrWhiteSpace(id) ||
+                !methods.ContainsKey(id)) ||
+                method.DirectCallees.Distinct(StringComparer.Ordinal).Count() != method.DirectCallees.Count)
+                throw new ArgumentException("HBINT03_V2_CLOSURE: direct callee is missing or duplicated.");
+        }
+        var edges = new HashSet<string>(StringComparer.Ordinal);
+        foreach (BridgeEdgeFactV1 edge in facts.Edges)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (edge is null || string.IsNullOrWhiteSpace(edge.StableId) ||
+                !edges.Add(edge.StableId) ||
+                !methods.TryGetValue(edge.Caller, out BridgeMethodFactV1? caller) ||
+                !methods.ContainsKey(edge.Callee) ||
+                !caller.DirectCallees.Contains(edge.Callee, StringComparer.Ordinal))
+                throw new ArgumentException("HBINT03_V2_CLOSURE: graph edge is unowned or not in the direct callee set.");
+        }
+        foreach (BridgeMapRowV1 map in facts.SourceMaps)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (map is null ||
+                !methods.TryGetValue(map.MethodIdentity, out BridgeMethodFactV1? owner) ||
+                !string.Equals(owner.PeSha256, facts.PeSha256, StringComparison.OrdinalIgnoreCase) ||
+                !string.Equals(map.PeSha256, facts.PeSha256, StringComparison.OrdinalIgnoreCase) ||
+                !string.Equals(map.PdbSha256, facts.PdbSha256, StringComparison.OrdinalIgnoreCase) ||
+                map.MethodToken != owner.MetadataToken || map.IlOffset < 0 || map.IrIndex < 0)
+                throw new ArgumentException("HBINT03_V2_MAP: source map has an unowned PE/PDB/method token.");
+        }
     }
 
     /// <summary>
