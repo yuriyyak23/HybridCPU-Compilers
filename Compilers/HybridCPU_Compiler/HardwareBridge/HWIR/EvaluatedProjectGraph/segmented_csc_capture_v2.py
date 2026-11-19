@@ -132,7 +132,7 @@ def command_files(argv, cwd):
                        "/features:", "/pathmap:", "/usings:", "/moduleassemblyname:",
                        "/main:", "/baseaddress:", "/filealign:", "/preferreduilang:",
                        "/instrument:", "/checksumalgorithm:", "/errorendlocation:")
-    scalar_flags = {"/noconfig", "/fullpaths", "/utf8output", "/nostdlib", "/nostdlib+",
+    scalar_flags = {"/errorreport:prompt", "/noconfig", "/fullpaths", "/utf8output", "/nostdlib", "/nostdlib+",
                     "/nostdlib-", "/checked", "/checked+", "/checked-", "/unsafe",
                     "/unsafe+", "/unsafe-", "/optimize", "/optimize+", "/optimize-",
                     "/deterministic", "/deterministic+", "/deterministic-", "/parallel+",
