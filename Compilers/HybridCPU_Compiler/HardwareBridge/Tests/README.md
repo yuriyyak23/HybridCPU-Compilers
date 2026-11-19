@@ -79,3 +79,11 @@ This .NET 11-only project compiles the actual production snapshot, fixed AddWord
 ## HB-INT-02/03/06: real owned temp v2 publisher regression
 
 The isolated v2 .NET 11 contract executable now also runs `BridgeV2OwnedWorkspaceTests` using real filesystem IO against a **synthetic** source tree. It stages an exact Core-compatible index, JSONL chunks and source/reference bytes in a newly owned OS-temp folder; checks SHA-256 before/after and rejects stale/missing/linked sources, invalid origins, cancelled publication and output path collisions. It does not run Csc/Golden, qualify any hardware owner or replace the paired Core importer. See [publisher migration](../Docs/HB_INT_V2_Owned_Workspace_Publishing.md). On CI use the isolated `hb-int-v2-workspace.yml` workflow; full Companion and Golden/CI gates remain independent.
+
+## HB-INT-04 source-bound vector contract (opt-in, no Core compiler dependency)
+
+```sh
+dotnet run --project Compilers/HybridCPU_Compiler/HardwareBridge/Tests/GoldenBoundVectors.ContractTests.csproj -c Release
+```
+
+Tests exercise the actual `GoldenBoundVectorsCodecV1` and the original fixed AddWord delegate with an explicit test-only host registration. The source and PE bytes used here are **synthetic fixture inputs**, not real Golden CPU provenance. The new Windows/Linux CI job reports process exit and SHA-256 of captured output. The existing Companion integration and Core acceptance gates are not reclassified by these fixture checks; they remain separate and fail closed.

@@ -7,3 +7,7 @@ Only `TrustedAddWordOracleV1.RegisterExplicitlyTrusted(Func<uint,uint,uint>, sou
 ## HB-INT-04: source-bound Golden raw trace v1
 
 `GoldenRawTraceCodecV1` is a **separate** read-only, non-executing protocol; `TrustedAddWordOracleV1` and the v1 sidecar remain unchanged. See [raw-trace-v1.md](raw-trace-v1.md) for exact byte/clock/step/memory/replay contracts and required Core-owned gates. These structs only serialize caller-recorded observations; no assembly loading, host execution, sandbox, clock inference or trust promotion is performed here.
+
+## HB-INT-04 follow-up: source-bound AddWord vector replay
+
+The optional [bound-vectors-v1.md](bound-vectors-v1.md) describes `GoldenBoundVectorsCodecV1`: it binds the unchanged reviewed AddWord observation to original source bytes/digest, supplied compiled assembly bytes/digest, exact root, reviewed label, and **independently requested ordered vectors**. The codec does not invoke any delegate or grant verification authority. The previously merged step trace DTO and sidecar/v1 remain unchanged. Independent Golden attestation and Golden↔RTL equivalence require Core CW-INT-10/11.
