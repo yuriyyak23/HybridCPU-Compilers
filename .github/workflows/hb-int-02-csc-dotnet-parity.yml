@@ -63,11 +63,11 @@ jobs:
                 throw 'Real .NET serializer parity failed'
               }
               Get-Content -LiteralPath $goodLog
-              $args = @('run','--no-build','--no-restore','--project',$project,
+              $testArgv = @('run','--no-build','--no-restore','--project',$project,
                 '--configuration','Release',"-p:ArtifactsPath=$artifactPath",'--',$output)
               function Assert-Refused([string] $Label) {
                 $log = Join-Path $sdk ("negative-" + $Label + ".txt")
-                & dotnet @args > $log 2>&1
+                & dotnet @testArgv > $log 2>&1
                 $code = $LASTEXITCODE
                 Write-Host "Negative $Label actual exit=$code stdout/stderr SHA256=$((Get-FileHash $log -Algorithm SHA256).Hash)"
                 if ($code -eq 0) { throw "Mutation was admitted: $Label" }
