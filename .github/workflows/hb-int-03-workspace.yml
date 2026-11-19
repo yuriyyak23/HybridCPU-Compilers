@@ -1,0 +1,52 @@
+name: HB-INT-03 owned v2 workspace (software-facts only)
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/**'
+      - '.github/workflows/hb-int-03-workspace.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  managed-workspace:
+    name: Byte-pinned v2 workspace / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '11.0.100-rc.2.26504.105'
+          dotnet-quality: preview
+      - name: Run real managed v2 codec and isolated filesystem tests
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          mkdir -p "$RUNNER_TEMP/hb-v2-sdk" "$RUNNER_TEMP/hb-v2-logs"
+          printf '%s\n' '{"sdk":{"version":"11.0.100-rc.2.26504.105","rollForward":"disable","allowPrerelease":true}}' > "$RUNNER_TEMP/hb-v2-sdk/global.json"
+          cd "$RUNNER_TEMP/hb-v2-sdk"
+          dotnet --version
+          test "$(dotnet --version)" = '11.0.100-rc.2.26504.105'
+          project="$GITHUB_WORKSPACE/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/HardwareBridge.V2.ContractTests.csproj"
+          dotnet restore "$project" 2>&1 | tee "$RUNNER_TEMP/hb-v2-logs/restore.log"
+          sha256sum "$RUNNER_TEMP/hb-v2-logs/restore.log"
+          set +e
+          dotnet run --project "$project" --no-restore -c Release 2>&1 | tee "$RUNNER_TEMP/hb-v2-logs/contracts.log"
+          rc=${PIPESTATUS[0]}
+          set -e
+          sha256sum "$RUNNER_TEMP/hb-v2-logs/contracts.log"
+          echo "HB-INT-03 v2 contract exit=$rc"
+          test "$rc" -eq 0
+      - name: Verify no tracked source modification
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          git diff --exit-code -- Compilers/HybridCPU_Compiler/HardwareBridge
+          echo 'NotRun: real HybridCPU-v2 Csc closure, Companion PE/PDB (upstream build blocker), Core independent import, Golden execution, native RTL and Physical signoff'
