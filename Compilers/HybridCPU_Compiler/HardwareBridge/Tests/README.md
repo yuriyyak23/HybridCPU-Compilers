@@ -17,3 +17,11 @@ If the SDK/runtime/reference closure is unavailable, record tests as **NOT RUN**
 ## HB-INT-04 raw trace (non-executable fixture)
 
 The same standalone runner now executes `GoldenRawTraceTests.Run()` before the original scalar/Companion tests. It checks raw source/assembly digest binding, original-bit signed words, before/after continuity, step/clock/context/lane and ordered memory/retire events, explicit nondeterministic choices, canonical deterministic JSON, cancellation, mutation, duplicate/unknown JSON fields and fail-closed CPU timing/rank4 requests. Fixture assembly bytes are deliberately **not** a compiled PE: these tests check the DTO/codec only, not Golden execution, verified equivalence or hardware acceptance. If .NET 11 is absent report `NotRun`; do not call synthetic tests independent Golden receipts.
+
+### Isolated HB-INT-04 codec gate
+
+```sh
+dotnet run --project Compilers/HybridCPU_Compiler/HardwareBridge/Tests/GoldenRawTrace.ContractTests.csproj -c Release
+```
+
+This .NET 11-only project compiles the actual production snapshot, fixed AddWord word DTO and raw trace codec directly, with **no** ProjectReference to the software compiler, Roslyn, CircuitWeave or native tools. It checks the new contract independently while the original Companion/CIL integration suite is still exercised separately. The baseline compiler Core may fail with unrelated `HybridCPU.Compiler.Core.IR.Artifacts` missing types (`CS0234/CS0246`): this is an explicit **Failed/Blocked integration gate**, not grounds for marking it green or removing the original tests. The CI workflow keeps that failure visible in a separate job.
