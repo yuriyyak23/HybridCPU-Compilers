@@ -99,13 +99,14 @@ public static class GoldenBoundVectorsCodecV1
     }
 
     /// <summary>
-    /// The caller MUST supply expected source, assembly digest, reviewed label and ordered input
+    /// The caller MUST supply expected source, assembly digest, root index, reviewed label and ordered input
     /// vectors independently of the document being read. No self-supplied expectation is accepted.
     /// </summary>
     public static GoldenBoundVectorsV1 ReadAndValidate(
         ReadOnlyMemory<byte> utf8,
         BridgeSourceSnapshotV1 expectedSource,
         string expectedCompiledAssemblySha256,
+        int expectedRootIndex,
         string expectedReviewedSourceLabel,
         IReadOnlyList<GoldenVectorV1> independentlyRequestedVectors,
         CancellationToken cancellationToken = default)
@@ -115,6 +116,7 @@ public static class GoldenBoundVectorsCodecV1
         ArgumentNullException.ThrowIfNull(independentlyRequestedVectors);
         if (!expectedSource.HasConsistentDigest() || utf8.IsEmpty ||
             utf8.Length > MaxJsonBytes || !IsHash(expectedCompiledAssemblySha256) ||
+            expectedRootIndex < 0 || expectedRootIndex >= expectedSource.Roots.Count ||
             !IsLabel(expectedReviewedSourceLabel))
             throw new ArgumentException("HB4104: Expected source/assembly/label or byte budget invalid.");
         try
@@ -123,7 +125,7 @@ public static class GoldenBoundVectorsCodecV1
             RejectDuplicateKeys(json.RootElement);
             GoldenBoundVectorsV1? record = JsonSerializer.Deserialize<GoldenBoundVectorsV1>(utf8.Span, Strict);
             if (record is null || !ValidEnvelope(record, expectedSource,
-                    expectedCompiledAssemblySha256, expectedReviewedSourceLabel,
+                    expectedCompiledAssemblySha256, expectedRootIndex, expectedReviewedSourceLabel,
                     independentlyRequestedVectors, cancellationToken) ||
                 !string.Equals(record.ReplayIdentity, Digest(record), StringComparison.Ordinal) ||
                 !utf8.Span.SequenceEqual(record.ToJsonUtf8()))
@@ -149,6 +151,7 @@ public static class GoldenBoundVectorsCodecV1
         GoldenBoundVectorsV1 value,
         BridgeSourceSnapshotV1 expectedSource,
         string assemblyHash,
+        int rootIndex,
         string reviewedLabel,
         IReadOnlyList<GoldenVectorV1> independentVectors,
         CancellationToken cancellationToken)
@@ -156,7 +159,7 @@ public static class GoldenBoundVectorsCodecV1
         if (value.Schema != GoldenBoundVectorsV1.SchemaId ||
             value.SourceSnapshotDigest != expectedSource.SnapshotDigest ||
             value.CompiledAssemblySha256 != assemblyHash ||
-            value.RootIndex < 0 || value.RootIndex >= expectedSource.Roots.Count ||
+            value.RootIndex != rootIndex ||
             value.AdapterId != TrustedAddWordOracleV1.AllowlistedAdapterId ||
             value.ReviewedSourceLabel != reviewedLabel ||
             value.OriginalDocuments is null ||
