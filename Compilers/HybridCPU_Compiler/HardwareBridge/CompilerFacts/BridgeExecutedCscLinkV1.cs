@@ -154,7 +154,8 @@ public static class BridgeExecutedCscLinkV1
             facts.SnapshotDigest != snapshot.SnapshotDigest ||
             !IsSha(facts.SourceInputDigest) || !IsSha(facts.PeSha256) ||
             !IsSha(facts.PdbSha256) || facts.Methods is null || facts.RootIdentities is null ||
-            facts.SourceMaps is null || facts.Methods.Count is < 1 or > 256 ||
+            facts.SourceMaps is null || facts.SourceMaps.Count > 131072 ||
+            facts.Methods.Count is < 1 or > 256 ||
             facts.RootIdentities.Count != snapshot.Roots.Count)
             throw Refuse(BridgeCscLinkRefusal.UnsupportedFacts,
                 "Only exact primary-module Candidate software facts are eligible.");
@@ -252,8 +253,8 @@ public static class BridgeExecutedCscLinkV1
                 new MemoryStream(e.PdbImage, writable: false));
             MetadataReader pdb = pdbProvider.GetMetadataReader();
             var codeviews = pe.ReadDebugDirectory().Where(d => d.Type == DebugDirectoryEntryType.CodeView).ToArray();
-            if (codeviews.Length != 1 ||
-                !pdb.DebugMetadataHeader.Id.Take(16).SequenceEqual(
+            if (codeviews.Length != 1 || pdb.DebugMetadataHeader is not { } pdbHeader ||
+                !pdbHeader.Id.Take(16).SequenceEqual(
                     pe.ReadCodeViewDebugDirectoryData(codeviews[0]).Guid.ToByteArray()))
                 throw Refuse(BridgeCscLinkRefusal.WrongPePdb,
                     "Portable PDB ID does not match this exact PE's CodeView identity.");

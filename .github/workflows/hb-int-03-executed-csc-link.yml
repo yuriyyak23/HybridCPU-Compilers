@@ -44,21 +44,21 @@ jobs:
           dotnet --info
           project="$GITHUB_WORKSPACE/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CscLinkFixture/HardwareBridge.CscLink.FixtureTests.csproj"
           set +e
-          dotnet restore "$project" -p:BaseIntermediateOutputPath="$work/obj/" -p:BaseOutputPath="$work/bin/" 2>&1 | tee "$work/restore.log"
+          dotnet restore "$project" -p:ArtifactsPath="$work" 2>&1 | tee "$work/restore.log"
           restore_exit=${PIPESTATUS[0]}
           set -e
           sha256sum "$work/restore.log"
           echo "restore-exit=$restore_exit"
           test "$restore_exit" -eq 0
           set +e
-          dotnet build "$project" -c Release --no-restore -p:BaseIntermediateOutputPath="$work/obj/" -p:BaseOutputPath="$work/bin/" 2>&1 | tee "$work/build.log"
+          dotnet build "$project" -c Release --no-restore -p:ArtifactsPath="$work" 2>&1 | tee "$work/build.log"
           build_exit=${PIPESTATUS[0]}
           set -e
           sha256sum "$work/build.log"
           echo "build-exit=$build_exit"
           test "$build_exit" -eq 0
           set +e
-          dotnet "$work/bin/Release/net11.0/HardwareBridge.CscLink.FixtureTests.dll" 2>&1 | tee "$work/fixture.log"
+          dotnet "$work/bin/HardwareBridge.CscLink.FixtureTests/net11.0/HardwareBridge.CscLink.FixtureTests.dll" 2>&1 | tee "$work/fixture.log"
           fixture_exit=${PIPESTATUS[0]}
           set -e
           sha256sum "$work/fixture.log"
