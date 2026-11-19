@@ -70,3 +70,8 @@ dotnet run --project Compilers/HybridCPU_Compiler/HardwareBridge/Tests/GoldenRaw
 ```
 
 This .NET 11-only project compiles the actual production snapshot, fixed AddWord word DTO and raw trace codec directly, with **no** ProjectReference to the software compiler, Roslyn, CircuitWeave or native tools. It checks the new contract independently while the original Companion/CIL integration suite is still exercised separately. The baseline compiler Core may fail with unrelated `HybridCPU.Compiler.Core.IR.Artifacts` missing types (`CS0234/CS0246`): this is an explicit **Failed/Blocked integration gate**, not grounds for marking it green or removing the original tests. The CI workflow keeps that failure visible in a separate job.
+
+
+## HB-INT-02/03/06: real owned temp v2 publisher regression
+
+The isolated v2 .NET 11 contract executable now also runs `BridgeV2OwnedWorkspaceTests` using real filesystem IO against a **synthetic** source tree. It stages an exact Core-compatible index, JSONL chunks and source/reference bytes in a newly owned OS-temp folder; checks SHA-256 before/after and rejects stale/missing/linked sources, invalid origins, cancelled publication and output path collisions. It does not run Csc/Golden, qualify any hardware owner or replace the paired Core importer. See [publisher migration](../Docs/HB_INT_V2_Owned_Workspace_Publishing.md). On CI use the isolated `hb-int-v2-workspace.yml` workflow; full Companion and Golden/CI gates remain independent.
