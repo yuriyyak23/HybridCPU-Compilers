@@ -60,11 +60,10 @@ jobs:
           path: '${{ runner.temp }}/hb-int-06-standalone'
           if-no-files-found: warn
 
-  paired-core-optional:
-    # The standalone JSON reports the absent Core importer as Blocked.
-    # Skipped != Passed and is not a cross-repo release gate.
-    if: ${{ vars.HB_INT_06_PAIRED_ENABLED == 'true' }}
-    name: Explicit pinned Core importer (no fixture-success fallback)
+  paired-core-contract:
+    # Scoped Core-owned import tests, not end-to-end Producer->Core admission.
+    # Real cross-repo qualification and Golden/Csc evidence remain Blocked.
+    name: Pinned Core importer contract host (NOT source qualification)
     runs-on: windows-2025
     steps:
       - uses: actions/checkout@v4
@@ -81,7 +80,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: yuriyyak23/CircuitWeave
-          ref: 555672232e46cb4e8b157e2d1b1db1e873c4194e
+          ref: 21706d19ede6a1ff87230fa2e41071f4f32d72a7
           path: core
           persist-credentials: false
       - uses: actions/setup-dotnet@v4
@@ -91,7 +90,7 @@ jobs:
         shell: pwsh
         env:
           HB_BRIDGE_SHA: '${{ github.event.pull_request.head.sha || github.sha }}'
-          HB_CORE_PROJECT: '${{ vars.HB_INT_06_CORE_IMPORTER_PROJECT }}'
+          HB_CORE_PROJECT: 'tests/CircuitWeave.CWINT03.BridgeImport/CircuitWeave.CWINT03.BridgeImport.csproj'
         run: |
           $script = Join-Path $env:GITHUB_WORKSPACE 'bridge/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/Run-HbInt06.ps1'
           $args = @{
@@ -100,10 +99,11 @@ jobs:
             GoldenRoot = (Join-Path $env:GITHUB_WORKSPACE 'golden')
             ExpectedGoldenSha = '6946ccab9d888f7dae0a4d8e18480f436138acd9'
             CoreRoot = (Join-Path $env:GITHUB_WORKSPACE 'core')
-            ExpectedCoreSha = '555672232e46cb4e8b157e2d1b1db1e873c4194e'
+            ExpectedCoreSha = '21706d19ede6a1ff87230fa2e41071f4f32d72a7'
             CoreImporterProject = $env:HB_CORE_PROJECT
             OutputRoot = (Join-Path $env:RUNNER_TEMP 'hb-int-06-paired')
             RequirePaired = $true
+            CoreOnly = $true
           }
           & $script @args
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
