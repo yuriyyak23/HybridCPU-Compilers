@@ -63,7 +63,9 @@ def reject_links(path, *, require_existing=True):
                 raise Blocked("missing required path: " + str(part))
             continue
         mode = part.lstat().st_mode
-        require(not stat.S_ISLNK(mode) and not getattr(part, "is_junction", lambda: False)(),
+        attributes = getattr(part.lstat(), "st_file_attributes", 0)
+        require(not stat.S_ISLNK(mode) and not getattr(part, "is_junction", lambda: False)()
+                and not (attributes & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0)),
                 "symlink/reparse input: " + str(part))
     return path
 
@@ -122,6 +124,19 @@ def inventory(root):
             "files": count, "bytes": total, "inventorySha256": h.hexdigest()}
 
 
+def kill_tree(proc):
+    if proc.poll() is not None:
+        return
+    try:
+        if os.name == "nt":
+            subprocess.run(["taskkill", "/T", "/F", "/PID", str(proc.pid)],
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=10)
+        else:
+            os.killpg(proc.pid, signal.SIGKILL)
+    except (OSError, subprocess.TimeoutExpired):
+        proc.kill()
+
+
 def run(label, argv, cwd, logs, timeout=900, env=None):
     require(0 < timeout <= 3600, "invalid timeout")
     require(isinstance(argv, list) and argv and all(isinstance(x, str) and x and len(x) < 8192 for x in argv),
@@ -142,24 +157,22 @@ def run(label, argv, cwd, logs, timeout=900, env=None):
                                     stdout=stdout, stderr=stderr, start_new_session=(os.name != "nt"),
                                     creationflags=(subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0))
             deadline = time.monotonic() + timeout
-            while True:
-                try:
-                    result["exit"] = proc.wait(timeout=.1)
-                    break
-                except subprocess.TimeoutExpired:
-                    if time.monotonic() < deadline and out.stat().st_size <= MAX_LOG and err.stat().st_size <= MAX_LOG:
-                        continue
-                    result["status"] = "Blocked"
+            try:
+                while True:
                     try:
-                        if os.name == "nt":
-                            subprocess.run(["taskkill", "/T", "/F", "/PID", str(proc.pid)],
-                                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=10)
-                        else:
-                            os.killpg(proc.pid, signal.SIGKILL)
-                    except (OSError, subprocess.TimeoutExpired):
-                        proc.kill()
-                    result["exit"] = proc.wait()
-                    break
+                        result["exit"] = proc.wait(timeout=.1)
+                        break
+                    except subprocess.TimeoutExpired:
+                        if time.monotonic() < deadline and out.stat().st_size <= MAX_LOG and err.stat().st_size <= MAX_LOG:
+                            continue
+                        result["status"] = "Blocked"
+                        kill_tree(proc)
+                        result["exit"] = proc.wait()
+                        break
+            except BaseException:
+                kill_tree(proc)
+                proc.wait()
+                raise
     except OSError as e:
         result["status"] = "NotRun"
         raise Blocked("command launch failure: " + type(e).__name__) from e
