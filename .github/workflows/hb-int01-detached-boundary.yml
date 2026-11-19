@@ -1,0 +1,48 @@
+name: hb-int01-detached-boundary
+on:
+  pull_request:
+    paths:
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/HardwareBridge.Hwir.csproj'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/README.md'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/Docs/HB_INT_01_Portable_Compatibility.md'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/PortableDependencyBoundary.Tests.py'
+      - '.github/workflows/hb-int01-detached-boundary.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  independent-boundary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: checkout-with-arbitrary-bridge-name
+      - name: Static project graph and negative implicit-reference checks
+        run: |
+          set -euo pipefail
+          cd checkout-with-arbitrary-bridge-name
+          python3 Compilers/HybridCPU_Compiler/HardwareBridge/Tests/PortableDependencyBoundary.Tests.py
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '11.0.100-rc.2.26504.105'
+      - name: Confirm actual SDK and companion-only build
+        run: |
+          set -euo pipefail
+          cd checkout-with-arbitrary-bridge-name
+          dotnet --info
+          dotnet build Compilers/HybridCPU_Compiler/HardwareBridge/HardwareBridge.Companion.csproj -c Release
+      - name: Missing opt-in Core must fail explicitly
+        run: |
+          set -euo pipefail
+          cd checkout-with-arbitrary-bridge-name
+          if dotnet build Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/HardwareBridge.Hwir.csproj -c Release > /tmp/hb-int01-refusal.log 2>&1; then
+            echo 'ERROR: no Core frontend but fixture build succeeded'; exit 1
+          fi
+          cat /tmp/hb-int01-refusal.log
+          grep -q 'HBINT0101' /tmp/hb-int01-refusal.log
+          sha256sum /tmp/hb-int01-refusal.log
+      - name: Deferred opt-in native and external Core checks
+        run: echo 'NotRun: explicit pinned cross-repo P14, Golden source, CIRCT, RTL and physical qualification'
