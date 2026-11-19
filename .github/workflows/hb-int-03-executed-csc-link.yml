@@ -58,7 +58,7 @@ jobs:
           echo "build-exit=$build_exit"
           test "$build_exit" -eq 0
           set +e
-          dotnet "$work/bin/HardwareBridge.CscLink.FixtureTests/net11.0/HardwareBridge.CscLink.FixtureTests.dll" 2>&1 | tee "$work/fixture.log"
+          dotnet "$work/bin/HardwareBridge.CscLink.FixtureTests/HardwareBridge.CscLink.FixtureTests.dll" 2>&1 | tee "$work/fixture.log"
           fixture_exit=${PIPESTATUS[0]}
           set -e
           sha256sum "$work/fixture.log"

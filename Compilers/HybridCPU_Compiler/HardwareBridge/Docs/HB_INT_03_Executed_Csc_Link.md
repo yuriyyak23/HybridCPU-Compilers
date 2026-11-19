@@ -66,16 +66,15 @@ Reproduce on a host with .NET SDK `11.0.100-rc.2.26504.105`:
 
 ```bash
 sdk='11.0.100-rc.2.26504.105'
-sdk_dir="$(dotnet --list-sdks | awk -v v="$sdk" '$1==v {gsub(/[][]/,"",$2); print $2}')"
 export HB_CSC_PATH="$DOTNET_ROOT/sdk/$sdk/Roslyn/bincore/csc.dll"
 export HB_SDK_VERSION="$sdk"
-project=Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CscLinkFixture/HardwareBridge.CscLink.FixtureTests.csproj
+project="$PWD/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CscLinkFixture/HardwareBridge.CscLink.FixtureTests.csproj"
 work="$(mktemp -d)"
 printf '%s\n' '{"sdk":{"version":"11.0.100-rc.2.26504.105","rollForward":"disable","allowPrerelease":true}}' > "$work/global.json"
 cd "$work"
 dotnet restore "$project" -p:ArtifactsPath="$work"
 dotnet build "$project" -c Release --no-restore -p:ArtifactsPath="$work"
-dotnet "$work/bin/HardwareBridge.CscLink.FixtureTests/net11.0/HardwareBridge.CscLink.FixtureTests.dll"
+dotnet "$work/bin/HardwareBridge.CscLink.FixtureTests/HardwareBridge.CscLink.FixtureTests.dll"
 ```
 
 The opt-in `.github/workflows/hb-int-03-executed-csc-link.yml`
