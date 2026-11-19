@@ -109,11 +109,19 @@ def relative_sanitized(path):
 
 
 def observe(events_path, baseline_dir, isolated_dir, consumer_project,
-            compiler_path, graph_path, observation_path, capture_dir=None):
+            compiler_path, graph_path, observation_path, capture_dir=None, *,
+            build_artifacts_dir=None, host_cwd=None):
     baseline = require_temp_dir(baseline_dir)
     isolated = require_temp_dir(isolated_dir)
     if baseline == isolated or under(baseline, isolated) or under(isolated, baseline):
         reject("source and isolated working copy must be disjoint")
+    artifacts_root = require_temp_dir(build_artifacts_dir) if build_artifacts_dir else None
+    launcher_cwd = require_temp_dir(host_cwd) if host_cwd else None
+    if artifacts_root is None or launcher_cwd is None:
+        reject("approved build artifact root and real host launcher cwd are required")
+    if any(artifacts_root == x or under(artifacts_root, x) or under(x, artifacts_root)
+           for x in (baseline, isolated)):
+        reject("build artifacts root must be disjoint from source trees")
     compiler = v2.safe_path(os.path.abspath(compiler_path))
     if compiler.name not in ("csc", "csc.dll"):
         reject("only pinned SDK Roslyn Csc tool is supported")
@@ -138,17 +146,34 @@ def observe(events_path, baseline_dir, isolated_dir, consumer_project,
         argv = exact_argv(event["CommandLine"], compiler)
         # For this subset require all actual Csc paths to be absolute, so an
         # MSBuild task event cannot imply an unproven process working directory.
-        cwd = live_project.parent
+        cwd = launcher_cwd
+        # All Csc input/output file operands must be absolute, so successful
+        # transport never depends on an assumed Csc process working directory.
+        input_flags = ("/reference:", "/r:", "/analyzer:", "/analyzerconfig:",
+                       "/additionalfile:", "/sourcelink:", "/appconfig:",
+                       "/out:", "/pdb:", "/refout:", "/doc:", "/errorlog:",
+                       "/generatedfilesout:")
+        for token in argv:
+            low = token.lower()
+            prefix = next((x for x in input_flags if low.startswith(x)), None)
+            if prefix and not os.path.isabs(token[len(prefix):]):
+                reject("relative Csc file option without actual process cwd proof")
+            if low.endswith(".cs") and not prefix and not os.path.isabs(token):
+                reject("relative Csc source without actual process cwd proof")
         sources, artifacts, generator_dir = v2.command_files(argv, cwd)
         source_rows = []
         original_sources = []
         for value in sources:
             path = v2.safe_path(value)
-            if not under(path, isolated):
-                reject("Csc source outside isolated worktree")
-            relative = path.relative_to(isolated)
-            original_path = baseline / relative
-            if original_path.is_file():
+            if under(path, isolated):
+                relative = path.relative_to(isolated)
+                original_path = baseline / relative
+            elif under(path, artifacts_root):
+                relative = path.relative_to(artifacts_root)
+                original_path = None
+            else:
+                reject("Csc source outside approved isolated/project-generated roots")
+            if original_path is not None and original_path.is_file():
                 v2.safe_path(str(original_path))
                 if pinned(path) != pinned(original_path):
                     reject("original source mutated after clone")
@@ -162,8 +187,8 @@ def observe(events_path, baseline_dir, isolated_dir, consumer_project,
         generated = []
         if generator_dir is not None:
             generated_root = v2.safe_path(generator_dir, file=False)
-            if not under(generated_root, isolated):
-                reject("generated outputs outside isolated worktree")
+            if not (under(generated_root, isolated) or under(generated_root, artifacts_root)):
+                reject("generated outputs outside approved roots")
             for path in sorted(generated_root.rglob("*.cs")):
                 v2.safe_path(str(path))
                 generated.append({"path": str(path),
@@ -215,10 +240,13 @@ def main():
                  "graph", "observation"):
         parser.add_argument("--" + name, required=True)
     parser.add_argument("--capture")
+    parser.add_argument("--build-artifacts", required=True)
+    parser.add_argument("--host-cwd", required=True)
     a = parser.parse_args()
     print("Unqualified task-time Csc/v2 root=" + observe(
         a.events, a.baseline, a.isolated, a.consumer, a.compiler,
-        a.graph, a.observation, a.capture))
+        a.graph, a.observation, a.capture,
+        build_artifacts_dir=a.build_artifacts, host_cwd=a.host_cwd))
 
 
 if __name__ == "__main__":
