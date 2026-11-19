@@ -27,13 +27,236 @@
   <Folder Name="/Compilers/HybridCPU_Compiler/Generators/">
     <Project Path="Compilers/HybridCPU_Compiler/Generators/HybridCPU.Compiler.Generators.csproj" />
   </Folder>
-  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/" />
-  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/CompilerFacts/" />
-  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/Docs/" />
-  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/GoldenOracle/" />
-  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/SourceSnapshot/" />
-  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/" />
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge/HardwareBridge.Companion.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/CompilerFacts/">
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge/CompilerFacts/BridgeCompilerFactsV1.cs" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge/CompilerFacts/CompanionBridgeProjectionV1.cs" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge/CompilerFacts/README.md" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/Docs/">
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge/Docs/CircuitWeave_Pipeline_Integration_Plan.md" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge/Docs/example-candidate.json" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge/Docs/HB_INT_01_Pinned_OptIn.md" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge/Docs/HB_INT_01_Portable_Compatibility.md" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge/Docs/HB_INT_02_Segmented_Csc_Closure.md" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge/Docs/HB_INT_03_V2_Interchange.md" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge/Docs/HB_INT_06_QA_Matrix.md" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge/Docs/README.md" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge/Docs/sidecar-v1.md" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/GoldenOracle/">
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge/GoldenOracle/GoldenRawTraceV1.cs" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge/GoldenOracle/raw-trace-v1.md" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge/GoldenOracle/README.md" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge/GoldenOracle/TrustedAddWordOracleV1.cs" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/SourceSnapshot/">
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge/SourceSnapshot/BridgeProvenanceCodecV2.cs" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge/SourceSnapshot/BridgeSegmentIndexV2.cs" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge/SourceSnapshot/BridgeSidecarCodecV1.cs" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge/SourceSnapshot/BridgeSourceSnapshotV1.cs" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge/SourceSnapshot/README.md" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/HardwareBridge.Hwir.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/CscSemanticInventory/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/CscSemanticInventory/CscSemanticInventory.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/EvaluatedProjectGraph.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/ImportInventory/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/ImportInventory/ImportInventory.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/SemanticClosureAudit/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/SemanticClosureAudit/SemanticClosureAudit.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/SemanticInventory/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge/SemanticInventory/HardwareBridge.SemanticInventory.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge/Tests/GoldenRawTrace.ContractTests.csproj" />
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge/Tests/HardwareBridge.ProtocolTests.csproj" />
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge/Tests/HardwareBridge.SelfTests.csproj" />
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge/Tests/HardwareBridge.V2.ContractTests.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/AssistAttemptChain/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge/Tests/AssistAttemptChain/AssistAttemptChain.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/AssistCandidateAttempt/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge/Tests/AssistCandidateAttempt/AssistCandidateAttempt.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/AssistQuota/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge/Tests/AssistQuota/AssistQuota.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CsrStorageEvent/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CsrStorageEvent/CsrStorageEvent.Runner.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CsrStorageEvent/RuntimeOracle/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CsrStorageEvent/RuntimeOracle/CsrStorageEvent.RuntimeOracle.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/IssuePacketLaneResolution/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge/Tests/IssuePacketLaneResolution/IssuePacketLaneResolution.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/IssuePacketMaterializationComposition/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge/Tests/IssuePacketMaterializationComposition/IssuePacketMaterializationComposition.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/IssuePacketMaterializationEligibility/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge/Tests/IssuePacketMaterializationEligibility/IssuePacketMaterializationEligibility.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/IssuePacketNonScalarResolver/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge/Tests/IssuePacketNonScalarResolver/IssuePacketNonScalarResolver.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/LaneMaterialization/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge/Tests/LaneMaterialization/LaneMaterialization.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/SmtAssistReachability/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge/Tests/SmtAssistReachability/SmtAssistReachability.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/SmtDuplicateRetry/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge/Tests/SmtDuplicateRetry/SmtDuplicateRetry.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/SmtLegalityGuardPlane/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge/Tests/SmtLegalityGuardPlane/SmtLegalityGuardPlane.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/SmtRankTailHwir/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge/Tests/SmtRankTailHwir/SmtRankTailHwir.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/SmtRankTailReference/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge/Tests/SmtRankTailReference/SmtRankTailReference.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/TrapCarrier/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge/Tests/TrapCarrier/PageFaultDeliveryProjection.Runner.csproj" />
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge/Tests/TrapCarrier/StageAwareFaultWinner.Runner.csproj" />
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge/Tests/TrapCarrier/TrapCarrier.Runner.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/VectorPodCsr/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge/Tests/VectorPodCsr/VectorPodCsr.Runner.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/VectorSegmentRead/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge/Tests/VectorSegmentRead/VectorSegmentRead.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/VmxValidationCurrent/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge/Tests/VmxValidationCurrent/VmxValidationCurrent.csproj" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/">
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Directory.Build.props" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Directory.Build.targets" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/.build/">
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/HWIR/">
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/HWIR/CscSemanticInventory/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/HWIR/CscSemanticInventory/CscSemanticInventory.csproj" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/HWIR/CscSemanticInventory/compact_dependencies.py" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/HWIR/CscSemanticInventory/compare_inventory.py" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/HWIR/CscSemanticInventory/Program.cs" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/HWIR/CscSemanticInventory/shard_inventory.py" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/HWIR/EvaluatedProjectGraph/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/HWIR/EvaluatedProjectGraph/EvaluatedProjectGraph.csproj" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/HWIR/EvaluatedProjectGraph/audit_csc_log.py" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/HWIR/EvaluatedProjectGraph/Program.cs" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/HWIR/EvaluatedProjectGraph/Test-EvaluatedProjectGraph.ps1" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/HWIR/ImportInventory/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/HWIR/ImportInventory/ImportInventory.csproj" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/HWIR/ImportInventory/ImportInventory.Tests.ps1" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/HWIR/ImportInventory/Program.cs" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/HWIR/SemanticClosureAudit/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/HWIR/SemanticClosureAudit/SemanticClosureAudit.csproj" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/HWIR/SemanticClosureAudit/Program.cs" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/HardwareBridge.Intel8080.csproj" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/Build-Bridge.ps1" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/Export-Intel8080Template-specana-hlt-v19.ps1" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/Export-Intel8080Template.ps1" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/Invoke-Intel8080Analysis.ps1" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/Invoke-Intel8080ProjectInventory.ps1" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/Model.cs" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/Program.cs" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/Test-OpcodeIr.ps1" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/TRANSFER_AUDIT.md" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/AdcMlirExport/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/AdcMlirExport/HardwareBridge.Intel8080.AdcMlir.csproj" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/AdcMlirExport/emit_adc_projection_sv.py" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/AdcMlirExport/Export-Intel8080AdcMlir.ps1" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/AdcMlirExport/Program.cs" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/AddMlirExport/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/AddMlirExport/HardwareBridge.Intel8080.AddMlir.csproj" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/AddMlirExport/emit_add_projection_sv.py" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/AddMlirExport/Export-Intel8080AddMlir.ps1" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/AddMlirExport/Program.cs" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/DadMlirExport/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/DadMlirExport/HardwareBridge.Intel8080.DadMlir.csproj" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/DadMlirExport/Export-Intel8080DadMlir.ps1" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/DadMlirExport/Program.cs" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/LogicalMlirExport/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/LogicalMlirExport/HardwareBridge.Intel8080.LogicalMlir.csproj" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/LogicalMlirExport/emit_logical_projection_sv.py" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/LogicalMlirExport/Program.cs" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/Rtl/">
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/Rtl/cw8080_add.sv" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/Rtl/cw8080_subset_cpu.sv" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/Rtl/README.md" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/Rtl/tb_cw8080_add.sv" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/Rtl/tb_cw8080_branch_cpu.sv" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/Rtl/tb_cw8080_daa_cpu.sv" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/Rtl/tb_cw8080_immediate_alu_cpu.sv" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/Rtl/tb_cw8080_io_cpu.sv" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/Rtl/tb_cw8080_memory_address_cpu.sv" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/Rtl/tb_cw8080_pair_cpu.sv" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/Rtl/tb_cw8080_push_pop_cpu.sv" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/Rtl/tb_cw8080_rotate_cpu.sv" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/Rtl/tb_cw8080_stack_cpu.sv" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/Rtl/tb_cw8080_subset_cpu.sv" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/Rtl/Test-Intel8080IrqDaaCandidate-20261116.ps1" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/Rtl/Test-Intel8080Rtl.ps1" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/Rtl/run-20261114/">
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/SbbMlirExport/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/SbbMlirExport/HardwareBridge.Intel8080.SbbMlir.csproj" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/SbbMlirExport/emit_sbb_projection_sv.py" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/SbbMlirExport/Export-Intel8080SbbMlir.ps1" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/SbbMlirExport/Program.cs" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/SubMlirExport/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/SubMlirExport/HardwareBridge.Intel8080.SubMlir.csproj" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/SubMlirExport/emit_sub_projection_sv.py" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/Intel8080/SubMlirExport/Program.cs" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/ProjectInventory/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/ProjectInventory/HardwareBridge.Intel8080.ProjectInventory.csproj" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/ProjectInventory/Program.cs" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/SemanticInventory/">
+    <Project Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/SemanticInventory/HardwareBridge.SemanticInventory.csproj" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/SemanticInventory/CaptureProjectGraph.ps1" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/SemanticInventory/Program.cs" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/SemanticInventory/README.md" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/SemanticInventory/SdkAnalyzerLoader.cs" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/SemanticInventory/Test-SemanticInventory.ps1" />
+  </Folder>
+  <Folder Name="/Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/SourceSnapshot/">
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/SourceSnapshot/BridgeSidecarCodecV1.cs" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/SourceSnapshot/BridgeSourceSnapshotV1.cs" />
+    <File Path="Compilers/HybridCPU_Compiler/HardwareBridge_intel8080/SourceSnapshot/README.md" />
+  </Folder>
   <Folder Name="/Compilers/HybridCPU_Compiler/LLVM/">
+
+
     <Project Path="Compilers/HybridCPU_Compiler/LLVM/HybridCPU.Compiler.Llvm.csproj" />
   </Folder>
   <Folder Name="/Compilers/HybridCPU_Compiler/Native/">
