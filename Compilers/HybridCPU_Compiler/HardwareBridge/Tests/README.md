@@ -70,3 +70,6 @@ dotnet run --project Compilers/HybridCPU_Compiler/HardwareBridge/Tests/GoldenRaw
 ```
 
 This .NET 11-only project compiles the actual production snapshot, fixed AddWord word DTO and raw trace codec directly, with **no** ProjectReference to the software compiler, Roslyn, CircuitWeave or native tools. It checks the new contract independently while the original Companion/CIL integration suite is still exercised separately. The baseline compiler Core may fail with unrelated `HybridCPU.Compiler.Core.IR.Artifacts` missing types (`CS0234/CS0246`): this is an explicit **Failed/Blocked integration gate**, not grounds for marking it green or removing the original tests. The CI workflow keeps that failure visible in a separate job.
+
+
+**HB-INT-02/03 continuation:** Run `python -m unittest discover -s Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph -p test_csc_to_core_v2.py -v` for synthetic source/no-write, malicious chunk/role/root, timeout and byte-transport tests. `.github/workflows/hb-int-02-core-transport.yml` additionally runs Windows .NET 11 `Tests/CscCoreV2Parity` against the existing production `BridgeSegmentIndexV2` codec. These are unqualified software-facts wire tests, not Core independent importer or Golden/Csc execution. See [transport documentation](../Docs/HB_INT_02_Core_V2_Transport.md).
