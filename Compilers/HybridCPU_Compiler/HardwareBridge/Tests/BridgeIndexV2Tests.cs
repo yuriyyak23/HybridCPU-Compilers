@@ -65,6 +65,16 @@ internal static class BridgeIndexV2Tests
                 transport.ClosureSha256, "closure checksum");
         }
 
+        BridgeSegmentIndexV2.ValidateAgainstActualBytes(transport.IndexUtf8,
+            transport.Chunks, roots, inputs);
+        Refuse(BridgeV2Refusal.InvalidPin, () =>
+            BridgeSegmentIndexV2.ValidateAgainstActualBytes(transport.IndexUtf8,
+                Array.Empty<BridgeV2ChunkContent>(), roots, inputs));
+        var truncatedChunk = new[] { new BridgeV2ChunkContent(transport.Chunks[0].Path,
+            transport.Chunks[0].Bytes[..^1]) };
+        Refuse(BridgeV2Refusal.InvalidPin, () =>
+            BridgeSegmentIndexV2.ValidateAgainstActualBytes(transport.IndexUtf8,
+                truncatedChunk, roots, inputs));
         byte[] encoded = BridgeProvenanceCodecV2.Write(snapshot, rejected, inputs, evidence);
         BridgeV2ProvenancePayload decoded = BridgeProvenanceCodecV2.ReadAndValidate(
             encoded, snapshot, rejected, inputs, evidence, sdk);
@@ -154,7 +164,13 @@ internal static class BridgeIndexV2Tests
         string peHash = BridgeSegmentIndexV2.Hash(pe), pdbHash = BridgeSegmentIndexV2.Hash(pdb);
         var candidate = rejected with {
             Status = "Candidate", SourceInputDigest = BridgeSegmentIndexV2.Hash(sourceBytes),
-            PeSha256 = peHash, PdbSha256 = pdbHash, ImportStatus = "Success"
+            PeSha256 = peHash, PdbSha256 = pdbHash, ImportStatus = "Success",
+            GraphDigest = BridgeSegmentIndexV2.Hash(sourceBytes),
+            GraphContractDigest = BridgeSegmentIndexV2.Hash(reference),
+            RootIdentities = new[] { "Fixture::F" },
+            Methods = new[] { new BridgeMethodFactV1("Fixture::F", "test-only-assembly",
+                "test-module", "Fixture", "F", "int F()", 0x06000001,
+                BridgeSegmentIndexV2.Hash(sourceBytes), peHash, "Success", Array.Empty<string>()) }
         };
         var candidateInputs = inputs.Concat(new[] {
             new BridgeV2Input("outputs/test.dll", "compiler-pe", pe),
