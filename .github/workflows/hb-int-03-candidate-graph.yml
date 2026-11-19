@@ -1,0 +1,55 @@
+name: HB-INT-03 v2 Candidate method graph coherence
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/SourceSnapshot/BridgeProvenanceCodecV2.cs'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/BridgeIndexV2Tests.cs'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/Docs/HB_INT_03_Candidate_Graph_Coherence.md'
+      - '.github/workflows/hb-int-03-candidate-graph.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  bounded-managed-contract:
+    name: v2 actual codec + graph mutations / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '11.0.100-rc.2.26504.105'
+          dotnet-quality: preview
+      - name: Exact SDK, real codec tests and raw SHA-256
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          mkdir -p "$RUNNER_TEMP/hb-int-03-sdk"
+          printf '%s\n' '{"sdk":{"version":"11.0.100-rc.2.26504.105","rollForward":"disable","allowPrerelease":true}}' > "$RUNNER_TEMP/hb-int-03-sdk/global.json"
+          cd "$RUNNER_TEMP/hb-int-03-sdk"
+          echo "HEAD=$GITHUB_SHA"
+          dotnet --info
+          test "$(dotnet --version)" = '11.0.100-rc.2.26504.105'
+          project="$GITHUB_WORKSPACE/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/HardwareBridge.V2.ContractTests.csproj"
+          dotnet restore "$project" 2>&1 | tee "$RUNNER_TEMP/hb-int-03-restore.log"
+          sha256sum "$RUNNER_TEMP/hb-int-03-restore.log"
+          set +e
+          dotnet run --project "$project" -c Release --no-restore 2>&1 | tee "$RUNNER_TEMP/hb-int-03-contract.log"
+          result=${PIPESTATUS[0]}
+          set -e
+          sha256sum "$RUNNER_TEMP/hb-int-03-contract.log"
+          echo "HB-INT-03 contract exit=$result"
+          test "$result" -eq 0
+      - name: Confirm no tracked source modifications
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          git diff --exit-code -- Compilers/HybridCPU_Compiler/HardwareBridge
+          echo 'NotRun: real Golden Csc closure, broken Companion PE/PDB build, private Core acceptance, native RTL, physical design'
