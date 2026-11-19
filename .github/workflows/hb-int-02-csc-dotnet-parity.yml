@@ -97,5 +97,8 @@ jobs:
           } finally {
             if (Test-Path -LiteralPath $output) { Remove-Item -LiteralPath $output -Recurse -Force }
           }
+          # Three negative executable runs intentionally returned 1. Explicitly
+          # mark only the harness as successful after all assertions and hashes.
+          exit 0
 
 # Does not qualify Golden execution, current Roslyn source body, RTL/EDA/target.
