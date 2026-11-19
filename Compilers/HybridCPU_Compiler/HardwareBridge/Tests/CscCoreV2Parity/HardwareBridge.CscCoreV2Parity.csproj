@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net11.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Actual production source codec; no parent software compiler or Core references. -->
+    <Compile Include="../../SourceSnapshot/BridgeSourceSnapshotV1.cs" />
+    <Compile Include="../../SourceSnapshot/BridgeSegmentIndexV2.cs" />
+    <Compile Include="../../SourceSnapshot/BridgeProvenanceCodecV2.cs" />
+    <Compile Include="../../CompilerFacts/BridgeCompilerFactsV1.cs" />
+    <Compile Include="Program.cs" />
+  </ItemGroup>
+</Project>
