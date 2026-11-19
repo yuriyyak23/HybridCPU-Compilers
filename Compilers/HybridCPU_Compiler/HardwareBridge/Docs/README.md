@@ -15,3 +15,9 @@ The separate opt-in [bounded AddWord HWIR adapter](../HWIR/README.md) now
 connects the existing source snapshot to CircuitWeave's pinned Roslyn scalar
 compiler. The `CompilerFacts` sidecar remains a software-only path and does not
 provide general HWIR or full Processor elaboration.
+
+## 2026-11-19 proposed pipeline integration refactor
+
+- [Detailed HardwareBridge ↔ CircuitWeave integration plan](CircuitWeave_Pipeline_Integration_Plan.md): six HB-INT packages mapped to 16 CW-INT packages; portable project boundaries, source/Csc capture, strict sidecar versioning, independent Golden oracle protocol, legacy candidate parity and no-write tests.
+
+Plan only: v1 remains read-only/unqualified; nothing in this document grants hardware or Physical Design authority.
