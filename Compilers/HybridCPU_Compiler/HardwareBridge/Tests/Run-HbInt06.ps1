@@ -63,6 +63,7 @@ $report = [ordered]@{
         RtlAcceptance = 'Blocked'
         PhysicalSignoff = 'Blocked'
     }
+    BuildArtifacts = @()
     Blockers = @(
         'v2 segmented capture must be supplied by HB-INT-02/03 and a compatible Core reader',
         'strict Core importer/independent source verifier require CW-INT-02/03 (and CW-INT-10 for Golden)',
@@ -94,6 +95,16 @@ try {
     $report.Matrix.SidecarV1 = $standalone.Status
     $report.Matrix.CscPePdb = $standalone.Status
     if ($standalone.Status -ne 'Passed') { throw 'Standalone Companion / sidecar / Csc PE-PDB tests failed or blocked' }
+    if (-not (Test-Path -LiteralPath $artifacts)) {
+        throw 'No external build artifact directory: compiled test may have written inside sources'
+    }
+    $buildFiles = Get-ChildItem -LiteralPath $artifacts -Recurse -File -ErrorAction Stop |
+        Where-Object { $_.Extension -in @('.dll','.pdb') }
+    $report.BuildArtifacts = @($buildFiles | ForEach-Object {
+        [pscustomobject]@{ Path = [IO.Path]::GetRelativePath($artifacts, $_.FullName).Replace('\','/');
+            Bytes = $_.Length; Sha256 = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash }
+    })
+    if ($report.BuildArtifacts.Count -lt 2) { throw 'Compiled DLL/PDB artifact hashes were not captured' }
 
     $mutationArgs = @('-NoProfile','-NonInteractive','-File',
         (Join-Path $PSScriptRoot 'HbInt06.MutationTests.ps1'),
