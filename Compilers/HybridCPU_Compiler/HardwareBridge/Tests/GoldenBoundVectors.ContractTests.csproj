@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net11.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\SourceSnapshot\BridgeSourceSnapshotV1.cs" Link="BridgeSourceSnapshotV1.cs" />
+    <Compile Include="..\GoldenOracle\TrustedAddWordOracleV1.cs" Link="TrustedAddWordOracleV1.cs" />
+    <Compile Include="..\GoldenOracle\GoldenBoundVectorsV1.cs" Link="GoldenBoundVectorsV1.cs" />
+    <Compile Include="GoldenBoundVectorsTests.cs" />
+    <Compile Include="GoldenBoundVectorsContractProgram.cs" />
+  </ItemGroup>
+</Project>
