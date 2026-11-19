@@ -129,6 +129,7 @@ def command_files(argv, cwd):
     output_options = ("/out:", "/pdb:", "/refout:", "/doc:", "/errorlog:")
     scalar_prefixes = ("/langversion:", "/define:", "/nullable:", "/target:",
                        "/debug:", "/platform:", "/warn:", "/nowarn:", "/warnaserror:",
+                       "/warnaserror+:", "/warnaserror-:",
                        "/features:", "/pathmap:", "/usings:", "/moduleassemblyname:",
                        "/main:", "/baseaddress:", "/filealign:", "/preferreduilang:",
                        "/instrument:", "/checksumalgorithm:", "/errorendlocation:")
