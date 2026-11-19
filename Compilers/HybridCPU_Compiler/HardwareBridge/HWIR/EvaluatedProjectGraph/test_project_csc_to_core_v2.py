@@ -74,6 +74,18 @@ class ProjectorTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             p.verify_projection(output, self.capture)
 
+    def test_deprecated_projection_refuses_owned_body_instead_of_promoting(self):
+        # Legacy format used to encode owned-body as "source". A self-consistent
+        # HB02 index must now fail explicitly rather than silently upgrading role.
+        def change(index):
+            index["commands"][0]["projectRole"] = "owned-body"
+            for row in index["entries"]:
+                if row["kind"] in p.SOURCE_KINDS:
+                    row["role"] = "owned-body"
+        self.f.recompute(self.capture, change)
+        with self.assertRaisesRegex(ValueError, "DEPRECATED legacy projection refuses owned-body"):
+            p.project(self.capture, str(self.roots), self.f.out())
+
     def test_producer_blocks_unqualified_body_promotion(self):
         output, root = self.project()
         link = output / "capture-crosswalk.json"
