@@ -1,0 +1,101 @@
+name: HB-INT-02 cross-runtime v2 producer byte parity (unqualified)
+on:
+  pull_request:
+    paths:
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CscCoreV2Parity/**'
+      - '.github/workflows/hb-int-02-csc-dotnet-parity.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows-prod-codec:
+    name: Windows .NET 11 actual Bridge codec vs PR14 Python producer
+    runs-on: windows-2025
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 11.0.100-rc.2.26504.105
+      - name: Pin SDK outside source and execute actual positive/mutation parity
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $false
+          $temp = (& python -c 'import tempfile; print(tempfile.gettempdir())').Trim()
+          if ($LASTEXITCODE -ne 0 -or -not $temp) { throw 'Python TEMP missing' }
+          $output = Join-Path $temp ('hb02-parity-' + [Guid]::NewGuid().ToString('N'))
+          $sdk = Join-Path $temp ('hb02-sdk-' + [Guid]::NewGuid().ToString('N'))
+          New-Item -ItemType Directory -Path $sdk | Out-Null
+          [IO.File]::WriteAllText((Join-Path $sdk 'global.json'),
+            '{"sdk":{"version":"11.0.100-rc.2.26504.105","rollForward":"disable","allowPrerelease":true}}',
+            [Text.UTF8Encoding]::new($false))
+          $env:DOTNET_CLI_HOME = Join-Path $sdk 'home'
+          $env:NUGET_PACKAGES = Join-Path $sdk 'packages'
+          $env:DOTNET_NOLOGO = '1'
+          $project = Join-Path $env:GITHUB_WORKSPACE 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CscCoreV2Parity/HardwareBridge.CscCoreV2Parity.csproj'
+          $fixture = Join-Path $env:GITHUB_WORKSPACE 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CscCoreV2Parity/emit_fixture.py'
+          $artifactPath = Join-Path $sdk 'artifacts'
+          try {
+            & python $fixture $output
+            if ($LASTEXITCODE -ne 0) { throw "Synthetic PR14 producer fixture failed: exit=$LASTEXITCODE" }
+            Push-Location $sdk
+            try {
+              $version = (& dotnet --version).Trim()
+              if ($LASTEXITCODE -ne 0 -or $version -cne '11.0.100-rc.2.26504.105') {
+                throw "Wrong SDK: $version"
+              }
+              $args = @('run','--project',$project,'--configuration','Release',
+                "-p:ArtifactsPath=$artifactPath",'--',$output)
+              $goodLog = Join-Path $sdk 'positive.txt'
+              & dotnet @args > $goodLog 2>&1
+              $goodExit = $LASTEXITCODE
+              Write-Host "Actual positive command exit=$goodExit stdout/stderr SHA256=$((Get-FileHash $goodLog -Algorithm SHA256).Hash)"
+              if ($goodExit -ne 0) {
+                Get-Content -LiteralPath $goodLog
+                throw 'Real .NET serializer parity failed'
+              }
+              Get-Content -LiteralPath $goodLog
+              $args = @('run','--no-build','--no-restore','--project',$project,
+                '--configuration','Release',"-p:ArtifactsPath=$artifactPath",'--',$output)
+              function Assert-Refused([string] $Label) {
+                $log = Join-Path $sdk ("negative-" + $Label + ".txt")
+                & dotnet @args > $log 2>&1
+                $code = $LASTEXITCODE
+                Write-Host "Negative $Label actual exit=$code stdout/stderr SHA256=$((Get-FileHash $log -Algorithm SHA256).Hash)"
+                if ($code -eq 0) { throw "Mutation was admitted: $Label" }
+              }
+              $source = Join-Path $output 'src/00002.cs'
+              $original = [IO.File]::ReadAllBytes($source)
+              [IO.File]::WriteAllBytes($source, [byte[]]@(1,2,3))
+              Assert-Refused 'changed-source'
+              [IO.File]::WriteAllBytes($source, $original)
+              $indexPath = Join-Path $output 'index.json'
+              $index = [IO.File]::ReadAllBytes($indexPath)
+              [IO.File]::AppendAllText($indexPath, ' ')
+              Assert-Refused 'stale-index'
+              [IO.File]::WriteAllBytes($indexPath, $index)
+              $crossPath = Join-Path $output 'capture-crosswalk.json'
+              $cross = [IO.File]::ReadAllText($crossPath)
+              [IO.File]::WriteAllText($crossPath,
+                $cross.Replace('"Kind":"reference"', '"Kind":"csc-source"'), [Text.UTF8Encoding]::new($false))
+              Assert-Refused 'promoted-metadata'
+              $compiled = Get-ChildItem -LiteralPath $artifactPath -Recurse -File |
+                Where-Object { $_.Name -match 'CscCoreV2Parity.*\.(dll|pdb)$' }
+              if (-not $compiled) { throw 'No actual compiled test binary to attest' }
+              foreach ($file in $compiled) {
+                Write-Host "Compiled binary $($file.FullName) SHA256=$((Get-FileHash $file.FullName -Algorithm SHA256).Hash)"
+              }
+            } finally { Pop-Location }
+          } finally {
+            if (Test-Path -LiteralPath $output) { Remove-Item -LiteralPath $output -Recurse -Force }
+          }
+
+# Does not qualify Golden execution, current Roslyn source body, RTL/EDA/target.
