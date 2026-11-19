@@ -81,7 +81,7 @@ def exact_argv(command, compiler):
         reject("ambiguous Csc command quoting: " + str(ex))
     if not tokens or len(tokens) > 8194:
         reject("missing/oversized observed Csc argv")
-    indices = [i for i, x in enumerate(tokens) if Path(x).name.lower() == "csc.dll"]
+    indices = [i for i, x in enumerate(tokens) if Path(x).name.lower() in ("csc", "csc.dll")]
     if len(indices) != 1:
         reject("Csc tool path not independently bound to task command")
     index = indices[0]
@@ -115,8 +115,8 @@ def observe(events_path, baseline_dir, isolated_dir, consumer_project,
     if baseline == isolated or under(baseline, isolated) or under(isolated, baseline):
         reject("source and isolated working copy must be disjoint")
     compiler = v2.safe_path(os.path.abspath(compiler_path))
-    if compiler.name != "csc.dll":
-        reject("only pinned SDK Roslyn csc.dll is supported")
+    if compiler.name not in ("csc", "csc.dll"):
+        reject("only pinned SDK Roslyn Csc tool is supported")
     consumer = v2.safe_path(os.path.abspath(consumer_project))
     if not under(consumer, baseline):
         reject("root project must be an immutable baseline fixture copy")
