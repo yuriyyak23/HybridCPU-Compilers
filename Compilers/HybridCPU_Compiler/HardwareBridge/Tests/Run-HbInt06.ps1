@@ -98,7 +98,11 @@ try {
     $protocol = Invoke-HbRecordedCommand 'v1-protocol-tests' 'dotnet' $protocolArgs $OutputRoot $OutputRoot $TimeoutSeconds
     $report.Commands += $protocol
     $report.Matrix.SidecarV1 = $protocol.Status
-    if ($protocol.Status -ne 'Passed') { throw 'Independent v1 protocol test executable failed or blocked' }
+    if ($protocol.Status -ne 'Passed') {
+        $failed = $true
+        $report.Blockers += 'Isolated v1 protocol tests failed: inspect v1-protocol-tests.stdout/stderr.txt'
+        $report.Error = 'Isolated v1 strict protocol tests failed or blocked'
+    }
     $project = Join-Path $PSScriptRoot 'HardwareBridge.SelfTests.csproj'
     $args = @('run','--project',$project,'--configuration','Release',
         "-p:ArtifactsPath=$artifacts",'-p:UseArtifactsOutput=true')
