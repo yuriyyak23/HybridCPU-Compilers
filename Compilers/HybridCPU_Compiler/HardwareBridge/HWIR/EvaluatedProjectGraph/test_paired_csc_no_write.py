@@ -137,6 +137,23 @@ class PairTests(unittest.TestCase):
         with mock.patch.object(paired, "CORE_MAX_ROWS", 1):
             self.assert_refused("Core transition exceeds")
 
+    def test_8gib_source_inventory_budget_is_typed_refusal(self):
+        self.modify_dirty()
+        # Simulate a tiny ceiling rather than allocating 8 GiB in CI.
+        with mock.patch.object(hb, "MAX_BYTES", 1):
+            self.assert_refused("snapshot exceeds bounded")
+
+    def test_duplicate_logical_source_identity_is_refused(self):
+        self.modify_dirty()
+        extra = self.dirty.copy / "Extra.cs"
+        extra.write_bytes(b"// extra msbuild-generated synthetic source")
+        p = self.dirty.observation["projects"][0]
+        p["argv"].append(str(extra))
+        p["sources"].append({"path": str(extra), "logicalPath": "project/A.cs",
+                             "origin": "msbuild-generated", "sha256": hb.sha(extra.read_bytes())})
+        self.dirty.save()
+        self.assert_refused("duplicate ordered closure identity")
+
     def test_1001_sources_per_snapshot(self):
         self.modify_dirty()
         for fx in (self.clean, self.dirty):
