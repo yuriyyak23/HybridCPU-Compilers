@@ -29,9 +29,11 @@ if ($ExpectedBridgeSha) { Assert-HbExpectedSha $actualBridge $ExpectedBridgeSha 
 $before = Get-HbSourceState $golden
 Assert-HbExpectedSha $before.Head $ExpectedGoldenSha
 $actualCore = $null
+$coreBefore = $null
 if ($core) {
     $actualCore = Invoke-HbGit $core @('rev-parse', 'HEAD')
     Assert-HbExpectedSha $actualCore $ExpectedCoreSha
+    $coreBefore = Get-HbSourceState $core
 }
 elseif ($CoreImporterProject -or $ExpectedCoreSha -or $RequirePaired -or $CoreOnly) {
     throw 'Paired Core requires explicit CoreRoot, Core SHA and test project'
@@ -57,6 +59,9 @@ $report = [ordered]@{
     GoldenHead = $before.Head
     GoldenBefore = $before
     CoreHead = $actualCore
+    CoreBefore = $coreBefore
+    CoreAfter = $null
+    CoreSourceUnchanged = $false
     ExpectedSdkVersion = $ExpectedSdkVersion
     Commands = @()
     Matrix = [ordered]@{
@@ -175,6 +180,17 @@ catch {
     $report.Error = $_.Exception.Message
 }
 finally {
+    if ($core) {
+        try {
+            $report.CoreAfter = Get-HbSourceState $core
+            Assert-HbSourceUnchanged $coreBefore $report.CoreAfter
+            $report.CoreSourceUnchanged = $true
+        }
+        catch {
+            $failed = $true
+            $report.Error = "Core source immutability failure: $($_.Exception.Message)"
+        }
+    }
     try {
         $after = Get-HbSourceState $golden
         $report.GoldenAfter = $after
@@ -198,6 +214,10 @@ finally {
     Write-Host "HB-INT-06 report: $file SHA256=$sha"
     $afterDigest = if ($null -eq $report.GoldenAfter) { "NOTRUN" } else { $report.GoldenAfter.TreeSha256 }
     Write-Host "Golden pre=$($before.TreeSha256) post=$afterDigest; unchanged=$($report.SourceUnchanged)"
+    if ($core) {
+        $coreAfterDigest = if ($null -eq $report.CoreAfter) { "NOTRUN" } else { $report.CoreAfter.TreeSha256 }
+        Write-Host "Core pre=$($coreBefore.TreeSha256) post=$coreAfterDigest; unchanged=$($report.CoreSourceUnchanged)"
+    }
     foreach ($entry in $report.Commands) {
         Write-Host "EXEC $($entry.Name): status=$($entry.Status) exit=$($entry.ExitCode) stdoutSHA=$($entry.StdoutSha256) stderrSHA=$($entry.StderrSha256)"
     }
