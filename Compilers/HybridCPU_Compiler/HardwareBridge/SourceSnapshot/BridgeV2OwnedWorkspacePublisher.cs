@@ -32,7 +32,9 @@ public static class BridgeV2OwnedWorkspacePublisher
         string goldenRoot,
         CancellationToken cancellationToken = default)
     {
-        cancellationToken.ThrowIfCancellationRequested();
+        if (cancellationToken.IsCancellationRequested)
+            throw new BridgeV2RefusalException(BridgeV2Refusal.Cancelled,
+                "Publication cancelled before any output.");
         ArgumentNullException.ThrowIfNull(transport);
         ArgumentNullException.ThrowIfNull(inputs);
         ArgumentNullException.ThrowIfNull(roots);
