@@ -87,6 +87,9 @@ function Get-HbSourceState([string]$Root) {
             throw "Linked source entry prohibited (symlink/junction): $relative"
         }
         if ($item.PSIsContainer) { continue }
+        if ($relative.IndexOfAny([char[]]@([char]9,[char]10,[char]13)) -ge 0) {
+            throw "Ambiguous control character in Golden source path: $relative"
+        }
         $hash = (Get-FileHash -LiteralPath $item.FullName -Algorithm SHA256).Hash
         $lines.Add($relative + [char]9 + $item.Length + [char]9 + $hash)
         $totalBytes += $item.Length
