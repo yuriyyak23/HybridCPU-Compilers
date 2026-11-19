@@ -182,6 +182,57 @@ internal static class BridgeIndexV2Tests
         Check(BridgeProvenanceCodecV2.ReadAndValidate(candidateBytes, snapshot, candidate,
             candidateInputs, candidateEvidence, sdk).SoftwareStatus == "Candidate",
             "synthetic candidate format");
+        // HB-INT-03: Candidate must not contain arbitrary self-reported roots,
+        // failed method imports, duplicate body owners or unclosed call edges.
+        // These are *software facts* checks; no independent Csc/RTL is run.
+        RejectWrite(() => BridgeProvenanceCodecV2.Write(snapshot,
+            candidate with { RootIdentities = new[] { "Unowned::F" } },
+            candidateInputs, candidateEvidence));
+        RejectWrite(() => BridgeProvenanceCodecV2.Write(snapshot,
+            candidate with { RootIdentities = new[] { "Fixture::F", "Fixture::F" } },
+            candidateInputs, candidateEvidence));
+        RejectWrite(() => BridgeProvenanceCodecV2.Write(snapshot,
+            candidate with { Methods = new[] {
+                candidate.Methods[0] with { MethodName = "WrongMethod" } } },
+            candidateInputs, candidateEvidence));
+        RejectWrite(() => BridgeProvenanceCodecV2.Write(snapshot,
+            candidate with { Methods = new[] {
+                candidate.Methods[0] with { MetadataToken = 0x06000002 } } },
+            candidateInputs, candidateEvidence));
+        RejectWrite(() => BridgeProvenanceCodecV2.Write(snapshot,
+            candidate with { Methods = new[] {
+                candidate.Methods[0] with { ImportStatus = "Rejected" } } },
+            candidateInputs, candidateEvidence));
+        RejectWrite(() => BridgeProvenanceCodecV2.Write(snapshot,
+            candidate with { Methods = new[] {
+                candidate.Methods[0], candidate.Methods[0] } },
+            candidateInputs, candidateEvidence));
+        RejectWrite(() => BridgeProvenanceCodecV2.Write(snapshot,
+            candidate with { Methods = new[] {
+                candidate.Methods[0] with { DirectCallees = new[] { "Missing::Call" } } } },
+            candidateInputs, candidateEvidence));
+        RejectWrite(() => BridgeProvenanceCodecV2.Write(snapshot,
+            candidate with { Edges = new[] { new BridgeEdgeFactV1(
+                "edge-1", "Fixture::F", "Missing::Call", 0, 0x06000001) } },
+            candidateInputs, candidateEvidence));
+        RejectWrite(() => BridgeProvenanceCodecV2.Write(snapshot,
+            candidate with { SourceMaps = new[] { new BridgeMapRowV1(
+                "Fixture::F", peHash, BridgeSegmentIndexV2.Hash(reference),
+                0x06000001, 0, 0, "src/Fixture.cs", null, 1, 1) } },
+            candidateInputs, candidateEvidence));
+        RejectWrite(() => BridgeProvenanceCodecV2.Write(snapshot,
+            candidate with { SourceMaps = new[] { new BridgeMapRowV1(
+                "Missing::Call", peHash, pdbHash, 0x06000001,
+                0, 0, "src/Fixture.cs", null, 1, 1) } },
+            candidateInputs, candidateEvidence));
+        // A matching payload hash is not enough if the caller's live graph
+        // has mutated since the original Candidate envelope was captured.
+        Refuse(BridgeV2Refusal.InvalidPin, () =>
+            BridgeProvenanceCodecV2.ReadAndValidate(candidateBytes, snapshot,
+                candidate with { Methods = new[] {
+                    candidate.Methods[0] with { ImportStatus = "Rejected" } } },
+                candidateInputs, candidateEvidence, sdk));
+
         byte[] wrongPdb = pdb.ToArray(); wrongPdb[0] ^= 0x40;
         Refuse(BridgeV2Refusal.InvalidPin, () => BridgeProvenanceCodecV2.ReadAndValidate(
             candidateBytes, snapshot, candidate, candidateInputs,
