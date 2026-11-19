@@ -86,15 +86,25 @@ try {
     if ($versionText -cne $ExpectedSdkVersion) {
         throw "Wrong .NET SDK: pinned $ExpectedSdkVersion, executed $versionText"
     }
+    $protocolProject = Join-Path $PSScriptRoot 'HardwareBridge.ProtocolTests.csproj'
+    $protocolArgs = @('run','--project',$protocolProject,'--configuration','Release',
+        "-p:ArtifactsPath=$artifacts",'-p:UseArtifactsOutput=true')
+    $protocol = Invoke-HbRecordedCommand 'v1-protocol-tests' 'dotnet' $protocolArgs $bridge $OutputRoot $TimeoutSeconds
+    $report.Commands += $protocol
+    $report.Matrix.SidecarV1 = $protocol.Status
+    if ($protocol.Status -ne 'Passed') { throw 'Independent v1 protocol test executable failed or blocked' }
     $project = Join-Path $PSScriptRoot 'HardwareBridge.SelfTests.csproj'
     $args = @('run','--project',$project,'--configuration','Release',
         "-p:ArtifactsPath=$artifacts",'-p:UseArtifactsOutput=true')
     $standalone = Invoke-HbRecordedCommand 'companion-selftests' 'dotnet' $args $bridge $OutputRoot $TimeoutSeconds
     $report.Commands += $standalone
     $report.Matrix.StandaloneCompanion = $standalone.Status
-    $report.Matrix.SidecarV1 = $standalone.Status
     $report.Matrix.CscPePdb = $standalone.Status
-    if ($standalone.Status -ne 'Passed') { throw 'Standalone Companion / sidecar / Csc PE-PDB tests failed or blocked' }
+    if ($standalone.Status -ne 'Passed') {
+        $failed = $true
+        $report.Blockers += 'Actual Companion Csc PE/PDB test could not complete: inspect companion-selftests.stdout.txt; no fixture substitution'
+        $report.Error = 'Standalone Companion / Csc PE-PDB tests failed or blocked'
+    }
     if (-not (Test-Path -LiteralPath $artifacts)) {
         throw 'No external build artifact directory: compiled test may have written inside sources'
     }
