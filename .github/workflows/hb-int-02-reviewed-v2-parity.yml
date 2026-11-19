@@ -70,6 +70,12 @@ jobs:
             $buildExit = $LASTEXITCODE
             Write-Host "Pinned SDK=$version build exit=$buildExit SHA256=$((Get-FileHash $buildLog -Algorithm SHA256).Hash)"
             if ($buildExit -ne 0) { Get-Content $buildLog; throw 'Managed reference codec build failed' }
+            $limitsLog = Join-Path $log 'actual-dotnet-limits.txt'
+            & dotnet run --project $project -c Release --no-build --no-restore "-p:ArtifactsPath=$artifacts" -- --wire-limits > $limitsLog 2>&1
+            $limitsExit = $LASTEXITCODE
+            Write-Host "Actual production .NET wire bounds exit=$limitsExit SHA256=$((Get-FileHash $limitsLog -Algorithm SHA256).Hash)"
+            Get-Content $limitsLog
+            if ($limitsExit -ne 0) { throw 'Actual production codec size/count boundaries failed' }
             foreach ($count in @(1,64,65,1001)) {
               $output = Join-Path $temp ('hb-stage-' + [Guid]::NewGuid().ToString('N'))
               try {
