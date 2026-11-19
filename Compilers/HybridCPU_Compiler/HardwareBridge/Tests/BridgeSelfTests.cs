@@ -39,6 +39,7 @@ internal static class BridgeSelfTests
     {
         try
         {
+            GoldenRawTraceTests.Run();
             // Snapshot tests hash opaque caller bytes; use a bounded deterministic image rather than
             // assuming the current runtime CoreLib fits the bridge's 16 MiB reference budget.
             byte[] reference = Enumerable.Range(0, 4096).Select(i => (byte)(i * 31)).ToArray();
