@@ -1,0 +1,116 @@
+name: HB-INT-06 standalone source-no-write contracts (NOT RTL qualification)
+on:
+  pull_request:
+    paths:
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/**'
+      - '.github/workflows/hb-int-06-no-write.yml'
+  push:
+    branches: [master]
+    paths:
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/**'
+      - '.github/workflows/hb-int-06-no-write.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  standalone-only:
+    name: Windows .NET 11 Bridge + synthetic mutation + pinned Golden no-write
+    runs-on: windows-2025
+    steps:
+      - name: Checkout exact Bridge commit
+        uses: actions/checkout@v4
+        with:
+          path: bridge
+          ref: '${{ github.event.pull_request.head.sha || github.sha }}'
+          persist-credentials: false
+      - name: Checkout Golden at pinned immutable SHA (source only)
+        uses: actions/checkout@v4
+        with:
+          repository: yuriyyak23/HybridCPU-v2
+          ref: 6946ccab9d888f7dae0a4d8e18480f436138acd9
+          path: golden
+          persist-credentials: false
+      - name: Install pinned .NET 11 SDK (same SDK as Core global.json)
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 11.0.100-rc.2.26504.105
+      - name: Exact source hash and real standalone contract tests
+        shell: pwsh
+        env:
+          HB_BRIDGE_SHA: '${{ github.event.pull_request.head.sha || github.sha }}'
+        run: |
+          $script = Join-Path $env:GITHUB_WORKSPACE 'bridge/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/Run-HbInt06.ps1'
+          $args = @{
+            BridgeRoot = (Join-Path $env:GITHUB_WORKSPACE 'bridge')
+            ExpectedBridgeSha = $env:HB_BRIDGE_SHA
+            GoldenRoot = (Join-Path $env:GITHUB_WORKSPACE 'golden')
+            ExpectedGoldenSha = '6946ccab9d888f7dae0a4d8e18480f436138acd9'
+            ExpectedSdkVersion = '11.0.100-rc.2.26504.105'
+            OutputRoot = (Join-Path $env:RUNNER_TEMP 'hb-int-06-standalone')
+          }
+          & $script @args
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Upload scope-limited raw receipts even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hb-int-06-standalone-raw
+          path: '${{ runner.temp }}/hb-int-06-standalone'
+          if-no-files-found: warn
+
+  paired-core-optional:
+    # The standalone JSON reports the absent Core importer as Blocked.
+    # Skipped != Passed and is not a cross-repo release gate.
+    if: ${{ vars.HB_INT_06_PAIRED_ENABLED == 'true' }}
+    name: Explicit pinned Core importer (no fixture-success fallback)
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: bridge
+          ref: '${{ github.event.pull_request.head.sha || github.sha }}'
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: yuriyyak23/HybridCPU-v2
+          ref: 6946ccab9d888f7dae0a4d8e18480f436138acd9
+          path: golden
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: yuriyyak23/CircuitWeave
+          ref: 555672232e46cb4e8b157e2d1b1db1e873c4194e
+          path: core
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 11.0.100-rc.2.26504.105
+      - name: Run actual Core importer smoke only with published pinned test project
+        shell: pwsh
+        env:
+          HB_BRIDGE_SHA: '${{ github.event.pull_request.head.sha || github.sha }}'
+          HB_CORE_PROJECT: '${{ vars.HB_INT_06_CORE_IMPORTER_PROJECT }}'
+        run: |
+          $script = Join-Path $env:GITHUB_WORKSPACE 'bridge/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/Run-HbInt06.ps1'
+          $args = @{
+            BridgeRoot = (Join-Path $env:GITHUB_WORKSPACE 'bridge')
+            ExpectedBridgeSha = $env:HB_BRIDGE_SHA
+            GoldenRoot = (Join-Path $env:GITHUB_WORKSPACE 'golden')
+            ExpectedGoldenSha = '6946ccab9d888f7dae0a4d8e18480f436138acd9'
+            CoreRoot = (Join-Path $env:GITHUB_WORKSPACE 'core')
+            ExpectedCoreSha = '555672232e46cb4e8b157e2d1b1db1e873c4194e'
+            CoreImporterProject = $env:HB_CORE_PROJECT
+            OutputRoot = (Join-Path $env:RUNNER_TEMP 'hb-int-06-paired')
+            RequirePaired = $true
+          }
+          & $script @args
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Upload paired raw receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hb-int-06-paired-raw
+          path: '${{ runner.temp }}/hb-int-06-paired'
+          if-no-files-found: warn
