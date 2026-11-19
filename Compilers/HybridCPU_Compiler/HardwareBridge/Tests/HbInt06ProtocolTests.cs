@@ -41,7 +41,7 @@ internal static class HbInt06ProtocolTests
         // Duplicate envelope keys used to be accepted by JsonDocument.TryGetProperty.
         // The payload checksum is unchanged: this is a parser ambiguity attack.
         string marker = "\"Schema\":\"" + BridgeSidecarCodecV1.SchemaId + "\",";
-        string duplicateKey = json.Replace(marker, marker + marker, StringComparison.Ordinal);
+        string duplicateKey = json.Insert(json.IndexOf(marker, StringComparison.Ordinal) + marker.Length, marker);
         if (duplicateKey == json) throw new InvalidOperationException("Envelope fixture did not contain Schema");
         Reject(() =>
         {
