@@ -108,7 +108,7 @@ def run():
             raise RuntimeError("ambiguous logger assembly outputs")
         logger_dll = candidates[0]
         print("logger SHA256=" + sha(logger_dll))
-        task_events = receipts / "task-events.json"
+        task_events = temp / "task-events.json"
         env["HB_CSC_OBSERVER_LOG"] = str(task_events)
         project = isolated / "Consumer" / "Consumer.csproj"
         command("build-two-project-fixture", [
@@ -118,6 +118,7 @@ def run():
             "-l:HardwareBridge.CscObservation.CscTaskLogger," + str(logger_dll)
         ], temp, env, receipts)
         print("live-task-events SHA256=" + sha(task_events))
+        shutil.copy2(task_events, receipts / "task-events.json")
         events = observer.read_events(str(task_events))
         if len(events) != 2:
             raise RuntimeError("fixture requires exactly two actual Csc task events")
