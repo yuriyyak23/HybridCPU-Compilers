@@ -39,10 +39,20 @@ jobs:
       - name: Test synthetic security/mutation/1001 input producers
         shell: bash
         run: |
-          set -euo pipefail
+          set -uo pipefail
           cd Compilers/HybridCPU_Compiler/HardwareBridge
-          python3 -m unittest discover -v -s Tests/Integration -p 'test_*.py'
-          python3 -m unittest discover -v -s HWIR/EvaluatedProjectGraph -p 'test_*.py'
+          python3 -m unittest discover -v -s Tests/Integration -p 'test_*.py' > "$RUNNER_TEMP/hb-int06-refusals.stdout" 2> "$RUNNER_TEMP/hb-int06-refusals.stderr"
+          rc1=$?
+          python3 -m unittest discover -v -s HWIR/EvaluatedProjectGraph -p 'test_*.py' > "$RUNNER_TEMP/hb-int06-producer.stdout" 2> "$RUNNER_TEMP/hb-int06-producer.stderr"
+          rc2=$?
+          echo "fixture_refusal_exit=$rc1 fixture_producer_exit=$rc2"
+          sha256sum "$RUNNER_TEMP/hb-int06-refusals.stdout" "$RUNNER_TEMP/hb-int06-refusals.stderr" "$RUNNER_TEMP/hb-int06-producer.stdout" "$RUNNER_TEMP/hb-int06-producer.stderr"
+          echo "python_executable=$(readlink -f "$(command -v python3)")"
+          sha256sum "$(readlink -f "$(command -v python3)")"
+          python3 --version
+          cat "$RUNNER_TEMP/hb-int06-refusals.stderr"
+          cat "$RUNNER_TEMP/hb-int06-producer.stderr"
+          test "$rc1" -eq 0 && test "$rc2" -eq 0
       - name: Clarify independent Golden and Core status
         run: echo 'FIXTURE ONLY; R1 Golden and paired Core NotRun in this job'
   paired-fixture-core:
