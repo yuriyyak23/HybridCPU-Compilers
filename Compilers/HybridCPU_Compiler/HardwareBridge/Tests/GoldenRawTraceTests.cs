@@ -152,6 +152,8 @@ internal static class GoldenRawTraceTests
             cancellationToken: cancelled.Token), "Cancellation.");
 
         // Synthetic fixture checks only structural integrity; no independent oracle is executed.
+        Console.WriteLine("HB-INT-04 fixture replay identity SHA256: " + observed.ReplayIdentity);
+        Console.WriteLine("HB-INT-04 fixture canonical JSON SHA256: " + Convert.ToHexString(SHA256.HashData(encoded)));
         Console.WriteLine("HB-INT-04 actual assertions passed: " + _assertions);
     }
 }
