@@ -7,8 +7,8 @@ Owner: HybridCPU-Compilers / HardwareBridge. Backlog: HB-INT-06. Plans: [Bridge 
 
 | Input | Exact identity | Scope |
 |---|---|---|
-| Bridge master inspected | 94f59223b36659c9162620224f91349ac79fb896 | feature branch base; CI checks its PR HEAD |
-| Core master / paired pin | 555672232e46cb4e8b157e2d1b1db1e873c4194e | no released strict importer yet |
+| Bridge initial master | 94f59223b36659c9162620224f91349ac79fb896 | original base; reconciled atop f0d728a5939f0c7507df9e828d2af2f8fac8dac9 with HB-INT-01/02/03/05 |
+| Core master / paired pin | 21706d19ede6a1ff87230fa2e41071f4f32d72a7 | CW-INT-03 strict v1/v2 bounded contract host merged; no independent source admission |
 | Golden source checkout | 6946ccab9d888f7dae0a4d8e18480f436138acd9 | read-only HEAD checked by test harness |
 | Windows SDK | 11.0.100-rc.2.26504.105 | pinned to Core global.json; wrong SDK hard fails |
 | Roslyn package | Microsoft.CodeAnalysis.CSharp 5.12.0 | Roslyn project pinned package; actual restore required |
@@ -16,7 +16,7 @@ Owner: HybridCPU-Compilers / HardwareBridge. Backlog: HB-INT-06. Plans: [Bridge 
 | Source | hybridcpu.hardwarebridge.source-snapshot/v1 | SHA-256 self-consistency, not independent evidence |
 | Software facts | hybridcpu.hardwarebridge.compiler-facts/v1 | Candidate/Rejected only |
 | Golden observation | hybridcpu.hardwarebridge.golden-observation/v1 | allowlisted Observed/Blocked only |
-| Segmented index | hybridcpu.hardwarebridge.capture-index/v2 | proposal; Blocked until compatible writer and Core reader |
+| Segmented index | circuitweave.bridge-source-closure-index/v2 | opt-in software candidate codec and Core contract reader; full actual Csc closure unqualified |
 | QA receipt | hybridcpu.hardwarebridge.qa-receipt/v1 | test-only, never hardware acceptance |
 
 ## Integration matrix
@@ -28,8 +28,10 @@ Owner: HybridCPU-Compilers / HardwareBridge. Backlog: HB-INT-06. Plans: [Bridge 
 | Actual fixture Csc PE/PDB | same self-tests | real Roslyn/CIL compile-only; wrong PDB and roots rejected |
 | Golden no-write | Run-HbInt06.ps1 | compare Git HEAD, full file SHA inventory and git status before/after |
 | Mutation probes | HbInt06.MutationTests.ps1 | real synthetic Git checkout and actual pwsh timeout |
-| v2 segmented capture | HB-INT-02/03 | **Blocked**: no producer/paired qualified reader yet |
-| Strict Core importer | CW-INT-02/03 Core-owned test | **Blocked**: require published pinned project and real run |
+| v2 segmented *codec contract* | HardwareBridge.V2.ContractTests.csproj | actual production codec test + chunk/hash/role mutations; no Golden capture |
+| v2 actual Csc capture qualification | HB-INT-02/03 + CW-INT-03/04 | **Blocked**: pinning current Csc closure and independent verified source is incomplete |
+| Strict Core importer contract | CW-INT-03 Core-owned test at exact pin | requires read-only `HB_INT_06_CORE_READ_TOKEN`; missing GitHub Actions cross-repo permissions explicitly Blocked; scoped to synthetic/fixtures, not full Bridge Producer→Core proof |
+| Actual Bridge→Core provenance replay | HB-INT-02/03 + CW-INT-03/04 | **Blocked** pending qualified actual Csc closure and companion artifact replay |
 | Independently qualified source closure | CW-INT-03 | **Blocked**: producer checksums cannot qualify |
 | Golden oracle/RTL evidence | CW-INT-10/11/12 | **Blocked**: needs independent receipts |
 | Native tool pins / approval | CW-INT-14 | **NotRun**: no native Bridge execution |
@@ -71,8 +73,7 @@ roles; traversal; stale current source; corrupted payload; mismatched PE/PDB;
 missing imported graph; ambiguous root metadata; cancellation.
 
 **Not yet covered by actual Native/Golden integration:** source closure with
-actual HybridCPU-v2 PE/PDB and exact Csc options, tampered v2 chunk (producer
-not implemented), Core importer/independent source verification, missing
+actual HybridCPU-v2 PE/PDB and exact Csc options, tampered v2 chunk covered by isolated codec + Core importer fixtures, while actual Golden-produced v2 chunks remain unqualified, Core importer/independent source verification, missing
 approved EDA runner, native pin/cancellation controls and independent RTL
 acceptance. Do not call any of these PASS on the strength of fixture checks.
 
@@ -89,12 +90,18 @@ failure, not a skipped integration PASS.
 The existing v1 payload fields, order, names and status enums are unchanged.
 Only malformed inputs with duplicate JSON keys or duplicate exact roots with
 recalculated checksums are now refused. Valid canonical v1 is retained.
-There is no automatic v1-to-v2 schema migration. First merge a compatible
-bounded Core reader with independent chunk/source tests; then version and
-release the Bridge writer and update both pinned test matrices.
+There is no automatic v1-to-v2 schema migration. The bounded v2 codec and Core reader are merged as *unqualified* source fact contracts; next require an actual Golden Csc closure producer and independent Core source verifier with immutable replay evidence before any default switch.
 
 **Limitations:** test compilation is a bounded AddWord software facts fixture,
 not complete Processor Csc closure. The file audit binds checked-out bytes,
 not an external missing sibling, missing LFS binary, SDK/analyzer environment
 or unmaterialized source. A Windows runner job or documented command does not
 count as executed until its actual logs/exit/hashes are available.
+
+## Live Windows evidence 2026-11-19
+
+- [Windows run 44557126414](https://github.com/yuriyyak23/HybridCPU-Compilers/actions/runs/44557126414) on PR #12: external exact prerelease .NET 11 SDK Passed exit 0; v1 codec Passed exit 0; v2 codec Passed exit 0; synthetic no-write/timeout/mutation Passed exit 0. Actual Companion Csc PE/PDB **Failed exit 1** due pre-existing missing `HybridCPU.Compiler.Core.IR.Artifacts` and `CompilerEmissionPackage`; never substituted fixture for Csc.
+- Full Golden present-file source SHA before and after: `3A024E3A8E3C470CCFC1F87C2479E11B0827AED3342921FBED1D3A42A88712E5`, unchanged.
+- `v2-codec-contract` stdout SHA256: `2710E72A922677E72F96873D2836945AF8047D22898602AC3AA96C32510662D7`; `v1-protocol-tests` stdout SHA256: `4D3434F50A7DE62D4A3EDF74283FF9002A489E4DF7AF11F5EE7FD52E7F3D4E61`; `no-write-mutations` stdout SHA256: `1070B3D160E26FD6BC947FF5DC36E2C49D5B04976AE17C7F11392C9E833E33AF`; actual separate command exits 0, 0, 0.
+- Core cross-repo checkout **Failed/Blocked** (`git fetch` exit 128, `Repository not found`) because the default Bridge workflow token cannot access the pinned Core repository. The workflow now requires an explicit least-privilege repository secret `HB_INT_06_CORE_READ_TOKEN`; missing secret yields fail-closed exit 2 and **never** a Core importer PASS. A real Core contract receipt remains NotRun until read access is explicitly provided and tests execute.
+- No RTL independent acceptance, Golden Processor source semantics or physical signoff was executed; these gates remain Blocked.
