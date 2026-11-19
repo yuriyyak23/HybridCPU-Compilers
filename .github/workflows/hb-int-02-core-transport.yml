@@ -54,7 +54,8 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $root = [IO.Path]::GetTempPath()
+          $root = (& python -c 'import tempfile; print(tempfile.gettempdir())').Trim()
+          if ($LASTEXITCODE -ne 0 -or -not $root) { throw 'Python TEMP root unavailable' }
           $workspace = Join-Path $root ("hb-int-02-parity-" + [Guid]::NewGuid().ToString('N'))
           $sdk = Join-Path $root ("hb-int-02-sdk-" + [Guid]::NewGuid().ToString('N'))
           New-Item -ItemType Directory $sdk | Out-Null
