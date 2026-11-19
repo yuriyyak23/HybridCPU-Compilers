@@ -73,6 +73,7 @@ class CoreV2StagingTests(unittest.TestCase):
     def test_metadata_body_promotion_even_when_rehashed(self):
         self.fixture.recompute(self.bundle, lambda doc: next(x for x in doc["entries"]
             if x["kind"] == "reference").update(role="owned-body"))
+        self.pin = json.loads((Path(self.bundle) / "index.json").read_bytes())["closureRootSha256"]
         with self.assertRaises(ValueError):
             self.run_stage()
         self.assertFalse(self.target.exists())
