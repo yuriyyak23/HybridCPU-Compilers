@@ -67,7 +67,7 @@ Reproduce on a host with .NET SDK `11.0.100-rc.2.26504.105`:
 ```bash
 sdk='11.0.100-rc.2.26504.105'
 sdk_dir="$(dotnet --list-sdks | awk -v v="$sdk" '$1==v {gsub(/[][]/,"",$2); print $2}')"
-export HB_CSC_PATH="$sdk_dir/Roslyn/bincore/csc.dll"
+export HB_CSC_PATH="$sdk_dir/$sdk/Roslyn/bincore/csc.dll"
 export HB_SDK_VERSION="$sdk"
 project=Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CscLinkFixture/HardwareBridge.CscLink.FixtureTests.csproj
 work="$(mktemp -d)"
