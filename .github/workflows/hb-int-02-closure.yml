@@ -1,0 +1,31 @@
+name: HB-INT-02 segmented Csc closure transport
+on:
+  push:
+    branches:
+      - feat/hb-int-02-segmented-csc-closure
+  pull_request:
+    paths:
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/segmented_csc_capture_v2.py'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/test_segmented_csc_capture_v2.py'
+      - '.github/workflows/hb-int-02-closure.yml'
+permissions:
+  contents: read
+jobs:
+  transport:
+    name: Python byte-transport regression (NOT Csc execution)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Python version
+        run: python3 --version
+      - name: Transport and mutation tests, first run
+        shell: bash
+        run: |
+          set -o pipefail
+          python3 -m unittest -v Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/test_segmented_csc_capture_v2.py 2>&1 | tee "$RUNNER_TEMP/hb02-1.log"
+      - name: Repeat transport and mutation tests
+        shell: bash
+        run: |
+          set -o pipefail
+          python3 -m unittest -v Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/test_segmented_csc_capture_v2.py 2>&1 | tee "$RUNNER_TEMP/hb02-2.log"
