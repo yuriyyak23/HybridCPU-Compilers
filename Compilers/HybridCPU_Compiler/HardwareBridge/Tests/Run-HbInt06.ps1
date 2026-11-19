@@ -13,7 +13,8 @@ param(
     [string[]]$CoreImporterArguments = @(),
     [string]$ExpectedSdkVersion = '11.0.100-rc.2.26504.105',
     [int]$TimeoutSeconds = 900,
-    [switch]$RequirePaired
+    [switch]$RequirePaired,
+    [switch]$CoreOnly
 )
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'HbInt06.SourceAudit.ps1')
@@ -32,7 +33,7 @@ if ($core) {
     $actualCore = Invoke-HbGit $core @('rev-parse', 'HEAD')
     Assert-HbExpectedSha $actualCore $ExpectedCoreSha
 }
-elseif ($CoreImporterProject -or $ExpectedCoreSha -or $RequirePaired) {
+elseif ($CoreImporterProject -or $ExpectedCoreSha -or $RequirePaired -or $CoreOnly) {
     throw 'Paired Core requires explicit CoreRoot, Core SHA and test project'
 }
 
@@ -62,8 +63,10 @@ $report = [ordered]@{
         StandaloneCompanion = 'NotRun'
         SidecarV1 = 'NotRun'
         CscPePdb = 'NotRun'
+        SegmentedV2CodecContract = 'NotRun'
         SegmentedCaptureV2 = 'Blocked'
         StrictCoreImporter = 'Blocked'
+        PairedProducerToCore = 'Blocked'
         IndependentSourceVerifier = 'Blocked'
         NativeApprovalAndToolPins = 'NotRun'
         RtlAcceptance = 'Blocked'
@@ -92,6 +95,7 @@ try {
     if ($versionText -cne $ExpectedSdkVersion) {
         throw "Wrong .NET SDK: pinned $ExpectedSdkVersion, executed $versionText"
     }
+    if (-not $CoreOnly) {
     $protocolProject = Join-Path $PSScriptRoot 'HardwareBridge.ProtocolTests.csproj'
     $protocolArgs = @('run','--project',$protocolProject,'--configuration','Release',
         "-p:ArtifactsPath=$artifacts",'-p:UseArtifactsOutput=true')
@@ -102,6 +106,17 @@ try {
         $failed = $true
         $report.Blockers += 'Isolated v1 protocol tests failed: inspect v1-protocol-tests.stdout/stderr.txt'
         $report.Error = 'Isolated v1 strict protocol tests failed or blocked'
+    }
+    $v2Project = Join-Path $PSScriptRoot 'HardwareBridge.V2.ContractTests.csproj'
+    $v2Args = @('run','--project',$v2Project,'--configuration','Release',
+        "-p:ArtifactsPath=$artifacts",'-p:UseArtifactsOutput=true')
+    $v2 = Invoke-HbRecordedCommand 'v2-codec-contract' 'dotnet' $v2Args $OutputRoot $OutputRoot $TimeoutSeconds
+    $report.Commands += $v2
+    $report.Matrix.SegmentedV2CodecContract = $v2.Status
+    if ($v2.Status -ne 'Passed') {
+        $failed = $true
+        $report.Blockers += 'Opt-in v2 byte codec tests failed; these are not real Golden Csc capture receipts'
+        $report.Error = 'Isolated v2 codec contract tests failed or blocked'
     }
     $project = Join-Path $PSScriptRoot 'HardwareBridge.SelfTests.csproj'
     $args = @('run','--project',$project,'--configuration','Release',
@@ -132,6 +147,7 @@ try {
     $mutations = Invoke-HbRecordedCommand 'no-write-mutations' 'pwsh' $mutationArgs $bridge $OutputRoot $TimeoutSeconds
     $report.Commands += $mutations
     if ($mutations.Status -ne 'Passed') { throw 'Mutation tests failed or were not executed' }
+    } # !CoreOnly
 
     if ($core -and $CoreImporterProject) {
         if ($CoreImporterProject -match '(^|[\\/])\.\.([\\/]|$)' -or
@@ -150,7 +166,7 @@ try {
         $report.Matrix.StrictCoreImporter = $paired.Status
         if ($paired.Status -ne 'Passed') { throw 'Core importer integration test failed/blocked' }
     }
-    elseif ($RequirePaired) {
+    elseif ($RequirePaired -or $CoreOnly) {
         throw 'Paired Core importer not configured; refusing false integration PASS'
     }
 }
@@ -192,5 +208,9 @@ if ($failed) {
     if ($notRun) { exit 2 }
     exit 1
 }
-Write-Host 'HB-INT-06 standalone QA Passed (cross-repo/full release gates remain Blocked).'
+if ($CoreOnly) {
+    Write-Host 'HB-INT-06 Core importer contract host Passed (producer-to-Core and full release gates remain Blocked).'
+} else {
+    Write-Host 'HB-INT-06 standalone software QA Passed (full release gates remain Blocked).'
+}
 exit 0
