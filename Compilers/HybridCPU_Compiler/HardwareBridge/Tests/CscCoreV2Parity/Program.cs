@@ -11,6 +11,8 @@ internal static class Program
     {
         try
         {
+            if (args.Length == 1 && args[0] == "--wire-limits")
+                return CompareProductionWireLimits();
             if (args.Length != 1 || !Path.IsPathFullyQualified(args[0]))
                 throw new ArgumentException("Explicit absolute synthetic transport workspace required.");
             string root = Path.GetFullPath(args[0]);
@@ -153,6 +155,70 @@ internal static class Program
         Console.WriteLine("IndexSha256=" + Convert.ToHexString(SHA256.HashData(indexBytes)) +
             " ClosureSha256=" + actual.ClosureSha256 + " Inputs=" + inputs.Count +
             " Chunks=" + actual.Chunks.Count + " RootManifestSha256=" + rootSha);
+        return 0;
+    }
+
+    // Actual production codec tested at the precise in-memory wire limits.
+    // Deliberately shares one immutable 32 MiB input across rows so the
+    // 512 MiB aggregate test does not allocate a second 512 MiB array.
+    private static int CompareProductionWireLimits()
+    {
+        var roots = new[] { new BridgeRootSelectorV1("Fixture", "F", null,
+            Array.Empty<string>(), Array.Empty<string>()) };
+        void ExpectRejected(Action action, string label)
+        {
+            try { action(); }
+            catch (ArgumentException) { return; }
+            throw new InvalidOperationException("Production codec accepted " + label);
+        }
+        byte[] source = new byte[2_097_152];
+        BridgeV2Transport sourceAtLimit = BridgeSegmentIndexV2.Write(roots,
+            new[] { new BridgeV2Input("src/00000.cs", "source", source) });
+        if (sourceAtLimit.Inputs[0].Bytes != source.LongLength)
+            throw new InvalidOperationException("2 MiB source boundary mismatch.");
+        ExpectRejected(() => BridgeSegmentIndexV2.Write(roots,
+            new[] { new BridgeV2Input("src/00000.cs", "source",
+                new byte[2_097_153]) }), "2 MiB + 1 source");
+        byte[] metadata = new byte[33_554_432];
+        var empty = new BridgeV2Input("src/00000.cs", "source", Array.Empty<byte>());
+        var at512 = new List<BridgeV2Input> { empty };
+        for (int i = 0; i < 16; i++)
+            at512.Add(new BridgeV2Input("meta/" + i.ToString("D5") + ".bin",
+                "metadata-only", metadata));
+        BridgeV2Transport full = BridgeSegmentIndexV2.Write(roots, at512);
+        if (full.Inputs.Sum(x => x.Bytes) != BridgeSegmentIndexV2.MaxWorkspaceBytes)
+            throw new InvalidOperationException("512 MiB aggregate limit is not exact.");
+        BridgeSegmentIndexV2.ValidateAgainstActualBytes(full.IndexUtf8,
+            full.Chunks, roots, at512);
+        ExpectRejected(() => BridgeSegmentIndexV2.Write(roots, at512.Append(
+            new BridgeV2Input("meta/99999.bin", "metadata-only", metadata)).ToArray()),
+            "512 MiB + 32 MiB aggregate");
+        ExpectRejected(() => BridgeSegmentIndexV2.Write(roots,
+            new[] { empty, new BridgeV2Input("meta/excess.bin",
+                "metadata-only", new byte[33_554_433]) }), "32 MiB + 1 metadata");
+        foreach (int count in new[] { 1, 64, 65, 1001 })
+        {
+            var rows = Enumerable.Range(0, count).Select(i =>
+                new BridgeV2Input("src/" + i.ToString("D5") + ".cs",
+                    "source", new byte[] { (byte)(i & 255) })).ToArray();
+            BridgeV2Transport t = BridgeSegmentIndexV2.Write(roots, rows);
+            BridgeSegmentIndexV2.ValidateAgainstActualBytes(t.IndexUtf8,
+                t.Chunks, roots, rows);
+            if (t.Inputs.Count != count || t.Chunks.Count != (count + 63) / 64)
+                throw new InvalidOperationException("Wrong 1/64/65/1001 chunk boundary: " + count);
+        }
+        using var cancelled = new CancellationTokenSource();
+        cancelled.Cancel();
+        try
+        {
+            BridgeSegmentIndexV2.Write(roots, new[] { empty }, cancelled.Token);
+            throw new InvalidOperationException("Cancelled writer unexpectedly succeeded.");
+        }
+        catch (OperationCanceledException) { }
+        Console.WriteLine("PASS: actual production .NET v2 codec 1/64/65/1001, 2MiB, 32MiB, 512MiB, overflow, cancellation.");
+        Console.WriteLine("512MiBIndexSha256=" + BridgeSegmentIndexV2.Hash(full.IndexUtf8) +
+            " ClosureSha256=" + full.ClosureSha256 +
+            " Chunks=" + full.Chunks.Count);
         return 0;
     }
 
