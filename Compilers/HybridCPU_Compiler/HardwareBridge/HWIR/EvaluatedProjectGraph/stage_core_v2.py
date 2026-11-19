@@ -180,7 +180,7 @@ def verify(output, reviewed_capture, reviewed_roots):
             refuse("Core 512MiB total budget exceeded")
         f = capture.safe_path(str(base / expected_path))
         if f.stat().st_size != row["Bytes"]:
-            refuse("staged file length changed")
+            refuse("mutated output file length")
         file_sha, size = capture.hash_file(f)
         if size != row["Bytes"] or file_sha.upper() != row["Sha256"]:
             refuse("mutated output file bytes")
