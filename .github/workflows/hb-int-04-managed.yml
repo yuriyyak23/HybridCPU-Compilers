@@ -1,0 +1,58 @@
+name: HB-INT-04 managed raw-trace contract
+
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/**'
+      - '.github/workflows/hb-int-04-managed.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  raw-contract:
+    name: Raw trace managed contract / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '11.0.x'
+      - name: SDK and revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rev-parse HEAD
+          dotnet --info
+      - name: Real bounded raw trace codec tests (no Core / Golden runtime)
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet run --project Compilers/HybridCPU_Compiler/HardwareBridge/Tests/GoldenRawTrace.ContractTests.csproj -c Release 2>&1 | tee "$RUNNER_TEMP/hb-int-04-raw-test.log"
+          sha256sum "$RUNNER_TEMP/hb-int-04-raw-test.log"
+
+  legacy-companion:
+    name: Existing Companion baseline (separate, never masked)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '11.0.x'
+      - name: Existing standalone integration tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet run --project Compilers/HybridCPU_Compiler/HardwareBridge/Tests/HardwareBridge.SelfTests.csproj -c Release
+      - name: Build Companion independently even if prior tests failed
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet build Compilers/HybridCPU_Compiler/HardwareBridge/HardwareBridge.Companion.csproj -c Release
