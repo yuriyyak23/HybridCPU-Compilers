@@ -1,0 +1,40 @@
+name: HB-INT-04 source-bound Golden vector contract
+
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/GoldenOracle/GoldenBoundVectorsV1.cs'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/GoldenBoundVectors*'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/GoldenOracle/bound-vectors-v1.md'
+      - '.github/workflows/hb-int-04-vectors.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  vector-contract:
+    name: Source-bound AddWord vectors / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '11.0.x'
+      - name: SDK and checkout SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rev-parse HEAD
+          dotnet --info
+      - name: Source-bound vector codec actual managed test
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet run --project Compilers/HybridCPU_Compiler/HardwareBridge/Tests/GoldenBoundVectors.ContractTests.csproj -c Release 2>&1 | tee "$RUNNER_TEMP/hb-int-04-bound-vectors.log"
+          sha256sum "$RUNNER_TEMP/hb-int-04-bound-vectors.log"
