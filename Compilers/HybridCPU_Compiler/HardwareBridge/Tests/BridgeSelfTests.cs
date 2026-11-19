@@ -142,6 +142,9 @@ internal static class BridgeSelfTests
                 importer, selectors, Array.Empty<int>(), Array.Empty<int>());
             Require(export.Facts.Status == "Candidate", "Real Companion CIL projection refused: " +
                 string.Join(" | ", export.Facts.Diagnostics.Select(d => d.Code + ":" + d.Message)));
+            Console.WriteLine("HB-INT-06 actual Csc artifact SHA: snapshot=" + export.Source.SnapshotDigest +
+                " sourceInput=" + export.Facts.SourceInputDigest +
+                " PE=" + export.Facts.PeSha256 + " PDB=" + export.Facts.PdbSha256);
             Require(export.Facts.Methods.Count == 1 && export.Facts.PeSha256 is not null &&
                 export.Facts.PdbSha256 is not null && export.Facts.SourceInputDigest is not null &&
                 export.Facts.SourceMaps.All(row => row.PeSha256.Equals(export.Facts.PeSha256,
