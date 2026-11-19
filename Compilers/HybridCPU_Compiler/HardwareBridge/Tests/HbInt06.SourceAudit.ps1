@@ -117,6 +117,9 @@ function Assert-HbSourceUnchanged($Before, $After) {
 
 function Assert-HbCommandReceipt($Receipt) {
     if ($Receipt.Status -eq 'Passed') {
+        if ($Receipt.Name -like 'native-*') {
+            throw 'Bridge cannot qualify or mark native EDA execution Passed'
+        }
         if (-not $Receipt.Started -or $Receipt.ExitCode -ne 0 -or
             $Receipt.Arguments.Count -eq 0 -or
             $Receipt.ExecutableSha256 -cnotmatch '^[0-9A-F]{64}$' -or
