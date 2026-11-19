@@ -21,3 +21,7 @@ provide general HWIR or full Processor elaboration.
 - [Detailed HardwareBridge ↔ CircuitWeave integration plan](CircuitWeave_Pipeline_Integration_Plan.md): six HB-INT packages mapped to 16 CW-INT packages; portable project boundaries, source/Csc capture, strict sidecar versioning, independent Golden oracle protocol, legacy candidate parity and no-write tests.
 
 Plan only: v1 remains read-only/unqualified; nothing in this document grants hardware or Physical Design authority.
+
+## HB-INT-02 partial implementation: segmented Csc observation transport
+
+See [HB-INT-02 segmented v2 capture and migration](HB_INT_02_Segmented_Csc_Closure.md). The opt-in Python capture tool reads caller-supplied isolated Csc argv/bytes, hashes bounded binary chunks, and checks Golden source freshness without executing targets. This is a **separate unqualified outer v2 transport**, NOT an update to SourceSnapshot v1, sidecar v1, or evidence authority. Actual Processor capture, independent Core CW-INT-03 reader and downstream hardware/physical gates remain Blocked. Run transport-only regression with Python unittest; it is not a real Csc test.
