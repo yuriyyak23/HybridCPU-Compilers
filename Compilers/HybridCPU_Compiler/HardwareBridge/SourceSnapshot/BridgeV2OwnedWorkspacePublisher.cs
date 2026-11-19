@@ -2,6 +2,7 @@
 // This writes ONLY to a newly created owned OS-temp directory, never Golden.
 // Neither SHA-256 nor a successful stage qualifies a method, RTL, or physical design.
 using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 
 namespace HybridCPU.Compiler.HardwareBridge.SourceSnapshot;
@@ -268,6 +269,7 @@ public static class BridgeV2OwnedWorkspacePublisher
             !Path.IsPathRooted(relative);
     }
 
+    [DoesNotReturn]
     private static void Refuse(BridgeV2Refusal code, string message) =>
         throw new BridgeV2RefusalException(code, message);
 }
