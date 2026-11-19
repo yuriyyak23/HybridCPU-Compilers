@@ -122,6 +122,12 @@ def run():
         events = observer.read_events(str(task_events))
         if len(events) != 2:
             raise RuntimeError("fixture requires exactly two actual Csc task events")
+        # This is an approved, newly created toy fixture with no confidential inputs.
+        # Show exact live task-command prefixes for investigating unsupported
+        # MSBuild task conventions; full raw bytes remain in the uploaded receipt.
+        for idx, event in enumerate(events):
+            print("toy live Csc event " + str(idx) + " command prefix=" +
+                  repr(event["CommandLine"][:512]), flush=True)
         output = Path(tempfile.gettempdir()) / ("hb-task-capture-" + temp.name)
         graph = Path(tempfile.gettempdir()) / ("hb-task-graph-" + temp.name + ".json")
         obs = Path(tempfile.gettempdir()) / ("hb-task-obs-" + temp.name + ".json")
