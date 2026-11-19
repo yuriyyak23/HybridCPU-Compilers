@@ -81,6 +81,50 @@ class ProjectorTests(unittest.TestCase):
         self.assertTrue(any(x["Kind"] == "reference" and x["ClaimedProjectRole"] == "metadata-only"
                             for x in cross["Inputs"]))
 
+    def test_metadata_crosswalk_role_promotion_is_refused(self):
+        output, _ = self.project()
+        cross_path = output / "capture-crosswalk.json"
+        cross = json.loads(cross_path.read_bytes())
+        ref = next(x for x in cross["Inputs"] if x["Kind"] == "reference")
+        ref["ClaimedProjectRole"] = "owned-body"
+        cross_path.write_bytes(p.encode(cross))
+        with self.assertRaisesRegex(ValueError, "metadata to executable"):
+            p.verify_projection(output, self.capture)
+
+    def test_traversal_with_recomputed_index_and_crosswalk_root_is_refused(self):
+        output, _ = self.project()
+        index_path = output / "index.json"
+        index = json.loads(index_path.read_bytes())
+        chunk = output / index["Chunks"][0]["Path"]
+        rows = [json.loads(line) for line in chunk.read_bytes().splitlines()]
+        source = next(x for x in rows if x["Role"] == "source")
+        source["Path"] = "src/../../stolen.cs"
+        raw = b"".join(p.encode(row) + b"\n" for row in rows)
+        chunk.write_bytes(raw)
+        index["Chunks"][0]["Sha256"] = p.sha(raw)
+        index["Chunks"][0]["Bytes"] = len(raw)
+        index["ClosureSha256"] = p.sha(raw)
+        index_path.write_bytes(p.encode(index))
+        cross_path = output / "capture-crosswalk.json"
+        cross = json.loads(cross_path.read_bytes())
+        cross["CoreIndexSha256"] = p.sha(index_path.read_bytes())
+        cross["CoreClosureSha256"] = index["ClosureSha256"]
+        cross_path.write_bytes(p.encode(cross))
+        with self.assertRaisesRegex(ValueError, "traversing"):
+            p.verify_projection(output, self.capture)
+
+    def test_symlinked_staged_source_is_refused(self):
+        output, _ = self.project()
+        source = next((output / "src").glob("*.cs"))
+        original = output / "replacement.txt"
+        source.rename(original)
+        try:
+            source.symlink_to(original)
+        except (OSError, NotImplementedError):
+            self.skipTest("symlinks unsupported on CI platform")
+        with self.assertRaisesRegex(ValueError, "symlink"):
+            p.verify_projection(output, self.capture)
+
     def test_duplicate_property_roots(self):
         self.roots.write_text('[{"TypeName":"Fixture","TypeName":"Forged","MethodName":"F",'
                               '"MetadataToken":null,"TypeArguments":[],"MethodArguments":[]}]')
