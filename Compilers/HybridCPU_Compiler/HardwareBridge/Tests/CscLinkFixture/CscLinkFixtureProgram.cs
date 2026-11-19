@@ -203,6 +203,26 @@ internal static class Program
         string referencePath, int token, byte[] originalSource)
     {
         BridgeMethodFactV1 original = facts.Methods[0];
+        // Change declared assembly identity while keeping the original *actual* PE/PDB.
+        // An internally consistent source snapshot/facts pair must not rename the PE.
+        BridgeSourceSnapshotV1 ReCapture(string assembly, IReadOnlyList<BridgeRootSelectorV1> roots) =>
+            BridgeSourceSnapshotV1.Capture(
+                new BridgeSourceRequestV1(assembly, "CSharp", new[] {
+                    new BridgeSourceTextV1("src/Fixture.cs", Encoding.UTF8.GetString(originalSource))
+                }, new ReadOnlyMemory<byte>[] { e.References[0].Bytes }, roots,
+                    Array.Empty<int>(), new[] { 0 }),
+                "fixture-only-admission", "fixture-only-compiler", e.SdkVersion);
+        BridgeSourceSnapshotV1 foreignAssembly = ReCapture("WrongAssembly",
+            snapshot.Roots);
+        Refuse(BridgeCscLinkRefusal.WrongAssembly, () =>
+            BridgeExecutedCscLinkV1.Write(foreignAssembly,
+                facts with { SnapshotDigest = foreignAssembly.SnapshotDigest }, e));
+        BridgeSourceSnapshotV1 unsupportedGeneric = ReCapture("Fixture",
+            new[] { new BridgeRootSelectorV1("Fixture", "Add", token,
+                new[] { "UnqualifiedGenericInstantiation" }, Array.Empty<string>()) });
+        Refuse(BridgeCscLinkRefusal.GenericInstantiation, () =>
+            BridgeExecutedCscLinkV1.Write(unsupportedGeneric,
+                facts with { SnapshotDigest = unsupportedGeneric.SnapshotDigest }, e));
         Refuse(BridgeCscLinkRefusal.WrongMethodToken, () =>
             BridgeExecutedCscLinkV1.Write(snapshot, facts with {
                 Methods = new[] { original with { MetadataToken = token + 999 } }
