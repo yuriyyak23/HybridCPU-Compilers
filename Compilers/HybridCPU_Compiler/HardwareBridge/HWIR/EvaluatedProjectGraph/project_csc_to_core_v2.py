@@ -46,7 +46,7 @@ def sha(data):
 
 
 def strict_keys(obj, keys):
-    if not isinstance(obj, dict) or set(obj) != set(keys):
+    if not isinstance(obj, dict) or list(obj) != list(keys):
         reject("unknown/missing object properties")
 
 
@@ -291,8 +291,33 @@ def verify_projection(output_dir, capture_dir=None):
         reject("changed Core closure root")
     if len(entries) != len(link["Inputs"]) or [x["Path"] for x in entries] != [x["Path"] for x in link["Inputs"]]:
         reject("crosswalk missing/reordered identities")
-    if capture_dir is not None and hb02.verify(capture_dir).upper() != link["CaptureClosureSha256"]:
-        reject("original HB02 capture stale")
+    for entry, mapping in zip(entries, link["Inputs"]):
+        strict_keys(mapping, ("Path", "NodeId", "Kind", "ClaimedProjectRole",
+                              "ObservedLogicalPath", "Sha256", "Bytes"))
+        if (entry["Sha256"], entry["Bytes"]) != (mapping["Sha256"], mapping["Bytes"]):
+            reject("crosswalk changed file identity")
+        if (entry["Role"] == "metadata-only" and mapping["Kind"] in SOURCE_KINDS or
+            entry["Role"] == "source" and mapping["Kind"] not in SOURCE_KINDS or
+            mapping["Kind"] in METADATA_KINDS and mapping["ClaimedProjectRole"] != "metadata-only"):
+            reject("crosswalk promoted metadata to executable body")
+    if capture_dir is not None:
+        original = exact_index(capture_dir)
+        if original["closureRootSha256"].upper() != link["CaptureClosureSha256"]:
+            reject("original HB02 capture stale")
+        if len(original["entries"]) != len(entries):
+            reject("crosswalk no longer covers original capture")
+        expected = sorted(
+            [{"NodeId": r["nodeId"], "Kind": r["kind"], "ClaimedProjectRole": r["role"],
+              "ObservedLogicalPath": r["logicalPath"], "Sha256": r["sha256"].upper(), "Bytes": r["bytes"]}
+             for r in original["entries"]],
+            key=lambda row: (row["NodeId"], row["Kind"], row["ObservedLogicalPath"]))
+        observed = sorted(
+            [{k: m[k] for k in ("NodeId", "Kind", "ClaimedProjectRole",
+                                "ObservedLogicalPath", "Sha256", "Bytes")}
+             for m in link["Inputs"]],
+            key=lambda row: (row["NodeId"], row["Kind"], row["ObservedLogicalPath"]))
+        if observed != expected:
+            reject("crosswalk differs from original captured identities")
     return index["ClosureSha256"]
 
 
