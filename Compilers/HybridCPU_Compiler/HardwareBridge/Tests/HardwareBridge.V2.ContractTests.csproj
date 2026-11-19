@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net11.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <DefineConstants>$(DefineConstants);HARDWAREBRIDGE_TESTS</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Real production codec source files, compiled without the parent compiler project. -->
+    <Compile Include="..\SourceSnapshot\BridgeSourceSnapshotV1.cs" />
+    <Compile Include="..\SourceSnapshot\BridgeSidecarCodecV1.cs" />
+    <Compile Include="..\SourceSnapshot\BridgeSegmentIndexV2.cs" />
+    <Compile Include="..\SourceSnapshot\BridgeProvenanceCodecV2.cs" />
+    <Compile Include="..\CompilerFacts\BridgeCompilerFactsV1.cs" />
+    <Compile Include="..\GoldenOracle\TrustedAddWordOracleV1.cs" />
+    <Compile Include="BridgeIndexV2Tests.cs" />
+    <Compile Include="BridgeIndexV2TestHost.cs" />
+  </ItemGroup>
+</Project>
