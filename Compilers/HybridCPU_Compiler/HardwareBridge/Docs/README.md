@@ -25,3 +25,7 @@ Plan only: v1 remains read-only/unqualified; nothing in this document grants har
 ## HB-INT-02 partial implementation: segmented Csc observation transport
 
 See [HB-INT-02 segmented v2 capture and migration](HB_INT_02_Segmented_Csc_Closure.md). The opt-in Python capture tool reads caller-supplied isolated Csc argv/bytes, hashes bounded binary chunks, and checks Golden source freshness without executing targets. This is a **separate unqualified outer v2 transport**, NOT an update to SourceSnapshot v1, sidecar v1, or evidence authority. Actual Processor capture, independent Core CW-INT-03 reader and downstream hardware/physical gates remain Blocked. Run transport-only regression with Python unittest; it is not a real Csc test.
+
+## HB-INT-03: opt-in owned v2 workspace publishing
+
+[Workspace publisher implementation and migration guard](HB_INT_03_V2_Workspace_Publication.md) stages existing source-index/v2 raw files in a fresh external output directory with post-write SHA-256 checks, no overwrite, rollback and explicit Golden/Core/Bridge root exclusions. It does not claim Csc/Golden/RTL acceptance or change v1/v2 wire contracts.
