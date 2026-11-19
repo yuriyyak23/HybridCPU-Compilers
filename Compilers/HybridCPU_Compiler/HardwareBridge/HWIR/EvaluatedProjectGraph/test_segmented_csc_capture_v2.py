@@ -189,6 +189,18 @@ class ClosureTests(unittest.TestCase):
                       cancel_output, after_copy=interrupt)
         self.assertFalse(Path(cancel_output).exists())
 
+    def test_unclassified_file_switch_is_blocked(self):
+        self.observation["projects"][0]["argv"].insert(5, "/embed:" + str(self.source))
+        self.save()
+        with self.assertRaisesRegex(ValueError, "unsupported/unclassified Csc argument"):
+            c.build_inputs(str(self.graph_path), str(self.observation_path), str(self.golden))
+
+    def test_index_csc_argv_mutation(self):
+        base, _ = self.run_capture()
+        self.recompute(base, lambda i: i["commands"][0]["argv"].append("/checked+"))
+        with self.assertRaisesRegex(ValueError, "changed Csc option in segmented index"):
+            c.verify(base)
+
     def test_1001_sources_bounded_index(self):
         p = self.observation["projects"][0]
         for index in range(1000):
