@@ -7,15 +7,17 @@ using HybridCPU.Compiler.HardwareBridge.GoldenOracle;
 
 internal static class GoldenRawTraceTests
 {
+    private static int _assertions;
     private static void Require(bool condition, string message)
     {
         if (!condition) throw new InvalidOperationException("HB-INT-04: " + message);
+        _assertions++;
     }
 
     private static void Throws<T>(Action action, string message) where T : Exception
     {
         try { action(); }
-        catch (T) { return; }
+        catch (T) { _assertions++; return; }
         throw new InvalidOperationException("HB-INT-04 expected " + typeof(T).Name + ": " + message);
     }
 
@@ -150,6 +152,7 @@ internal static class GoldenRawTraceTests
             cancellationToken: cancelled.Token), "Cancellation.");
 
         // Synthetic fixture checks only structural integrity; no independent oracle is executed.
+        Console.WriteLine("HB-INT-04 actual assertions passed: " + _assertions);
     }
 }
 #endif
