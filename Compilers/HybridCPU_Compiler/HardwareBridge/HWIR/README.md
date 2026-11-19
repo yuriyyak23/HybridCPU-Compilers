@@ -74,15 +74,17 @@ The project is a **regression-only opt-in** fixture requiring an explicitly supp
 No directory name or sibling path is inferred. It does not use or modify the Golden
 ISE worktree or parent compiler CIL path. See
 [HB-INT-01 compatibility](../Docs/HB_INT_01_Portable_Compatibility.md).
-Run from the selected Core checkout with separately pinned Bridge:
+Run the **original bounded P14 fixture suite** only through the explicit
+revision-checked compatibility launcher in the Core checkout:
 
-```powershell
-dotnet run --project tests/CircuitWeave.P14.Cli
-dotnet run --project tests/CircuitWeave.Golden.AddWord.Smoke -- `
-  (Resolve-Path tests/CircuitWeave.P14.Cli/fixtures/ScalarAluOps.golden.txt).Path `
-  (Resolve-Path samples/HybridCPU/bindings.v0.2.json).Path
+```bash
+bash eng/cw-int-02-bridge-compat.sh /absolute/path/to/bridge-checkout <reviewed-40-hex-commit>
 ```
 
+The default Core-only P14 command tests the typed `MissingBridge` refusal,
+not source/RTL vectors. Other older smoke projects that still embed a sibling
+BridgeHwir reference require migration and are **NotRun** in the portable
+build; they are not production dependencies. No source file is modified.
 
 ## SubWord candidate
 
