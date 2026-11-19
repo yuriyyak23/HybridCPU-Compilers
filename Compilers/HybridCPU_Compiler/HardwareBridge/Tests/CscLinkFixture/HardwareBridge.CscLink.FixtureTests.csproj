@@ -7,13 +7,13 @@
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\CompilerFacts\BridgeCompilerFactsV1.cs" />
-    <Compile Include="..\CompilerFacts\BridgeExecutedCscLinkV1.cs" />
-    <Compile Include="..\SourceSnapshot\BridgeSourceSnapshotV1.cs" />
-    <Compile Include="..\SourceSnapshot\BridgeSegmentIndexV2.cs" />
-    <Compile Include="..\SourceSnapshot\BridgeProvenanceCodecV2.cs" />
-    <Compile Include="..\SourceSnapshot\BridgeSidecarCodecV1.cs" />
-    <Compile Include="..\GoldenOracle\TrustedAddWordOracleV1.cs" />
+    <Compile Include="..\..\CompilerFacts\BridgeCompilerFactsV1.cs" />
+    <Compile Include="..\..\CompilerFacts\BridgeExecutedCscLinkV1.cs" />
+    <Compile Include="..\..\SourceSnapshot\BridgeSourceSnapshotV1.cs" />
+    <Compile Include="..\..\SourceSnapshot\BridgeSegmentIndexV2.cs" />
+    <Compile Include="..\..\SourceSnapshot\BridgeProvenanceCodecV2.cs" />
+    <Compile Include="..\..\SourceSnapshot\BridgeSidecarCodecV1.cs" />
+    <Compile Include="..\..\GoldenOracle\TrustedAddWordOracleV1.cs" />
     <Compile Include="CscLinkFixtureProgram.cs" />
   </ItemGroup>
 </Project>
