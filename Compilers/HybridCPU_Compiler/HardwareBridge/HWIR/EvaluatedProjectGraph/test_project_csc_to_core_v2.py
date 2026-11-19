@@ -4,7 +4,9 @@ from pathlib import Path
 import shutil
 import tempfile
 import unittest
+import sys
 
+sys.path.insert(0, str(Path(__file__).parent))
 import project_csc_to_core_v2 as p
 import segmented_csc_capture_v2 as hb02
 import test_segmented_csc_capture_v2 as fixture
