@@ -254,6 +254,8 @@ class CoreV2StagingTests(unittest.TestCase):
             stage.verify(self.target, self.pin, self.roots_sha)
         shutil.rmtree(self.target)
         self.run_stage()
+        if sys.platform == "win32":
+            return  # Windows aliases INPUTS to inputs; no distinct case-collision path
         alias = self.target / "INPUTS" / "00000.bin"
         alias.parent.mkdir()
         alias.write_bytes(b"alias")
