@@ -69,10 +69,12 @@ This is not a binding authorization, full-model import, compiler-independent
 attestation, RTL emission or equivalence proof. The existing compiler/producer
 coordinator is not used by this bounded CLI path.
 
-The project references the sibling `CircuitWeave-main` checkout via a relative path;
-both repositories and the HybridCPU Compilers checkout must have the expected
-sibling layout. It does not use or modify the ISE worktree or the compiler CIL path.
-Run from CircuitWeave-main:
+The project is a **regression-only opt-in** fixture requiring an explicitly supplied
+`CircuitWeaveFrontendRoslynProject` MSBuild property (the checked-out Core .csproj).
+No directory name or sibling path is inferred. It does not use or modify the Golden
+ISE worktree or parent compiler CIL path. See
+[HB-INT-01 compatibility](../Docs/HB_INT_01_Portable_Compatibility.md).
+Run from the selected Core checkout with separately pinned Bridge:
 
 ```powershell
 dotnet run --project tests/CircuitWeave.P14.Cli
