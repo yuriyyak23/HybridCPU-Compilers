@@ -114,21 +114,39 @@ def command_files(argv, cwd):
         fail("invalid full Csc argument vector")
     if any(t.startswith("@") for t in argv):
         fail("unexpanded response file; exact Csc argv unavailable")
-    prefixes = {"/langversion:", "/define:", "/nullable:", "/target:", "/out:"}
-    for prefix in prefixes:
+    required = ("/langversion:", "/define:", "/nullable:", "/target:", "/out:")
+    for prefix in required:
         if sum(t.lower().startswith(prefix) for t in argv) != 1:
             fail("missing/duplicate explicit Csc option: " + prefix)
     if not any(t.lower() == "/target:library" for t in argv):
         fail("unsupported Csc output kind")
-    if any(t.lower().startswith(("/resource:", "/link:", "/win32res:", "/keyfile:", "/embed:", "/ruleset:")) for t in argv):
-        fail("unmodeled file-valued Csc option")
+    # Deny-by-default: unknown file-valued switches could hide unpinned bytes.
+    file_input = (("/reference:", "reference"), ("/r:", "reference"),
+                  ("/analyzer:", "analyzer"), ("/analyzerconfig:", "analyzer-config"),
+                  ("/additionalfile:", "additional-file"), ("/sourcelink:", "source-link"),
+                  ("/appconfig:", "app-config"))
+    output_options = ("/out:", "/pdb:", "/refout:", "/doc:", "/errorlog:")
+    scalar_prefixes = ("/langversion:", "/define:", "/nullable:", "/target:",
+                       "/debug:", "/platform:", "/warn:", "/nowarn:", "/warnaserror:",
+                       "/features:", "/pathmap:", "/usings:", "/moduleassemblyname:",
+                       "/main:", "/baseaddress:", "/filealign:", "/preferreduilang:",
+                       "/instrument:", "/checksumalgorithm:", "/errorendlocation:")
+    scalar_flags = {"/noconfig", "/fullpaths", "/utf8output", "/nostdlib", "/nostdlib+",
+                    "/nostdlib-", "/checked", "/checked+", "/checked-", "/unsafe",
+                    "/unsafe+", "/unsafe-", "/optimize", "/optimize+", "/optimize-",
+                    "/deterministic", "/deterministic+", "/deterministic-", "/parallel+",
+                    "/parallel-", "/publicsign+", "/publicsign-", "/warnaserror+",
+                    "/warnaserror-", "/debug", "/highentropyva+", "/highentropyva-"}
     sources = []
     artifacts = []
     generator_dir = None
     for token in argv:
         lower = token.lower()
-        kind = next((k for prefix, k in (("/reference:", "reference"), ("/analyzer:", "analyzer"),
-                    ("/analyzerconfig:", "analyzer-config"), ("/additionalfile:", "additional-file")) if lower.startswith(prefix)), None)
+        # Paths have to be admitted as source tokens, including POSIX absolute /tmp/A.cs.
+        if lower.endswith(".cs") and (os.path.isabs(token) or not token.startswith(("/", "-"))):
+            sources.append(str(safe_path(str(Path(token) if os.path.isabs(token) else cwd / token))))
+            continue
+        kind = next((k for prefix, k in file_input if lower.startswith(prefix)), None)
         if kind:
             path = token.split(":", 1)[1]
             if kind == "reference" and "=" in path:
@@ -140,8 +158,16 @@ def command_files(argv, cwd):
                 fail("duplicate generatedfilesout")
             path = token.split(":", 1)[1]
             generator_dir = str(safe_path(str(Path(path) if os.path.isabs(path) else cwd / path), file=False))
-        elif lower.endswith(".cs") and not lower.startswith(('/', '-')) or (os.path.isabs(token) and lower.endswith(".cs")):
-            sources.append(str(safe_path(str(Path(token) if os.path.isabs(token) else cwd / token))))
+        elif any(lower.startswith(prefix) for prefix in output_options):
+            # Outgoing files are not read here; their destinations still must be isolated.
+            path = token.split(":", 1)[1]
+            out = Path(path) if os.path.isabs(path) else cwd / path
+            if not inside(Path(os.path.abspath(out)), Path(os.path.abspath(tempfile.gettempdir()))):
+                fail("Csc output path is not isolated in TEMP")
+        elif lower in scalar_flags or any(lower.startswith(prefix) for prefix in scalar_prefixes):
+            pass  # byte-independent scalars still retained in full argv digest
+        else:
+            fail("unsupported/unclassified Csc argument: " + token[:80])
     if not sources or len(set(sources)) != len(sources):
         fail("missing/duplicate Csc source arguments")
     if len(set(artifacts)) != len(artifacts):
@@ -176,7 +202,7 @@ def build_inputs(graph_path, observation_path, golden_root):
         logical(logical_path)
         if role not in ("primary", "owned-body", "metadata-only"):
             fail("unknown ownership role")
-        if kind not in ("csc-source", "generator-source", "reference", "analyzer", "analyzer-config", "additional-file", "csc-binary", "project", "assets"):
+        if kind not in ("csc-source", "generator-source", "reference", "analyzer", "analyzer-config", "additional-file", "source-link", "app-config", "csc-binary", "project", "assets"):
             fail("unknown input kind")
         if kind not in ("csc-source", "generator-source") and role != "metadata-only":
             fail("metadata input promoted to executable body")
@@ -365,6 +391,16 @@ def verify(out_dir):
         fail("unknown/tampered v2 closure root")
     if index.get("chunkSizeLimit") != CHUNK_SIZE:
         fail("unsupported chunk limit")
+    commands = index["commands"]
+    if not isinstance(commands, list) or len(commands) > 100 or not commands:
+        fail("missing/oversized Csc observation commands")
+    command_ids = [c["nodeId"] for c in commands]
+    if command_ids != sorted(command_ids) or len(set(command_ids)) != len(command_ids):
+        fail("duplicate/reordered Csc commands")
+    for command in commands:
+        if sha(canonical(command["argv"])) != command["argvSha256"]:
+            fail("changed Csc option in segmented index")
+    command_roles = {x["nodeId"]: x["projectRole"] for x in commands}
     rows = index["entries"]
     if not isinstance(rows, list) or len(rows) > MAX_FILES:
         fail("invalid file inventory")
@@ -376,6 +412,8 @@ def verify(out_dir):
     total_bytes = 0
     for row in rows:
         logical(row["logicalPath"])
+        if row["nodeId"] not in command_roles or (row["kind"] in ("csc-source", "generator-source") and row["role"] != command_roles[row["nodeId"]]):
+            fail("invalid project/source role link")
         if row["role"] not in ("primary", "owned-body", "metadata-only") or (row["kind"] not in ("csc-source", "generator-source") and row["role"] != "metadata-only"):
             fail("metadata promoted to executable source")
         h = hashlib.sha256()
