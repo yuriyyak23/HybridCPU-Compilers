@@ -83,7 +83,19 @@ class ProjectorTests(unittest.TestCase):
                 if row["kind"] in p.SOURCE_KINDS:
                     row["role"] = "owned-body"
         self.f.recompute(self.capture, change)
-        with self.assertRaisesRegex(ValueError, "DEPRECATED legacy projection refuses owned-body"):
+        with self.assertRaisesRegex(ValueError, "DEPRECATED legacy projection refuses non-primary"):
+            p.project(self.capture, str(self.roots), self.f.out())
+
+    def test_deprecated_projection_refuses_metadata_only_source_kind(self):
+        # The old writer also encoded source-kind + metadata-only as Core source.
+        # Strictly preserve data-only role instead of promoting it by kind name.
+        def change(index):
+            index["commands"][0]["projectRole"] = "metadata-only"
+            for row in index["entries"]:
+                if row["kind"] in p.SOURCE_KINDS:
+                    row["role"] = "metadata-only"
+        self.f.recompute(self.capture, change)
+        with self.assertRaisesRegex(ValueError, "DEPRECATED legacy projection refuses non-primary"):
             p.project(self.capture, str(self.roots), self.f.out())
 
     def test_producer_blocks_unqualified_body_promotion(self):
