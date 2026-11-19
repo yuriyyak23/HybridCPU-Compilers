@@ -77,10 +77,20 @@ jobs:
           ref: 6946ccab9d888f7dae0a4d8e18480f436138acd9
           path: golden
           persist-credentials: false
+      - name: Confirm explicit read-only Core token (fail closed, not a skipped PASS)
+        shell: pwsh
+        env:
+          HB_CORE_READ_TOKEN: ${{ secrets.HB_INT_06_CORE_READ_TOKEN }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:HB_CORE_READ_TOKEN)) {
+            Write-Error 'BLOCKED HB-INT-06: cross-repo Core read token is absent. Configure HB_INT_06_CORE_READ_TOKEN with read-only access; no Core importer test was executed.'
+            exit 2
+          }
       - uses: actions/checkout@v4
         with:
           repository: yuriyyak23/CircuitWeave
           ref: 21706d19ede6a1ff87230fa2e41071f4f32d72a7
+          token: ${{ secrets.HB_INT_06_CORE_READ_TOKEN }}
           path: core
           persist-credentials: false
       - uses: actions/setup-dotnet@v4
