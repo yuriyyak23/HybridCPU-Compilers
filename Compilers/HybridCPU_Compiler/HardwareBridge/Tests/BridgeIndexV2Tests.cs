@@ -212,6 +212,10 @@ internal static class BridgeIndexV2Tests
                 candidate.Methods[0] with { DirectCallees = new[] { "Missing::Call" } } } },
             candidateInputs, candidateEvidence));
         RejectWrite(() => BridgeProvenanceCodecV2.Write(snapshot,
+            candidate with { Methods = new[] {
+                candidate.Methods[0] with { DirectCallees = new[] { "Fixture::F" } } } },
+            candidateInputs, candidateEvidence)); // declared call lacks graph edge
+        RejectWrite(() => BridgeProvenanceCodecV2.Write(snapshot,
             candidate with { Edges = new[] { new BridgeEdgeFactV1(
                 "edge-1", "Fixture::F", "Missing::Call", 0, 0x06000001) } },
             candidateInputs, candidateEvidence));
