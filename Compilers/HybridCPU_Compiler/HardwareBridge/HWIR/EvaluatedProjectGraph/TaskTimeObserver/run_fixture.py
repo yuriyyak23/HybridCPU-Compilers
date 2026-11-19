@@ -142,7 +142,8 @@ def run():
             root = observer.observe(
                 str(task_events), str(baseline), str(isolated),
                 str(baseline / "Consumer" / "Consumer.csproj"),
-                str(compiler), str(graph), str(obs), str(output))
+                str(compiler), str(graph), str(obs), str(output),
+                build_artifacts_dir=str(temp / "fixture-artifacts"), host_cwd=str(temp))
             if v2.verify(str(output)) != root:
                 raise RuntimeError("capture index replay identity mismatch")
             print("task-v2 graphSHA256=" + sha(graph) + " observationSHA256=" + sha(obs))
