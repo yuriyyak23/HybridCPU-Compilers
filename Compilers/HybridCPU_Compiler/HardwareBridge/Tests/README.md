@@ -40,7 +40,7 @@ are saved alongside it. Missing SDK is **NotRun** (exit 2), wrong SDK/commit,
 mutated source, command failure or timeout is nonzero. **0 means standalone
 QA only**, not full HB-INT-06 completion, no Core acceptance and no RTL proof.
 
-CI: [.github/workflows/hb-int-06-no-write.yml](../../../../../.github/workflows/hb-int-06-no-write.yml)
+CI: [.github/workflows/hb-int-06-no-write.yml](../../../../.github/workflows/hb-int-06-no-write.yml)
 runs on Windows and pins Golden 6946ccab9d888f7dae0a4d8e18480f436138acd9.
 The Bridge checkout uses the **exact PR commit**, not a stale documentation
 SHA. CI uploads the raw receipt even on failure.
