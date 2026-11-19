@@ -74,7 +74,13 @@ def check_roots(path, reviewed_sha):
         (r["TypeName"], r["MethodName"]) == (x["TypeName"], x["MethodName"])
         for x in selectors) > 1 for r in selectors):
         refuse("ambiguous untokened overload")
-    return selectors, raw
+    # Match the ordered C# BridgeRootSelectorV1 record serialization, regardless
+    # of the JSON property order in the externally reviewed manifest.
+    normalized = [{"TypeName": x["TypeName"], "MethodName": x["MethodName"],
+                   "MetadataToken": x["MetadataToken"],
+                   "TypeArguments": x["TypeArguments"],
+                   "MethodArguments": x["MethodArguments"]} for x in selectors]
+    return normalized, raw
 
 def role(row):
     kind, ownership = row["kind"], row["role"]
