@@ -163,4 +163,8 @@ The runner refuses an existing output directory and output paths outside `artifa
 
 ### SUB/SBB/CMP auxiliary carry
 
-The Intel-manual carry-out interpretation is now implemented for SUB/SBB/CMP: ALU nibble subtraction's bit 4 is borrow, so AC receives its inverse. The updated integrated SUB/SBB/CMP checks and CPI test pass in the full eleven-bench Icarus/WSL run at rtifacts/8080/tests/rtl-validation-ac-sub-fix-rerun-20261119/rtl-test.log. This is partial behavior coverage; the independent x86 status mapping still must exclude AF equivalence for subtract.
+The Intel-manual carry-out interpretation is now implemented for SUB/SBB/CMP: ALU nibble subtraction's bit 4 is borrow, so AC receives its inverse. The updated integrated SUB/SBB/CMP checks and CPI test pass in the full eleven-bench Icarus/WSL run at artifacts/8080/tests/rtl-validation-ac-sub-fix-rerun-20261119/rtl-test.log. This is partial behavior coverage; the independent x86 status mapping still must exclude AF equivalence for subtract.
+
+### Spec correction and x86 smoke integration (2026-11-19)
+
+The integrated RTL suite was rerun after choosing Intel 8080 behavior for HLT PC (next sequential byte after fetch) and ANA/ANI AC (`A[3] | operand[3]`). All 11 benches pass in `artifacts/8080/tests/rtl-validation-spec-ana-hlt-v4-20261119/rtl-test.log`, including the immediate ANI AC regression. The 46-program bounded x86 corpus also passes against this editable RTL source (39 machine-image byte checks): `artifacts/8080/golden-runs/20261119-170638-163961/summary.log`. Neither result is a complete ISA proof. Source-vs-spec decisions and exact scope are in `artifacts/8080/bridge-spec-ana-hlt-x86-corpus-validation-20261119.md`.
