@@ -78,7 +78,7 @@ Run the **original bounded P14 fixture suite** only through the explicit
 revision-checked compatibility launcher in the Core checkout:
 
 ```bash
-bash eng/cw-int-02-bridge-compat.sh /absolute/path/to/bridge-checkout <reviewed-40-hex-commit>
+bash eng/cw-int-02-bridge-compat.sh /absolute/path/to/bridge-checkout <reviewed-bridge-40-hex> <reviewed-core-40-hex>
 ```
 
 The default Core-only P14 command tests the typed `MissingBridge` refusal,
