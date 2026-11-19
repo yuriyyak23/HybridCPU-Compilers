@@ -221,6 +221,14 @@ public static class BridgeProvenanceCodecV2
                 !caller.DirectCallees.Contains(edge.Callee, StringComparer.Ordinal))
                 throw new ArgumentException("HBINT03_V2_CLOSURE: graph edge is unowned or not in the direct callee set.");
         }
+        foreach (BridgeMethodFactV1 method in facts.Methods)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            foreach (string callee in method.DirectCallees)
+                if (!facts.Edges.Any(e => e is not null &&
+                    e.Caller == method.StableIdentity && e.Callee == callee))
+                    throw new ArgumentException("HBINT03_V2_CLOSURE: direct callee has no graph edge.");
+        }
         foreach (BridgeMapRowV1 map in facts.SourceMaps)
         {
             cancellationToken.ThrowIfCancellationRequested();
