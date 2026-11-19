@@ -1,5 +1,7 @@
 #if HARDWAREBRIDGE_TESTS
 using System.Text;
+using System.Text.Json;
+using System.Security.Cryptography;
 using HybridCPU.Compiler.HardwareBridge.SourceSnapshot;
 using HybridCPU.Compiler.HardwareBridge.CompilerFacts;
 
@@ -50,6 +52,20 @@ internal static class HbInt06ProtocolTests
         }, "duplicate envelope JSON members");
         Reject(() => BridgeSourceSnapshotV1.Capture(request with { Roots = new[] { root, root } },
             "fixture-policy", "fixture-compiler", "fixture-roslyn"), "duplicate roots");
+        // A malicious reader can reconstruct the preimage and checksum. Duplicate
+        // roots must still fail structural validation; a hash is no authority.
+        var duplicateRoots = snapshot with { Roots = new[] { root, root } };
+        byte[] forgedPreimage = JsonSerializer.SerializeToUtf8Bytes(new {
+            duplicateRoots.Schema, duplicateRoots.AssemblyName, duplicateRoots.LanguageHostMode,
+            duplicateRoots.AdmissionPolicy, duplicateRoots.CompilerVersion, duplicateRoots.RoslynVersion,
+            duplicateRoots.Documents, duplicateRoots.References, duplicateRoots.Roots,
+            duplicateRoots.BodyReferenceIndices, duplicateRoots.MetadataReferenceIndices
+        });
+        var forgedDigest = duplicateRoots with {
+            SnapshotDigest = Convert.ToHexString(SHA256.HashData(forgedPreimage))
+        };
+        if (forgedDigest.HasConsistentDigest())
+            throw new InvalidOperationException("Duplicate roots with recomputed checksum admitted");
         Reject(() => BridgeSourceSnapshotV1.Capture(request with { BodyReferenceIndices = new[] { 0 } },
             "fixture-policy", "fixture-compiler", "fixture-roslyn"), "overlapping reference roles");
         Reject(() => BridgeSourceSnapshotV1.Capture(request with
