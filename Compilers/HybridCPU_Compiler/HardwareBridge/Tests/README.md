@@ -13,3 +13,47 @@ The zero-external-test-package runner tests deterministic bytes, defensive copy,
 `BridgeSelfTests.cs` is fully `#if HARDWAREBRIDGE_TESTS`-guarded. Only this test csproj defines that symbol, and only the opt-in Companion csproj defines `HARDWAREBRIDGE_COMPANION`. `Directory.Build.props` redirects generated metadata to the parent project's normally excluded `obj/` and `bin/` paths, so the main project's recursive compilation does not ingest nested generated `.cs` files.
 
 If the SDK/runtime/reference closure is unavailable, record tests as **NOT RUN**, not PASS.
+
+
+## HB-INT-06: pinned Windows / .NET 11 source-no-write contract QA
+
+Full [versioned integration matrix, limits, migration and blocked gates](../Docs/HB_INT_06_QA_Matrix.md).
+From **PowerShell 7.3+ on Windows** with git and the pinned .NET SDK
+**11.0.100-rc.2.26504.105**, use independent checkouts and an entirely
+**new output directory outside all source repos**. Example (edit the root
+paths for your environment):
+
+
+    $bridge = 'C:\work\HybridCPU-Compilers'
+    $golden = 'C:\work\HybridCPU-v2'
+    $output = Join-Path $env:TEMP 'hb-int-06-new-run'
+    pwsh -NoProfile -File "$bridge\Compilers\HybridCPU_Compiler\HardwareBridge\Tests\Run-HbInt06.ps1" -BridgeRoot $bridge -ExpectedBridgeSha (git -C $bridge rev-parse HEAD) -GoldenRoot $golden -ExpectedGoldenSha 6946ccab9d888f7dae0a4d8e18480f436138acd9 -ExpectedSdkVersion 11.0.100-rc.2.26504.105 -OutputRoot $output
+    Write-Host "HB-INT-06 exit code: $LASTEXITCODE"
+    Get-FileHash "$output\hb-int-06-qa-receipt.json" -Algorithm SHA256
+
+The runner requires a real Git checkout of Golden at the pinned HEAD and
+checks every present non-.git file SHA and Git status before/after, including
+untracked/generated files. It rejects linked source and writes only under
+the fresh output directory. Actual dotnet and pwsh argv, executable digest,
+exit code and stdout/stderr SHA are recorded in the JSON report; raw logs
+are saved alongside it. Missing SDK is **NotRun** (exit 2), wrong SDK/commit,
+mutated source, command failure or timeout is nonzero. **0 means standalone
+QA only**, not full HB-INT-06 completion, no Core acceptance and no RTL proof.
+
+CI: [.github/workflows/hb-int-06-no-write.yml](../../../../../.github/workflows/hb-int-06-no-write.yml)
+runs on Windows and pins Golden 6946ccab9d888f7dae0a4d8e18480f436138acd9.
+The Bridge checkout uses the **exact PR commit**, not a stale documentation
+SHA. CI uploads the raw receipt even on failure.
+
+For **paired Core importer** tests only after CW-INT-02/03 publish a real
+owned test project, supply Core root, its exact pinned SHA and a safe
+repo-relative importer project with the RequirePaired switch. For example,
+the additional arguments are:
+
+    -CoreRoot 'C:\work\CircuitWeave' -ExpectedCoreSha 555672232e46cb4e8b157e2d1b1db1e873c4194e -CoreImporterProject '<actual-Core-owned-test.csproj>' -RequirePaired
+
+The placeholder is intentionally **not an implemented project**. The
+optional paired workflow is disabled until both the pin and project path
+are explicitly reviewed. Missing v2 segmented producer, actual CPU Csc
+closure, Core independent source verifier, native tool approvals and
+downstream RTL/physical receipts remain **Blocked/NotRun**, never PASS.
