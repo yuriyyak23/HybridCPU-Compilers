@@ -75,12 +75,12 @@ compilers, set EnableBridgeHwirLegacyFixtures=true and provide the reviewed Core
 root, frontend project, exact HEAD SHA and .NET SDK version as described in
 [HB-INT-01 pinned opt-in migration](../Docs/HB_INT_01_Pinned_OptIn.md).
 No sibling directory name is inferred. Golden/ISE source is never an output tree.
-The existing Core P14 launcher also needs the corresponding Core-owned update.
+The merged Core P14 launcher validates both reviewed revisions but still needs a Core-owned follow-up to forward the new HB-INT-01 MSBuild properties.
 Run the **original bounded P14 fixture suite** only through the explicit
 revision-checked compatibility launcher in the Core checkout:
 
 ```bash
-bash eng/cw-int-02-bridge-compat.sh /absolute/path/to/bridge-checkout <reviewed-40-hex-commit>
+bash eng/cw-int-02-bridge-compat.sh /absolute/path/to/bridge-checkout <reviewed-bridge-40-hex> <reviewed-core-40-hex>
 ```
 
 The default Core-only P14 command tests the typed `MissingBridge` refusal,
