@@ -6,6 +6,7 @@ from pathlib import Path
 import shutil
 import sys
 import tempfile
+import time
 import unittest
 import uuid
 
@@ -95,6 +96,7 @@ class ClosureTests(unittest.TestCase):
         self.assertTrue(any(x["kind"] == "generator-source" for x in index["entries"]))
         self.assertTrue(all(x["role"] == "metadata-only" for x in index["entries"] if x["kind"] == "reference"))
         self.assertEqual(digest(self.original), digest(self.source))
+        print("HB-INT-02 fixture-only closureRootSha256=" + root + " indexSha256=" + digest(Path(base) / "index.json"))
 
     def test_debug_release_and_changed_option(self):
         _, debug = self.run_capture()
@@ -166,6 +168,26 @@ class ClosureTests(unittest.TestCase):
             self.skipTest("symlinks unavailable")
         with self.assertRaisesRegex(ValueError, "symlink"):
             c.build_inputs(str(self.graph_path), str(self.observation_path), str(self.golden))
+
+    def test_wrong_compiler_pin(self):
+        self.observation["projects"][0]["compiler"]["sha256"] = "0" * 64
+        self.save()
+        with self.assertRaisesRegex(ValueError, "changed/stale"):
+            c.build_inputs(str(self.graph_path), str(self.observation_path), str(self.golden))
+
+    def test_timeout_and_keyboard_cancellation_remove_partial_output(self):
+        deadline_output = self.out()
+        with self.assertRaisesRegex(ValueError, "capture timeout"):
+            c.capture(str(self.graph_path), str(self.observation_path), str(self.golden),
+                      deadline_output, after_copy=lambda: time.sleep(0.025), timeout_seconds=0.001)
+        self.assertFalse(Path(deadline_output).exists())
+        cancel_output = self.out()
+        def interrupt():
+            raise KeyboardInterrupt()
+        with self.assertRaises(KeyboardInterrupt):
+            c.capture(str(self.graph_path), str(self.observation_path), str(self.golden),
+                      cancel_output, after_copy=interrupt)
+        self.assertFalse(Path(cancel_output).exists())
 
     def test_1001_sources_bounded_index(self):
         p = self.observation["projects"][0]
