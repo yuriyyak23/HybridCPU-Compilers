@@ -137,7 +137,7 @@ def command_files(argv, cwd):
                     "/unsafe+", "/unsafe-", "/optimize", "/optimize+", "/optimize-",
                     "/deterministic", "/deterministic+", "/deterministic-", "/parallel+",
                     "/parallel-", "/publicsign+", "/publicsign-", "/warnaserror+",
-                    "/warnaserror-", "/debug", "/highentropyva+", "/highentropyva-"}
+                    "/warnaserror-", "/debug", "/debug+", "/highentropyva+", "/highentropyva-"}
     sources = []
     artifacts = []
     generator_dir = None
