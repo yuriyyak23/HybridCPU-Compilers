@@ -9,6 +9,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import sys
@@ -114,7 +115,7 @@ def exact_index(capture_dir):
                 # Core OwnedFileReader requires strict UTF-8 source inputs.
                 decoder = __import__("codecs").getincrementaldecoder("utf-8")("strict")
                 for part in row["chunks"]:
-                    decoder.decode((Path(capture_dir) / part["name"]).read_bytes())
+                    decoder.decode(hb02.safe_path(str(Path(capture_dir) / part["name"])).read_bytes())
                 decoder.decode(b"", final=True)
             except UnicodeDecodeError as error:
                 reject("Core v2 source is not strict UTF-8: " + str(error))
@@ -278,9 +279,17 @@ def verify_projection(output_dir, capture_dir=None):
             if entry["Role"] == "source":
                 source_count += 1
             path = entry["Path"]
-            if not isinstance(path, str) or not (path.startswith("src/") or path.startswith("metadata/")):
-                reject("unexpected staged file path")
-            actual = root / path
+            if not isinstance(path, str) or not re.fullmatch(r"(src/[0-9]{5}\.cs|metadata/[0-9]{5}\.bin)", path):
+                reject("unexpected/traversing staged file path")
+            if (entry["Role"] == "source") != path.startswith("src/"):
+                reject("source and metadata staging role conflict")
+            if not isinstance(entry["Bytes"], int) or isinstance(entry["Bytes"], bool) or (
+                entry["Bytes"] < (0 if entry["Role"] == "source" else 1)) or (
+                entry["Bytes"] > (MAX_SOURCE if entry["Role"] == "source" else MAX_OTHER)):
+                reject("Core staged file byte budget exceeded")
+            if not isinstance(entry["Sha256"], str) or not re.fullmatch(r"[0-9A-F]{64}", entry["Sha256"]):
+                reject("invalid Core file SHA")
+            actual = hb02.safe_path(str(root / path))
             hfile, length = hb02.hash_file(actual)
             if length != entry["Bytes"] or hfile.upper() != entry["Sha256"]:
                 reject("staged file changed")
