@@ -31,8 +31,12 @@ internal static class GoldenBoundVectorsTests
             new BridgeSourceRequestV1("Fixture", "CSharp15",
                 new[] { new BridgeSourceTextV1("golden/Fixture.cs", goldenText) },
                 new ReadOnlyMemory<byte>[] { new byte[] { 1, 2, 3 } },
-                new[] { new BridgeRootSelectorV1("Fixture", "AddWord", null,
-                    Array.Empty<string>(), Array.Empty<string>()) },
+                new[] {
+                    new BridgeRootSelectorV1("Fixture", "AddWord", null,
+                        Array.Empty<string>(), Array.Empty<string>()),
+                    new BridgeRootSelectorV1("Fixture", "OtherRootFixtureOnly", null,
+                        Array.Empty<string>(), Array.Empty<string>())
+                },
                 Array.Empty<int>(), Array.Empty<int>()),
             "fixture-only-policy", "fixture-csc", "fixture-roslyn");
 
@@ -223,6 +227,21 @@ internal static class GoldenBoundVectorsTests
             reOrdered.ToJsonUtf8(), source, assemblyHash, 0, reviewedLabel, vectors),
             "Re-signed reorder must not bypass independent requested-vector binding.");
 
+        // Both roots exist in the same snapshot: a checksum-valid switch to root #1
+        // MUST fail if the independent immutable session actually requested root #0.
+        GoldenBoundVectorsV1 switchedRoot = valid with { RootIndex = 1 };
+        switchedRoot = switchedRoot with { ReplayIdentity = Hash(JsonSerializer.SerializeToUtf8Bytes(new
+        {
+            switchedRoot.Schema, switchedRoot.SourceSnapshotDigest, switchedRoot.OriginalDocuments,
+            switchedRoot.OriginalSourceSetSha256, switchedRoot.CompiledAssemblySha256,
+            switchedRoot.RootIndex, switchedRoot.AdapterId, switchedRoot.ReviewedSourceLabel,
+            switchedRoot.RequestedVectors, switchedRoot.Observation
+        })) };
+        Reject<ArgumentException>(() => GoldenBoundVectorsCodecV1.ReadAndValidate(
+            switchedRoot.ToJsonUtf8(), source, assemblyHash, 0, reviewedLabel, vectors),
+            "Checksum-valid switch between independently declared roots.");
+
+
         using var cancelled = new CancellationTokenSource();
         cancelled.Cancel();
         Reject<OperationCanceledException>(() => GoldenBoundVectorsCodecV1.Capture(
@@ -236,8 +255,12 @@ internal static class GoldenBoundVectorsTests
             new BridgeSourceRequestV1("Fixture", "CSharp15",
                 new[] { new BridgeSourceTextV1("golden/Fixture.cs", goldenText) },
                 new ReadOnlyMemory<byte>[] { new byte[] { 1, 2, 3 } },
-                new[] { new BridgeRootSelectorV1("Fixture", "AddWord", null,
-                    Array.Empty<string>(), Array.Empty<string>()) },
+                new[] {
+                    new BridgeRootSelectorV1("Fixture", "AddWord", null,
+                        Array.Empty<string>(), Array.Empty<string>()),
+                    new BridgeRootSelectorV1("Fixture", "OtherRootFixtureOnly", null,
+                        Array.Empty<string>(), Array.Empty<string>())
+                },
                 Array.Empty<int>(), Array.Empty<int>()),
             "fixture-only-policy", "fixture-csc", "fixture-roslyn").SnapshotDigest,
             "Capture mutated input source.");
