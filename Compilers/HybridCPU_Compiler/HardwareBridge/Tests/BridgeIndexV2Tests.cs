@@ -98,7 +98,7 @@ internal static class BridgeIndexV2Tests
                 evidence, "different-sdk-pin"));
         Refuse(BridgeV2Refusal.InvalidPin, () =>
             BridgeProvenanceCodecV2.ReadAndValidate(encoded, snapshot, rejected,
-                inputs withChangedSource(), evidence, sdk));
+                ChangedSourceInputs(), evidence, sdk));
         Refuse(BridgeV2Refusal.InvalidPin, () =>
             BridgeProvenanceCodecV2.ReadAndValidate(encoded, snapshot, rejected,
                 inputs.Take(1).ToArray(), evidence, sdk));
@@ -137,8 +137,8 @@ internal static class BridgeIndexV2Tests
             new[] { inputs[0], inputs[0] with { Path = "src/fixture.cs" } }));
         RejectWrite(() => BridgeSegmentIndexV2.Write(roots,
             new[] { inputs[0] with { Role = "Verified" } }));
-        RejectWrite(() => BridgeSegmentIndexV2.Write(roots,
-            new[] { inputs[0], inputs[1] with { Role = "owned-body" } })); // no v1 role change allowed at envelope
+        RejectWrite(() => BridgeProvenanceCodecV2.Write(snapshot, rejected,
+            new[] { inputs[0], inputs[1] with { Role = "owned-body" } }, evidence));
         // Pure transport stress: 1,200 synthetic sources. This is NOT a Golden capture.
         var bulk = Enumerable.Range(0, 1200).Select(i => new BridgeV2Input(
             "src/" + i.ToString("D5", System.Globalization.CultureInfo.InvariantCulture) + ".cs",
@@ -175,7 +175,7 @@ internal static class BridgeIndexV2Tests
             "v1 bytes changed after v2 exercise");
         Console.WriteLine("PASS: HB-INT-03 strict v2 contract/unit mutations (test-only software facts).");
 
-        BridgeV2Input[] inputs withChangedSource() =>
+        BridgeV2Input[] ChangedSourceInputs() =>
             new[] { inputs[0] with { Bytes = Encoding.UTF8.GetBytes(sourceText + " ") }, inputs[1] };
     }
 }
