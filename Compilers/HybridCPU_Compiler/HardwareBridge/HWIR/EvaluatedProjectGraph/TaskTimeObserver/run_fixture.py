@@ -68,8 +68,10 @@ def run():
     # The repo is immutable; all dotnet restore/build and generator output are in TEMP.
     with tempfile.TemporaryDirectory(prefix="hb-csc-tasktime-") as directory:
         temp = Path(directory)
-        receipts = temp / "receipts"
-        receipts.mkdir()
+        receipts = Path(os.environ.get("HB_CSC_RECEIPTS_DIR", str(temp / "receipts")))
+        if receipts.exists() or receipts.is_symlink():
+            raise RuntimeError("receipts output must be new")
+        receipts.mkdir(parents=True)
         baseline = temp / "baseline"
         isolated = temp / "isolated"
         shutil.copytree(original, baseline, symlinks=False)
@@ -118,7 +120,7 @@ def run():
         events = observer.read_events(str(task_events))
         if len(events) != 2:
             raise RuntimeError("fixture requires exactly two actual Csc task events")
-        output = temp / "capture"
+        output = Path(tempfile.gettempdir()) / ("hb-task-capture-" + temp.name)
         graph = Path(tempfile.gettempdir()) / ("hb-task-graph-" + temp.name + ".json")
         obs = Path(tempfile.gettempdir()) / ("hb-task-obs-" + temp.name + ".json")
         try:
@@ -130,6 +132,9 @@ def run():
                 raise RuntimeError("capture index replay identity mismatch")
             print("task-v2 graphSHA256=" + sha(graph) + " observationSHA256=" + sha(obs))
             print("task-v2 closureRootSha256=" + root + " indexSHA256=" + sha(output / "index.json"))
+            shutil.copy2(graph, receipts / "graph.json")
+            shutil.copy2(obs, receipts / "observation.json")
+            shutil.copy2(output / "index.json", receipts / "index.json")
             # Independently staged byte replay and negative mutation gates.
             target = isolated / "Consumer" / "Consumer.cs"
             original_bytes = target.read_bytes()
@@ -171,6 +176,7 @@ def run():
         finally:
             graph.unlink(missing_ok=True)
             obs.unlink(missing_ok=True)
+            shutil.rmtree(output, ignore_errors=True)
     # Golden checkout was NOT present, built, or modified.
     print("Golden-no-write=NotRun (no Golden checkout; fixture only)")
 
