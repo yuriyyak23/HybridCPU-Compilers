@@ -4,13 +4,13 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
-    <EnableBridgeHwirLegacyFixtures Condition="'$(EnableBridgeHwirLegacyFixtures)' == ''">false</EnableBridgeHwirLegacyFixtures>
+    <EnableBridgeHwirLegacyFixtures Condition="'$(EnableBridgeHwirLegacyFixtures)' == ''">true</EnableBridgeHwirLegacyFixtures>
     <DefineConstants Condition="'$(EnableBridgeHwirLegacyFixtures)' == 'true'">$(DefineConstants);HARDWAREBRIDGE_HWIR</DefineConstants>
   </PropertyGroup>
   <ItemGroup Condition="'$(EnableBridgeHwirLegacyFixtures)' == 'true'">
-    <Compile Include="BridgeHwirAddWordCompiler.cs" />
+    <Compile Include="BridgeHwirAddWordCompiler.cs" Condition="'$(CircuitWeaveRepoRoot)' != '' and '$(CircuitWeaveExpectedHeadSha)' != '' and '$(BridgeExpectedSdkVersion)' != ''" />
     <Compile Include="BridgeHwirModelInventory.cs" />
-    <Compile Include="BridgeHwirWordDispatch.cs" />
+    <Compile Include="BridgeHwirWordDispatch.cs" Condition="'$(CircuitWeaveRepoRoot)' != '' and '$(CircuitWeaveExpectedHeadSha)' != '' and '$(BridgeExpectedSdkVersion)' != ''" />
     <Compile Include="BridgeHwirSchedulerCounterCall.cs" />
     <Compile Include="BridgeHwirSchedulerCycleCounter.cs" />
     <Compile Include="BridgeHwirSchedulerTdmPhase.cs" />
@@ -68,9 +68,11 @@
     <Compile Include="BridgeHwirPageFaultDeliveryComposition.cs" />
     <Compile Include="BridgeHwirVmxValidationCurrent.cs" />
     <Compile Include="BridgeHwirVectorSegmentReadAdmission.cs" />
+    <ProjectReference Include="../../../../../CircuitWeave-main/src/CircuitWeave.Contracts/CircuitWeave.Contracts.csproj" />
+    <ProjectReference Include="../../../../../CircuitWeave-main/src/CircuitWeave.HWIR/CircuitWeave.HWIR.csproj" />
+    <ProjectReference Include="../../../../../CircuitWeave-main/src/CircuitWeave.Bindings/CircuitWeave.Bindings.csproj" />
     <!-- Regression-only adapter; caller pins the checked-out Core project explicitly. -->
-    <ProjectReference Include="$(CircuitWeaveRepoRoot)/src/CircuitWeave.Frontend.Roslyn/CircuitWeave.Frontend.Roslyn.csproj"
-                      Condition="'$(CircuitWeaveRepoRoot)' != '' and '$(CircuitWeaveExpectedHeadSha)' != '' and '$(BridgeExpectedSdkVersion)' != ''" />
+    <ProjectReference Include="$(CircuitWeaveRepoRoot)/src/CircuitWeave.Frontend.Roslyn/CircuitWeave.Frontend.Roslyn.csproj" Condition="'$(CircuitWeaveRepoRoot)' != '' and '$(CircuitWeaveExpectedHeadSha)' != '' and '$(BridgeExpectedSdkVersion)' != ''" />
     <Reference Include="Microsoft.CodeAnalysis"><HintPath>$(MSBuildSDKsPath)/../Roslyn/bincore/Microsoft.CodeAnalysis.dll</HintPath><Private>true</Private></Reference>
     <Reference Include="Microsoft.CodeAnalysis.CSharp"><HintPath>$(MSBuildSDKsPath)/../Roslyn/bincore/Microsoft.CodeAnalysis.CSharp.dll</HintPath><Private>true</Private></Reference>
   </ItemGroup>
@@ -78,31 +80,26 @@
     <!-- Standalone source identity only; Core-derived legacy HWIR stays explicitly opt-in. -->
     <Compile Include="..\SourceSnapshot\BridgeSourceSnapshotV1.cs" Link="BridgeSourceSnapshotV1.cs" />
   </ItemGroup>
-  <Target Name="ValidatePinnedBridgeHwirFixtures" BeforeTargets="PrepareForBuild"
-          Condition="'$(EnableBridgeHwirLegacyFixtures)' == 'true'">
-    <Error Condition="'$(CircuitWeaveRepoRoot)' == '' or '$(CircuitWeaveFrontendRoslynProject)' == ''"
-           Text="HBINT0101 MissingCoreFrontend: explicit CircuitWeaveRepoRoot and CircuitWeaveFrontendRoslynProject required." />
-    <Error Condition="!Exists('$(CircuitWeaveRepoRoot)/.git') or !Exists('$(CircuitWeaveRepoRoot)/src/CircuitWeave.Frontend.Roslyn/CircuitWeave.Frontend.Roslyn.csproj') or !Exists('$(CircuitWeaveFrontendRoslynProject)')"
-           Text="HBINT0102 MissingCoreFrontend: a real checked-out Core root and Roslyn project are required." />
-    <Error Condition="'$(CircuitWeaveExpectedHeadSha)' == '' or !$([System.Text.RegularExpressions.Regex]::IsMatch('$(CircuitWeaveExpectedHeadSha)', '^[0-9a-f]{40}$'))"
-           Text="HBINT0103 InvalidCorePin: provide reviewed lowercase 40-hex CircuitWeaveExpectedHeadSha." />
-    <Error Condition="'$(BridgeExpectedSdkVersion)' == '' or '$(NETCoreSdkVersion)' != '$(BridgeExpectedSdkVersion)'"
-           Text="HBINT0104 WrongSdk: BridgeExpectedSdkVersion must match executing NETCoreSdkVersion." />
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="5.9.0" />
+  </ItemGroup>
+  <Target Name="ValidatePinnedBridgeHwirFixtures" BeforeTargets="PrepareForBuild" Condition="'$(EnableBridgeHwirLegacyFixtures)' == 'true' and '$(BridgeExpectedSdkVersion)' != ''">
+    <Error Condition="'$(CircuitWeaveRepoRoot)' == '' or '$(CircuitWeaveFrontendRoslynProject)' == ''" Text="HBINT0101 MissingCoreFrontend: explicit CircuitWeaveRepoRoot and CircuitWeaveFrontendRoslynProject required." />
+    <Error Condition="!Exists('$(CircuitWeaveRepoRoot)/.git') or !Exists('$(CircuitWeaveRepoRoot)/src/CircuitWeave.Frontend.Roslyn/CircuitWeave.Frontend.Roslyn.csproj') or !Exists('$(CircuitWeaveFrontendRoslynProject)')" Text="HBINT0102 MissingCoreFrontend: a real checked-out Core root and Roslyn project are required." />
+    <Error Condition="'$(CircuitWeaveExpectedHeadSha)' == '' or !$([System.Text.RegularExpressions.Regex]::IsMatch('$(CircuitWeaveExpectedHeadSha)', '^[0-9a-f]{40}$'))" Text="HBINT0103 InvalidCorePin: provide reviewed lowercase 40-hex CircuitWeaveExpectedHeadSha." />
+    <Error Condition="'$(BridgeExpectedSdkVersion)' == '' or '$(NETCoreSdkVersion)' != '$(BridgeExpectedSdkVersion)'" Text="HBINT0104 WrongSdk: BridgeExpectedSdkVersion must match executing NETCoreSdkVersion." />
     <PropertyGroup Condition="'$(CircuitWeaveRepoRoot)' != '' and '$(CircuitWeaveFrontendRoslynProject)' != ''">
       <_HbExpectedFrontend>$([System.IO.Path]::GetFullPath('$(CircuitWeaveRepoRoot)/src/CircuitWeave.Frontend.Roslyn/CircuitWeave.Frontend.Roslyn.csproj'))</_HbExpectedFrontend>
       <_HbActualFrontend>$([System.IO.Path]::GetFullPath('$(CircuitWeaveFrontendRoslynProject)'))</_HbActualFrontend>
     </PropertyGroup>
-    <Error Condition="'$(_HbExpectedFrontend)' != '$(_HbActualFrontend)'"
-           Text="HBINT0105 WrongCoreProject: frontend must belong to pinned Core root." />
+    <Error Condition="'$(_HbExpectedFrontend)' != '$(_HbActualFrontend)'" Text="HBINT0105 WrongCoreProject: frontend must belong to pinned Core root." />
     <Exec Command="git -C &quot;$(CircuitWeaveRepoRoot)&quot; rev-parse HEAD" ConsoleToMSBuild="true" StandardOutputImportance="Low">
       <Output TaskParameter="ConsoleOutput" ItemName="_HbCoreCommit" />
     </Exec>
-    <Error Condition="'@(_HbCoreCommit)' != '$(CircuitWeaveExpectedHeadSha)'"
-           Text="HBINT0103 WrongCoreRevision: Core git HEAD differs from independently reviewed pin." />
+    <Error Condition="'@(_HbCoreCommit)' != '$(CircuitWeaveExpectedHeadSha)'" Text="HBINT0103 WrongCoreRevision: Core git HEAD differs from independently reviewed pin." />
     <Exec Command="git -C &quot;$(CircuitWeaveRepoRoot)&quot; status --porcelain --untracked-files=all" ConsoleToMSBuild="true" StandardOutputImportance="Low">
       <Output TaskParameter="ConsoleOutput" ItemName="_HbCoreDirty" />
     </Exec>
-    <Error Condition="'@(_HbCoreDirty)' != ''"
-           Text="HBINT0103 DirtyCoreCheckout: HEAD alone cannot identify modified or untracked Core source." />
+    <Error Condition="'@(_HbCoreDirty)' != ''" Text="HBINT0103 DirtyCoreCheckout: HEAD alone cannot identify modified or untracked Core source." />
   </Target>
 </Project>

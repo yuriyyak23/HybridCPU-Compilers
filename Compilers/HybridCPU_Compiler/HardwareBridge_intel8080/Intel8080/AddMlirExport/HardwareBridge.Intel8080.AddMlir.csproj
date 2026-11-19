@@ -7,6 +7,9 @@
     <CircuitWeaveRoot>C:\Users\Yuriy\Desktop\CircuitWeave-main</CircuitWeaveRoot>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="5.9.0" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="$(CircuitWeaveRoot)\src\CircuitWeave.Backend.Circt\CircuitWeave.Backend.Circt.csproj" />
   </ItemGroup>
 </Project>

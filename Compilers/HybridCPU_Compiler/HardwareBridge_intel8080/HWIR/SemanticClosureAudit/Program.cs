@@ -7,18 +7,18 @@ using Microsoft.CodeAnalysis.Text;
 
 if (args.Length != 4 || args.Any(p => !Path.IsPathFullyQualified(p)))
     throw new ArgumentException("Expected absolute source capture, isolated-reference receipt, generated directory and new output.");
-var captureBytes = File.ReadAllBytes(args[0]);
+byte[] captureBytes = File.ReadAllBytes(args[0]);
 using var capture = JsonDocument.Parse(captureBytes.AsMemory().Span.StartsWith(new byte[] { 0xef, 0xbb, 0xbf }) ? captureBytes.AsMemory(3) : captureBytes.AsMemory());
-var receiptBytes = File.ReadAllBytes(args[1]);
+byte[] receiptBytes = File.ReadAllBytes(args[1]);
 using var receipt = JsonDocument.Parse(receiptBytes);
 if (capture.RootElement.GetProperty("schema").GetString() != "circuitweave.msbuild-source-byte-inventory.v1" ||
     receipt.RootElement.GetProperty("schema").GetString() != "circuitweave.isolated-resolved-references/v1")
     throw new InvalidDataException("Unsupported input schema.");
-var output = Path.GetFullPath(args[3]);
-var desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
-foreach (var name in new[] { "HybridCPU ISE", "HybridCPU Compilers" })
+string output = Path.GetFullPath(args[3]);
+string desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+foreach (string? name in new[] { "HybridCPU ISE", "HybridCPU Compilers" })
 {
-    var root = Path.GetFullPath(Path.Combine(desktop, name));
+    string root = Path.GetFullPath(Path.Combine(desktop, name));
     if (output.Equals(root, StringComparison.OrdinalIgnoreCase) || output.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
         throw new InvalidOperationException("Output inside protected tree forbidden.");
 }
@@ -27,17 +27,17 @@ for (var parent = new DirectoryInfo(Path.GetDirectoryName(output)!); parent is n
 if (File.Exists(output)) throw new InvalidOperationException("Output already exists.");
 var props = receipt.RootElement.GetProperty("properties");
 var capturedProps = capture.RootElement.GetProperty("properties");
-foreach (var key in new[] { "Configuration", "TargetFramework", "LangVersion", "Nullable", "ImplicitUsings", "EnableInternalTestHooks" })
+foreach (string? key in new[] { "Configuration", "TargetFramework", "LangVersion", "Nullable", "ImplicitUsings", "EnableInternalTestHooks" })
     if (props.GetProperty(key).GetString() != capturedProps.GetProperty(key).GetString()) throw new InvalidDataException("Compilation property mismatch: " + key);
-var targetDefines = props.GetProperty("DefineConstants").GetString()!.Split(';', StringSplitOptions.RemoveEmptyEntries);
-var evaluatedDefines = capturedProps.GetProperty("DefineConstants").GetString()!.Split(';', StringSplitOptions.RemoveEmptyEntries);
+string[] targetDefines = props.GetProperty("DefineConstants").GetString()!.Split(';', StringSplitOptions.RemoveEmptyEntries);
+string[] evaluatedDefines = capturedProps.GetProperty("DefineConstants").GetString()!.Split(';', StringSplitOptions.RemoveEmptyEntries);
 if (evaluatedDefines.Except(targetDefines, StringComparer.Ordinal).Any()) throw new InvalidDataException("Evaluated defines absent after targets.");
 if (!LanguageVersionFacts.TryParse(props.GetProperty("LangVersion").GetString(), out var language)) throw new InvalidDataException("Unknown language version.");
 var parse = new CSharpParseOptions(language, preprocessorSymbols: targetDefines);
 static string Hash(byte[] bytes) => Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
 static byte[] ReadPinned(JsonElement entry)
 {
-    var bytes = File.ReadAllBytes(entry.GetProperty("path").GetString()!);
+    byte[] bytes = File.ReadAllBytes(entry.GetProperty("path").GetString()!);
     if (Hash(bytes) != entry.GetProperty("sha256").GetString() || bytes.LongLength != entry.GetProperty("length").GetInt64())
         throw new InvalidDataException("Stale pinned input: " + entry.GetProperty("path").GetString());
     return bytes;
@@ -45,24 +45,24 @@ static byte[] ReadPinned(JsonElement entry)
 var trees = new List<SyntaxTree>();
 foreach (var file in capture.RootElement.GetProperty("files").EnumerateArray())
 {
-    var bytes = ReadPinned(file);
+    byte[] bytes = ReadPinned(file);
     using var stream = new MemoryStream(bytes, false);
     trees.Add(CSharpSyntaxTree.ParseText(SourceText.From(stream, encoding: null, checksumAlgorithm: SourceHashAlgorithm.Sha256), parse, file.GetProperty("path").GetString()!));
 }
 var generated = new List<object>();
 foreach (var file in receipt.RootElement.GetProperty("generatedCompileFiles").EnumerateArray())
 {
-    var bytes = ReadPinned(file); var path = file.GetProperty("path").GetString()!;
+    byte[] bytes = ReadPinned(file); string path = file.GetProperty("path").GetString()!;
     using var stream = new MemoryStream(bytes, false);
     trees.Add(CSharpSyntaxTree.ParseText(SourceText.From(stream, encoding: null), parse, path));
     generated.Add(new { path, length = bytes.Length, sha256 = Hash(bytes), origin = "isolated-msbuild-compile" });
 }
-var generatedRoot = Path.GetFullPath(args[2]);
-var temp = Path.GetFullPath(Path.GetTempPath());
+string generatedRoot = Path.GetFullPath(args[2]);
+string temp = Path.GetFullPath(Path.GetTempPath());
 if (!generatedRoot.StartsWith(temp, StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("Generated directory must be inside TEMP.");
-foreach (var path in Directory.EnumerateFiles(generatedRoot, "*.cs", SearchOption.AllDirectories).Order(StringComparer.OrdinalIgnoreCase))
+foreach (string? path in Directory.EnumerateFiles(generatedRoot, "*.cs", SearchOption.AllDirectories).Order(StringComparer.OrdinalIgnoreCase))
 {
-    var bytes = File.ReadAllBytes(path);
+    byte[] bytes = File.ReadAllBytes(path);
     using var stream = new MemoryStream(bytes, false);
     trees.Add(CSharpSyntaxTree.ParseText(SourceText.From(stream, encoding: null), parse, path));
     generated.Add(new { path, length = bytes.Length, sha256 = Hash(bytes), origin = "isolated-emitted-generator-output" });

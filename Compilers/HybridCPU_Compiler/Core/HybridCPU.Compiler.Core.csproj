@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\HybridCPU_Platform.Contracts\HybridCPU.Platform.Contracts.csproj" />
+    <ProjectReference Include="..\..\HybridCPU_Platform.Contracts\HybridCPU.Platform.Contracts.csproj" GlobalPropertiesToRemove="DefineTestSupport;EnableInternalTestHooks;BaseIntermediateOutputPath;MSBuildProjectExtensionsPath;OutputPath;HybridCpuTestArtifactsRoot;HybridCpuIseProjectReferenceProperties" />
   </ItemGroup>
 
   <ItemGroup>
@@ -20,6 +20,10 @@
     <EmbeddedResource Remove="$(BaseIntermediateOutputPath)**\*" />
     <None Remove="obj\**\*" />
     <None Remove="$(BaseIntermediateOutputPath)**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="5.9.0" />
   </ItemGroup>
 
 </Project>

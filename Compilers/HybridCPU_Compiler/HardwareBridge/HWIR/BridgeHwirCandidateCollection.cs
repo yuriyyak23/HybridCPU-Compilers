@@ -49,7 +49,7 @@ public static class BridgeHwirCandidateCollection
         for (int i = 0; i < 4; i++) { nodes.Add(new HwConstantNode("v" + i, u2, Convert.ToString(i, 2).PadLeft(2, '0'), origin)); nodes.Add(new HwConstantNode("v32_" + i, u32, Convert.ToString(i, 2).PadLeft(32, '0'), origin)); nodes.Add(new HwConstantNode("p" + i, u3, Convert.ToString(i, 2).PadLeft(3, '0'), origin)); }
         var allFields = fields.Concat(new[] { (name: "ready", type: u1), (name: "present", type: u1) }).ToArray();
         var values = new Dictionary<(int, string), string>();
-        foreach (var field in fields) for (int i = 0; i < 4; i++) { var zero = "initial_" + i + "_" + field.name; nodes.Add(new HwConstantNode(zero, field.type, new string('0', field.type.Width), origin)); values[(i, field.name)] = zero; }
+        foreach (var field in fields) for (int i = 0; i < 4; i++) { string zero = "initial_" + i + "_" + field.name; nodes.Add(new HwConstantNode(zero, field.type, new string('0', field.type.Width), origin)); values[(i, field.name)] = zero; }
         string[] collectedVt = ["v0", "v0", "v0", "v0"]; string count = "zero3";
         for (int rank = 0; rank < 4; rank++)
         {

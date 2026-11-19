@@ -5,10 +5,10 @@ using Microsoft.Build.Evaluation;
 // Evaluation only: no targets or builds are invoked against the input project.
 if (args.Length is not (3 or 4) || args.Any(x => !Path.IsPathFullyQualified(x)))
     throw new ArgumentException("Expected absolute project, SDK directory, new output file, and optional project graph paths.");
-var projectPath = Path.GetFullPath(args[0]);
-var sdk = Path.GetFullPath(args[1]);
-var output = Path.GetFullPath(args[2]);
-var modelRoot = Directory.GetParent(Path.GetDirectoryName(projectPath)!)!.FullName;
+string projectPath = Path.GetFullPath(args[0]);
+string sdk = Path.GetFullPath(args[1]);
+string output = Path.GetFullPath(args[2]);
+string modelRoot = Directory.GetParent(Path.GetDirectoryName(projectPath)!)!.FullName;
 if (output.StartsWith(Path.TrimEndingDirectorySeparator(modelRoot) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
     throw new InvalidOperationException("Output inside model tree is forbidden.");
 for (var parent = new DirectoryInfo(Path.GetDirectoryName(output)!); parent is not null; parent = parent.Parent)
@@ -21,11 +21,11 @@ Environment.SetEnvironmentVariable("MSBUILD_EXE_PATH", Path.Combine(sdk, "MSBuil
 using var collection = new ProjectCollection(new Dictionary<string, string> { ["Configuration"] = "Debug" });
 var capture = (Project project) =>
 {
-    var paths = project.Imports.Select(x => x.ImportedProject.FullPath).Append(project.FullPath)
+    string[] paths = project.Imports.Select(x => x.ImportedProject.FullPath).Append(project.FullPath)
         .Distinct(StringComparer.OrdinalIgnoreCase).Order(StringComparer.OrdinalIgnoreCase).ToArray();
     var files = paths.Select(path =>
     {
-        var data = File.ReadAllBytes(path);
+        byte[] data = File.ReadAllBytes(path);
         return new { path, length = data.LongLength, sha256 = Convert.ToHexString(SHA256.HashData(data)).ToLowerInvariant() };
     }).ToArray();
     return new { schema = "hardwarebridge.msbuild-import-inventory/v1", disposition = "evaluation-only-unqualified",
@@ -41,7 +41,7 @@ var root = capture(collection.LoadProject(projectPath));
 object result = root;
 if (args.Length == 4)
 {
-    var graphBytes = File.ReadAllBytes(args[3]);
+    byte[] graphBytes = File.ReadAllBytes(args[3]);
     using var graph = JsonDocument.Parse(graphBytes);
     if (graph.RootElement.GetProperty("schema").GetString() != "hardwarebridge.msbuild-project-graph/v1")
         throw new InvalidDataException("Unsupported project graph.");
@@ -51,7 +51,7 @@ if (args.Length == 4)
     var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { projectPath };
     var references = projects.EnumerateArray().Select(entry =>
     {
-        var path = Path.GetFullPath(entry.GetProperty("project").GetString()!);
+        string path = Path.GetFullPath(entry.GetProperty("project").GetString()!);
         if (!seen.Add(path)) throw new InvalidDataException("Duplicate project in graph.");
         return capture(collection.LoadProject(path));
     }).ToArray();

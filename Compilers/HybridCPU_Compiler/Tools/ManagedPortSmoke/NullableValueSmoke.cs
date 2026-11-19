@@ -780,13 +780,13 @@ public static class NullableValueFixture
         private static U Adjust<U>(U p0,U p1,U p2) where U:struct=>default(U);
         private static U Relay<U>(U p0,U p1,U p2) where U:struct=>Adjust<U>(p0,p1,p2);
         private static int? StructZeroCopy3I4(int? value,int fallback)=>new int?(value.GetValueOrDefault(Adjust<int>(fallback,unchecked(fallback+1),unchecked(fallback+2))));
-        public static long UseI4(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructZeroCopy3I4(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI4(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructZeroCopy3I4(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructZeroCopy3I4Transitive(int? value,int fallback)=>new int?(value.GetValueOrDefault(Relay<int>(fallback,unchecked(fallback+1),unchecked(fallback+2))));
-        public static long UseI4Transitive(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructZeroCopy3I4Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI4Transitive(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructZeroCopy3I4Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructZeroCopy3I8(int? value,long fallback)=>new int?(value.GetValueOrDefault(unchecked((int)Adjust<long>(fallback,unchecked(fallback+1),unchecked(fallback+2)))));
-        public static long UseI8(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructZeroCopy3I8(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI8(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructZeroCopy3I8(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructZeroCopy3I8Transitive(int? value,long fallback)=>new int?(value.GetValueOrDefault(unchecked((int)Relay<long>(fallback,unchecked(fallback+1),unchecked(fallback+2)))));
-        public static long UseI8Transitive(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructZeroCopy3I8Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI8Transitive(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructZeroCopy3I8Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
     }
     public static long ReadStructZero3I4OwnerI4(int input,int delta)=>StructZero3Owner<int>.UseI4(input,delta);
     public static long ReadStructZero3I4OwnerI4Transitive(int input,int delta)=>StructZero3Owner<int>.UseI4Transitive(input,delta);
@@ -802,13 +802,13 @@ public static class NullableValueFixture
         private static U Adjust<U>(U p0,U p1,U p2,U p3) where U:struct=>default(U);
         private static U Relay<U>(U p0,U p1,U p2,U p3) where U:struct=>Adjust<U>(p0,p1,p2,p3);
         private static int? StructZeroCopy4I4(int? value,int fallback)=>new int?(value.GetValueOrDefault(Adjust<int>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3))));
-        public static long UseI4(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructZeroCopy4I4(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI4(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructZeroCopy4I4(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructZeroCopy4I4Transitive(int? value,int fallback)=>new int?(value.GetValueOrDefault(Relay<int>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3))));
-        public static long UseI4Transitive(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructZeroCopy4I4Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI4Transitive(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructZeroCopy4I4Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructZeroCopy4I8(int? value,long fallback)=>new int?(value.GetValueOrDefault(unchecked((int)Adjust<long>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3)))));
-        public static long UseI8(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructZeroCopy4I8(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI8(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructZeroCopy4I8(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructZeroCopy4I8Transitive(int? value,long fallback)=>new int?(value.GetValueOrDefault(unchecked((int)Relay<long>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3)))));
-        public static long UseI8Transitive(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructZeroCopy4I8Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI8Transitive(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructZeroCopy4I8Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
     }
     public static long ReadStructZero4I4OwnerI4(int input,int delta)=>StructZero4Owner<int>.UseI4(input,delta);
     public static long ReadStructZero4I4OwnerI4Transitive(int input,int delta)=>StructZero4Owner<int>.UseI4Transitive(input,delta);
@@ -824,13 +824,13 @@ public static class NullableValueFixture
         private static U Adjust<U>(U p0,U p1,U p2,U p3,U p4) where U:struct=>default(U);
         private static U Relay<U>(U p0,U p1,U p2,U p3,U p4) where U:struct=>Adjust<U>(p0,p1,p2,p3,p4);
         private static int? StructZeroCopy5I4(int? value,int fallback)=>new int?(value.GetValueOrDefault(Adjust<int>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3),unchecked(fallback+4))));
-        public static long UseI4(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructZeroCopy5I4(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI4(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructZeroCopy5I4(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructZeroCopy5I4Transitive(int? value,int fallback)=>new int?(value.GetValueOrDefault(Relay<int>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3),unchecked(fallback+4))));
-        public static long UseI4Transitive(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructZeroCopy5I4Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI4Transitive(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructZeroCopy5I4Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructZeroCopy5I8(int? value,long fallback)=>new int?(value.GetValueOrDefault(unchecked((int)Adjust<long>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3),unchecked(fallback+4)))));
-        public static long UseI8(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructZeroCopy5I8(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI8(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructZeroCopy5I8(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructZeroCopy5I8Transitive(int? value,long fallback)=>new int?(value.GetValueOrDefault(unchecked((int)Relay<long>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3),unchecked(fallback+4)))));
-        public static long UseI8Transitive(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructZeroCopy5I8Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI8Transitive(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructZeroCopy5I8Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
     }
     public static long ReadStructZero5I4OwnerI4(int input,int delta)=>StructZero5Owner<int>.UseI4(input,delta);
     public static long ReadStructZero5I4OwnerI4Transitive(int input,int delta)=>StructZero5Owner<int>.UseI4Transitive(input,delta);
@@ -846,13 +846,13 @@ public static class NullableValueFixture
         private static U Adjust<U>(U p0,U p1,U p2,U p3,U p4,U p5) where U:struct=>default(U);
         private static U Relay<U>(U p0,U p1,U p2,U p3,U p4,U p5) where U:struct=>Adjust<U>(p0,p1,p2,p3,p4,p5);
         private static int? StructZeroCopy6I4(int? value,int fallback)=>new int?(value.GetValueOrDefault(Adjust<int>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3),unchecked(fallback+4),unchecked(fallback+5))));
-        public static long UseI4(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructZeroCopy6I4(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI4(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructZeroCopy6I4(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructZeroCopy6I4Transitive(int? value,int fallback)=>new int?(value.GetValueOrDefault(Relay<int>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3),unchecked(fallback+4),unchecked(fallback+5))));
-        public static long UseI4Transitive(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructZeroCopy6I4Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI4Transitive(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructZeroCopy6I4Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructZeroCopy6I8(int? value,long fallback)=>new int?(value.GetValueOrDefault(unchecked((int)Adjust<long>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3),unchecked(fallback+4),unchecked(fallback+5)))));
-        public static long UseI8(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructZeroCopy6I8(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI8(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructZeroCopy6I8(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructZeroCopy6I8Transitive(int? value,long fallback)=>new int?(value.GetValueOrDefault(unchecked((int)Relay<long>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3),unchecked(fallback+4),unchecked(fallback+5)))));
-        public static long UseI8Transitive(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructZeroCopy6I8Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI8Transitive(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructZeroCopy6I8Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
     }
     public static long ReadStructZero6I4OwnerI4(int input,int delta)=>StructZero6Owner<int>.UseI4(input,delta);
     public static long ReadStructZero6I4OwnerI4Transitive(int input,int delta)=>StructZero6Owner<int>.UseI4Transitive(input,delta);
@@ -868,13 +868,13 @@ public static class NullableValueFixture
         private static U Adjust<U>(U p0,U p1,U p2,U p3,U p4,U p5,U p6) where U:struct=>default(U);
         private static U Relay<U>(U p0,U p1,U p2,U p3,U p4,U p5,U p6) where U:struct=>Adjust<U>(p0,p1,p2,p3,p4,p5,p6);
         private static int? StructZeroCopy7I4(int? value,int fallback)=>new int?(value.GetValueOrDefault(Adjust<int>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3),unchecked(fallback+4),unchecked(fallback+5),unchecked(fallback+6))));
-        public static long UseI4(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructZeroCopy7I4(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI4(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructZeroCopy7I4(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructZeroCopy7I4Transitive(int? value,int fallback)=>new int?(value.GetValueOrDefault(Relay<int>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3),unchecked(fallback+4),unchecked(fallback+5),unchecked(fallback+6))));
-        public static long UseI4Transitive(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructZeroCopy7I4Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI4Transitive(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructZeroCopy7I4Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructZeroCopy7I8(int? value,long fallback)=>new int?(value.GetValueOrDefault(unchecked((int)Adjust<long>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3),unchecked(fallback+4),unchecked(fallback+5),unchecked(fallback+6)))));
-        public static long UseI8(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructZeroCopy7I8(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI8(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructZeroCopy7I8(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructZeroCopy7I8Transitive(int? value,long fallback)=>new int?(value.GetValueOrDefault(unchecked((int)Relay<long>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3),unchecked(fallback+4),unchecked(fallback+5),unchecked(fallback+6)))));
-        public static long UseI8Transitive(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructZeroCopy7I8Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI8Transitive(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructZeroCopy7I8Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
     }
     public static long ReadStructZero7I4OwnerI4(int input,int delta)=>StructZero7Owner<int>.UseI4(input,delta);
     public static long ReadStructZero7I4OwnerI4Transitive(int input,int delta)=>StructZero7Owner<int>.UseI4Transitive(input,delta);
@@ -890,13 +890,13 @@ public static class NullableValueFixture
         private static U Adjust<U>(U p0,U p1,U p2,U p3,U p4,U p5,U p6,U p7) where U:struct=>default(U);
         private static U Relay<U>(U p0,U p1,U p2,U p3,U p4,U p5,U p6,U p7) where U:struct=>Adjust<U>(p0,p1,p2,p3,p4,p5,p6,p7);
         private static int? StructZeroCopy8I4(int? value,int fallback)=>new int?(value.GetValueOrDefault(Adjust<int>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3),unchecked(fallback+4),unchecked(fallback+5),unchecked(fallback+6),unchecked(fallback+7))));
-        public static long UseI4(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructZeroCopy8I4(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI4(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructZeroCopy8I4(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructZeroCopy8I4Transitive(int? value,int fallback)=>new int?(value.GetValueOrDefault(Relay<int>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3),unchecked(fallback+4),unchecked(fallback+5),unchecked(fallback+6),unchecked(fallback+7))));
-        public static long UseI4Transitive(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructZeroCopy8I4Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI4Transitive(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructZeroCopy8I4Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructZeroCopy8I8(int? value,long fallback)=>new int?(value.GetValueOrDefault(unchecked((int)Adjust<long>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3),unchecked(fallback+4),unchecked(fallback+5),unchecked(fallback+6),unchecked(fallback+7)))));
-        public static long UseI8(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructZeroCopy8I8(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI8(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructZeroCopy8I8(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructZeroCopy8I8Transitive(int? value,long fallback)=>new int?(value.GetValueOrDefault(unchecked((int)Relay<long>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3),unchecked(fallback+4),unchecked(fallback+5),unchecked(fallback+6),unchecked(fallback+7)))));
-        public static long UseI8Transitive(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructZeroCopy8I8Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI8Transitive(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructZeroCopy8I8Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
     }
     public static long ReadStructZero8I4OwnerI4(int input,int delta)=>StructZero8Owner<int>.UseI4(input,delta);
     public static long ReadStructZero8I4OwnerI4Transitive(int input,int delta)=>StructZero8Owner<int>.UseI4Transitive(input,delta);
@@ -912,13 +912,13 @@ public static class NullableValueFixture
         private static U Adjust<U>(U p0,U p1,U p2) where U:struct=>p2;
         private static U Relay<U>(U p0,U p1,U p2) where U:struct=>Adjust<U>(p0,p1,p2);
         private static int? StructArityCopy3I4(int? value,int fallback)=>new int?(value.GetValueOrDefault(Adjust<int>(fallback,unchecked(fallback+1),unchecked(fallback+2))));
-        public static long UseI4(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructArityCopy3I4(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI4(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructArityCopy3I4(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructArityCopy3I4Transitive(int? value,int fallback)=>new int?(value.GetValueOrDefault(Relay<int>(fallback,unchecked(fallback+1),unchecked(fallback+2))));
-        public static long UseI4Transitive(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructArityCopy3I4Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI4Transitive(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructArityCopy3I4Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructArityCopy3I8(int? value,long fallback)=>new int?(value.GetValueOrDefault(unchecked((int)Adjust<long>(fallback,unchecked(fallback+1),unchecked(fallback+2)))));
-        public static long UseI8(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructArityCopy3I8(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI8(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructArityCopy3I8(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructArityCopy3I8Transitive(int? value,long fallback)=>new int?(value.GetValueOrDefault(unchecked((int)Relay<long>(fallback,unchecked(fallback+1),unchecked(fallback+2)))));
-        public static long UseI8Transitive(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructArityCopy3I8Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI8Transitive(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructArityCopy3I8Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
     }
     public static long ReadStructArity3I4OwnerI4(int input,int delta)=>StructArity3Owner<int>.UseI4(input,delta);
     public static long ReadStructArity3I4OwnerI4Transitive(int input,int delta)=>StructArity3Owner<int>.UseI4Transitive(input,delta);
@@ -934,13 +934,13 @@ public static class NullableValueFixture
         private static U Adjust<U>(U p0,U p1,U p2,U p3) where U:struct=>p3;
         private static U Relay<U>(U p0,U p1,U p2,U p3) where U:struct=>Adjust<U>(p0,p1,p2,p3);
         private static int? StructArityCopy4I4(int? value,int fallback)=>new int?(value.GetValueOrDefault(Adjust<int>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3))));
-        public static long UseI4(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructArityCopy4I4(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI4(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructArityCopy4I4(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructArityCopy4I4Transitive(int? value,int fallback)=>new int?(value.GetValueOrDefault(Relay<int>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3))));
-        public static long UseI4Transitive(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructArityCopy4I4Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI4Transitive(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructArityCopy4I4Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructArityCopy4I8(int? value,long fallback)=>new int?(value.GetValueOrDefault(unchecked((int)Adjust<long>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3)))));
-        public static long UseI8(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructArityCopy4I8(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI8(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructArityCopy4I8(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructArityCopy4I8Transitive(int? value,long fallback)=>new int?(value.GetValueOrDefault(unchecked((int)Relay<long>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3)))));
-        public static long UseI8Transitive(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructArityCopy4I8Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI8Transitive(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructArityCopy4I8Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
     }
     public static long ReadStructArity4I4OwnerI4(int input,int delta)=>StructArity4Owner<int>.UseI4(input,delta);
     public static long ReadStructArity4I4OwnerI4Transitive(int input,int delta)=>StructArity4Owner<int>.UseI4Transitive(input,delta);
@@ -956,13 +956,13 @@ public static class NullableValueFixture
         private static U Adjust<U>(U p0,U p1,U p2,U p3,U p4) where U:struct=>p4;
         private static U Relay<U>(U p0,U p1,U p2,U p3,U p4) where U:struct=>Adjust<U>(p0,p1,p2,p3,p4);
         private static int? StructArityCopy5I4(int? value,int fallback)=>new int?(value.GetValueOrDefault(Adjust<int>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3),unchecked(fallback+4))));
-        public static long UseI4(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructArityCopy5I4(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI4(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructArityCopy5I4(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructArityCopy5I4Transitive(int? value,int fallback)=>new int?(value.GetValueOrDefault(Relay<int>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3),unchecked(fallback+4))));
-        public static long UseI4Transitive(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructArityCopy5I4Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI4Transitive(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructArityCopy5I4Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructArityCopy5I8(int? value,long fallback)=>new int?(value.GetValueOrDefault(unchecked((int)Adjust<long>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3),unchecked(fallback+4)))));
-        public static long UseI8(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructArityCopy5I8(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI8(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructArityCopy5I8(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructArityCopy5I8Transitive(int? value,long fallback)=>new int?(value.GetValueOrDefault(unchecked((int)Relay<long>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3),unchecked(fallback+4)))));
-        public static long UseI8Transitive(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructArityCopy5I8Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI8Transitive(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructArityCopy5I8Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
     }
     public static long ReadStructArity5I4OwnerI4(int input,int delta)=>StructArity5Owner<int>.UseI4(input,delta);
     public static long ReadStructArity5I4OwnerI4Transitive(int input,int delta)=>StructArity5Owner<int>.UseI4Transitive(input,delta);
@@ -978,13 +978,13 @@ public static class NullableValueFixture
         private static U Adjust<U>(U p0,U p1,U p2,U p3,U p4,U p5) where U:struct=>p5;
         private static U Relay<U>(U p0,U p1,U p2,U p3,U p4,U p5) where U:struct=>Adjust<U>(p0,p1,p2,p3,p4,p5);
         private static int? StructArityCopy6I4(int? value,int fallback)=>new int?(value.GetValueOrDefault(Adjust<int>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3),unchecked(fallback+4),unchecked(fallback+5))));
-        public static long UseI4(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructArityCopy6I4(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI4(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructArityCopy6I4(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructArityCopy6I4Transitive(int? value,int fallback)=>new int?(value.GetValueOrDefault(Relay<int>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3),unchecked(fallback+4),unchecked(fallback+5))));
-        public static long UseI4Transitive(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructArityCopy6I4Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI4Transitive(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructArityCopy6I4Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructArityCopy6I8(int? value,long fallback)=>new int?(value.GetValueOrDefault(unchecked((int)Adjust<long>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3),unchecked(fallback+4),unchecked(fallback+5)))));
-        public static long UseI8(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructArityCopy6I8(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI8(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructArityCopy6I8(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructArityCopy6I8Transitive(int? value,long fallback)=>new int?(value.GetValueOrDefault(unchecked((int)Relay<long>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3),unchecked(fallback+4),unchecked(fallback+5)))));
-        public static long UseI8Transitive(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructArityCopy6I8Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI8Transitive(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructArityCopy6I8Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
     }
     public static long ReadStructArity6I4OwnerI4(int input,int delta)=>StructArity6Owner<int>.UseI4(input,delta);
     public static long ReadStructArity6I4OwnerI4Transitive(int input,int delta)=>StructArity6Owner<int>.UseI4Transitive(input,delta);
@@ -1000,13 +1000,13 @@ public static class NullableValueFixture
         private static U Adjust<U>(U p0,U p1,U p2,U p3,U p4,U p5,U p6) where U:struct=>p6;
         private static U Relay<U>(U p0,U p1,U p2,U p3,U p4,U p5,U p6) where U:struct=>Adjust<U>(p0,p1,p2,p3,p4,p5,p6);
         private static int? StructArityCopy7I4(int? value,int fallback)=>new int?(value.GetValueOrDefault(Adjust<int>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3),unchecked(fallback+4),unchecked(fallback+5),unchecked(fallback+6))));
-        public static long UseI4(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructArityCopy7I4(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI4(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructArityCopy7I4(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructArityCopy7I4Transitive(int? value,int fallback)=>new int?(value.GetValueOrDefault(Relay<int>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3),unchecked(fallback+4),unchecked(fallback+5),unchecked(fallback+6))));
-        public static long UseI4Transitive(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructArityCopy7I4Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI4Transitive(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructArityCopy7I4Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructArityCopy7I8(int? value,long fallback)=>new int?(value.GetValueOrDefault(unchecked((int)Adjust<long>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3),unchecked(fallback+4),unchecked(fallback+5),unchecked(fallback+6)))));
-        public static long UseI8(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructArityCopy7I8(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI8(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructArityCopy7I8(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructArityCopy7I8Transitive(int? value,long fallback)=>new int?(value.GetValueOrDefault(unchecked((int)Relay<long>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3),unchecked(fallback+4),unchecked(fallback+5),unchecked(fallback+6)))));
-        public static long UseI8Transitive(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructArityCopy7I8Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI8Transitive(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructArityCopy7I8Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
     }
     public static long ReadStructArity7I4OwnerI4(int input,int delta)=>StructArity7Owner<int>.UseI4(input,delta);
     public static long ReadStructArity7I4OwnerI4Transitive(int input,int delta)=>StructArity7Owner<int>.UseI4Transitive(input,delta);
@@ -1022,13 +1022,13 @@ public static class NullableValueFixture
         private static U Adjust<U>(U p0,U p1,U p2,U p3,U p4,U p5,U p6,U p7) where U:struct=>p7;
         private static U Relay<U>(U p0,U p1,U p2,U p3,U p4,U p5,U p6,U p7) where U:struct=>Adjust<U>(p0,p1,p2,p3,p4,p5,p6,p7);
         private static int? StructArityCopy8I4(int? value,int fallback)=>new int?(value.GetValueOrDefault(Adjust<int>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3),unchecked(fallback+4),unchecked(fallback+5),unchecked(fallback+6),unchecked(fallback+7))));
-        public static long UseI4(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructArityCopy8I4(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI4(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructArityCopy8I4(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructArityCopy8I4Transitive(int? value,int fallback)=>new int?(value.GetValueOrDefault(Relay<int>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3),unchecked(fallback+4),unchecked(fallback+5),unchecked(fallback+6),unchecked(fallback+7))));
-        public static long UseI4Transitive(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructArityCopy8I4Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI4Transitive(int input,int delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructArityCopy8I4Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructArityCopy8I8(int? value,long fallback)=>new int?(value.GetValueOrDefault(unchecked((int)Adjust<long>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3),unchecked(fallback+4),unchecked(fallback+5),unchecked(fallback+6),unchecked(fallback+7)))));
-        public static long UseI8(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructArityCopy8I8(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI8(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructArityCopy8I8(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
         private static int? StructArityCopy8I8Transitive(int? value,long fallback)=>new int?(value.GetValueOrDefault(unchecked((int)Relay<long>(fallback,unchecked(fallback+1),unchecked(fallback+2),unchecked(fallback+3),unchecked(fallback+4),unchecked(fallback+5),unchecked(fallback+6),unchecked(fallback+7)))));
-        public static long UseI8Transitive(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructArityCopy8I8Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI8Transitive(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructArityCopy8I8Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
     }
     public static long ReadStructArity8I4OwnerI4(int input,int delta)=>StructArity8Owner<int>.UseI4(input,delta);
     public static long ReadStructArity8I4OwnerI4Transitive(int input,int delta)=>StructArity8Owner<int>.UseI4Transitive(input,delta);
@@ -1047,10 +1047,10 @@ public static class NullableValueFixture
         private static int? StructBinaryCopyI8(int? value,long fallback)=>new int?(value.GetValueOrDefault(unchecked((int)Adjust<long>(fallback,unchecked(fallback+1)))));
         private static int? StructBinaryCopyI4Transitive(int? value,int fallback)=>new int?(value.GetValueOrDefault(Relay<int>(fallback,unchecked(fallback+1))));
         private static int? StructBinaryCopyI8Transitive(int? value,long fallback)=>new int?(value.GetValueOrDefault(unchecked((int)Relay<long>(fallback,unchecked(fallback+1)))));
-        public static long UseI4(int input,int delta){int? value=input<0?null:new int?(unchecked(input+delta));var shifted=StructBinaryCopyI4(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
-        public static long UseI8(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructBinaryCopyI8(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
-        public static long UseI4Transitive(int input,int delta){int? value=input<0?null:new int?(unchecked(input+delta));var shifted=StructBinaryCopyI4Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
-        public static long UseI8Transitive(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta));var shifted=StructBinaryCopyI8Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI4(int input,int delta){int? value=input<0?null:new int?(unchecked(input+delta)); int? shifted =StructBinaryCopyI4(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI8(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructBinaryCopyI8(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI4Transitive(int input,int delta){int? value=input<0?null:new int?(unchecked(input+delta)); int? shifted =StructBinaryCopyI4Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
+        public static long UseI8Transitive(int input,long delta){int? value=input<0?null:new int?(unchecked(input+(int)delta)); int? shifted =StructBinaryCopyI8Transitive(value,delta);return ((long)input<<32)^delta^shifted.GetValueOrDefault(-7);}
     }
     public static long ReadStructBinaryI4OwnerI4(int input,int delta)=>StructBinaryOwner<int>.UseI4(input,delta);
     public static long ReadStructBinaryI4OwnerI8(int input,int delta)=>StructBinaryOwner<long>.UseI4(input,delta);

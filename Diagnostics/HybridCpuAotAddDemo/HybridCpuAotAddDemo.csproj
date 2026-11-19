@@ -54,13 +54,15 @@
     <ProjectReference Include="..\..\Compilers\HybridCPU_Compiler\ReleaseQualification\HybridCPU.Compiler.Release.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="5.9.0" />
+  </ItemGroup>
+
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
   <Import Project="$(HybridCpuSdkPackRoot)HybridCPU.Sdk.targets" Condition="'$(DemoMode)' == 'RestrictedAot'" />
 
   <Target Name="ValidateDemoConfiguration" BeforeTargets="PrepareForBuild">
-    <Error Condition="'$(DemoMode)' != 'RestrictedAot' and '$(DemoMode)' != 'ComponentShowcase'"
-           Text="DemoMode must be RestrictedAot or ComponentShowcase." />
-    <Error Condition="'$(DemoMode)' == 'RestrictedAot' and '$(DemoCorpus)' != 'ControlFlow' and '$(DemoCorpus)' != 'Loop' and '$(DemoCorpus)' != 'CallGraph' and '$(DemoCorpus)' != 'DirectRecursion' and '$(DemoCorpus)' != 'MutualRecursion' and '$(DemoCorpus)' != 'Generics'"
-           Text="DemoCorpus must be ControlFlow, Loop, CallGraph, DirectRecursion, MutualRecursion, or Generics." />
+    <Error Condition="'$(DemoMode)' != 'RestrictedAot' and '$(DemoMode)' != 'ComponentShowcase'" Text="DemoMode must be RestrictedAot or ComponentShowcase." />
+    <Error Condition="'$(DemoMode)' == 'RestrictedAot' and '$(DemoCorpus)' != 'ControlFlow' and '$(DemoCorpus)' != 'Loop' and '$(DemoCorpus)' != 'CallGraph' and '$(DemoCorpus)' != 'DirectRecursion' and '$(DemoCorpus)' != 'MutualRecursion' and '$(DemoCorpus)' != 'Generics'" Text="DemoCorpus must be ControlFlow, Loop, CallGraph, DirectRecursion, MutualRecursion, or Generics." />
   </Target>
 </Project>

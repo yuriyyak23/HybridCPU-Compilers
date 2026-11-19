@@ -87,7 +87,7 @@ public static class BridgeHwirTypedSlotFacts
             CountedClasses.Any(c => !classCodes.ContainsKey(c.Name)))
             throw new InvalidDataException("Typed-slot enum codes or byte backing changed.");
 
-        var sourceMethodHash = Hash(Encoding.UTF8.GetBytes(
+        string sourceMethodHash = Hash(Encoding.UTF8.GetBytes(
             "typed-slot-facts-from-bundle/v1|" + expectedSha256 + "|" +
             string.Concat(method.DescendantTokens().Select(t => t.Text))));
         var position = method.Identifier.GetLocation().GetLineSpan().StartLinePosition;

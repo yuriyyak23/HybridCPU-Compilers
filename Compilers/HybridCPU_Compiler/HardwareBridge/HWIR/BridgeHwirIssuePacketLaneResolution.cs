@@ -167,7 +167,7 @@ public static class BridgeHwirIssuePacketLaneResolution
         C("zero1", bit, 0); C("one1", bit, 1); C("zero8", u8, 0); C("invalid_lane", u8, 255);
         C("unclassified_code", u8, unclassified);
         // Keep the class map in a separately-provenanced child module.
-        var classNames = new[] { "AluClass", "LsuClass", "DmaStreamClass", "MatrixTileStreamClass", "BranchControl", "SystemSingleton", "Unclassified" };
+        string[] classNames = new[] { "AluClass", "LsuClass", "DmaStreamClass", "MatrixTileStreamClass", "BranchControl", "SystemSingleton", "Unclassified" };
         var mapPorts = new HwPortContract[]
         {
             new("slot_class", HwPortDirection.Input, u8),

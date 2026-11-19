@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <AssemblyMetadata Include="CompilerBuildSdkVersion" Value="$(NETCoreSdkVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="5.9.0" />
     <ProjectReference Include="..\Core\HybridCPU.Compiler.Core.csproj" />
     <ProjectReference Include="..\Native\HybridCPU.Compiler.Native.csproj" />
     <ProjectReference Include="..\Cil\HybridCPU.Compiler.Cil.csproj" />

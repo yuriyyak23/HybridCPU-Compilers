@@ -8,6 +8,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <PackageReference Include="Microsoft.CodeAnalysis" Version="5.9.0" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="..\..\Compilers\HybridCPU_Compiler\HybridCPU_Compiler.csproj" />
 		<ProjectReference Include="..\..\..\HybridCPU ISE\HybridCPU_ISE\HybridCPU_ISE.csproj" />
 	</ItemGroup>

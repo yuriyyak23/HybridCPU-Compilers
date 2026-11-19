@@ -214,7 +214,7 @@ public static class BridgeHwirCsrStorageEvent
             Mux("reserve_kind_read", readKind, Const("reserve_read_code", 1, u2), Const("reserve_none", 0, u2), u2), u2);
 
         var matches = new Dictionary<string, string>(StringComparer.Ordinal);
-        var policySignal = Const("policy_default", 0, u32); var readValue = Const("read_default", 0, u64);
+        string policySignal = Const("policy_default", 0, u32); string readValue = Const("read_default", 0, u64);
         foreach (Registration registration in registrations)
         {
             string match = Eq(addr, registration.Address, u16); matches.Add(registration.Name, match);

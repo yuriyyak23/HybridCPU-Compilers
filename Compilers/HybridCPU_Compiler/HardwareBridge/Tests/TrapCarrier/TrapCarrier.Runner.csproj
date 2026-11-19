@@ -8,6 +8,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="5.9.0" />
     <ProjectReference Include="..\..\HWIR\HardwareBridge.Hwir.csproj" />
     <ProjectReference Include="..\..\..\..\..\..\CircuitWeave-main\src\CircuitWeave.Backend.Circt\CircuitWeave.Backend.Circt.csproj" />
     <ProjectReference Include="..\..\..\..\..\..\CircuitWeave-main\src\CircuitWeave.Visualization.Publishing\CircuitWeave.Visualization.Publishing.csproj" />

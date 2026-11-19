@@ -18,17 +18,17 @@ if (args.Length is not (2 or 4 or 6) || !Path.IsPathFullyQualified(args[0]) || !
 }
 try
 {
-    var inputBytes = File.ReadAllBytes(args[0]);
+    byte[] inputBytes = File.ReadAllBytes(args[0]);
     ReadOnlyMemory<byte> jsonInput = inputBytes.AsMemory();
     if (inputBytes.AsSpan().StartsWith(new byte[] { 0xef, 0xbb, 0xbf })) jsonInput = jsonInput[3..];
     using var doc = JsonDocument.Parse(jsonInput);
     var root = doc.RootElement;
     if (root.GetProperty("schema").GetString() != "circuitweave.msbuild-source-byte-inventory.v1")
         throw new InvalidDataException("Unsupported input schema.");
-    var projectPath = Path.GetFullPath(root.GetProperty("project").GetString() ?? throw new InvalidDataException("Missing project path."));
-    var sourceRoot = Directory.GetParent(Path.GetDirectoryName(projectPath)!)?.FullName
+    string projectPath = Path.GetFullPath(root.GetProperty("project").GetString() ?? throw new InvalidDataException("Missing project path."));
+    string sourceRoot = Directory.GetParent(Path.GetDirectoryName(projectPath)!)?.FullName
         ?? throw new InvalidDataException("Cannot identify source root.");
-    var destination = Path.GetFullPath(args[1]);
+    string destination = Path.GetFullPath(args[1]);
     if (destination.Equals(sourceRoot, StringComparison.OrdinalIgnoreCase) ||
         destination.StartsWith(Path.TrimEndingDirectorySeparator(sourceRoot) + Path.DirectorySeparatorChar,
             StringComparison.OrdinalIgnoreCase))
@@ -37,11 +37,11 @@ try
         if ((directory.Attributes & FileAttributes.ReparsePoint) != 0)
             throw new InvalidDataException("Linked output directory or ancestor is unsupported.");
     var properties = root.GetProperty("properties");
-    var defines = (properties.GetProperty("DefineConstants").GetString() ?? "")
+    string[] defines = (properties.GetProperty("DefineConstants").GetString() ?? "")
         .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-    var language = properties.TryGetProperty("LangVersion", out var lang) ? lang.GetString() : null;
+    string? language = properties.TryGetProperty("LangVersion", out var lang) ? lang.GetString() : null;
     if (string.IsNullOrWhiteSpace(language)) throw new InvalidDataException("MSBuild language version is absent.");
-    var languageExact = LanguageVersionFacts.TryParse(language, out var version);
+    bool languageExact = LanguageVersionFacts.TryParse(language, out var version);
     if (!languageExact) version = LanguageVersion.Preview;
     var parse = new CSharpParseOptions(version, preprocessorSymbols: defines);
     var trees = new List<SyntaxTree>();
@@ -49,12 +49,12 @@ try
     var paths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
     foreach (var item in root.GetProperty("files").EnumerateArray())
     {
-        var path = item.GetProperty("path").GetString() ?? throw new InvalidDataException("Missing path.");
+        string path = item.GetProperty("path").GetString() ?? throw new InvalidDataException("Missing path.");
         if (!Path.IsPathFullyQualified(path) || !paths.Add(Path.GetFullPath(path)) ||
             item.GetProperty("status").GetString() != "captured")
             throw new InvalidDataException("Missing, duplicate or invalid input path: " + path);
-        var bytes = File.ReadAllBytes(path);
-        var hash = Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
+        byte[] bytes = File.ReadAllBytes(path);
+        string hash = Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
         if (hash != item.GetProperty("sha256").GetString() || bytes.LongLength != item.GetProperty("length").GetInt64())
             throw new InvalidDataException("Stale source bytes: " + path);
         using var stream = new MemoryStream(bytes, writable: false);
@@ -62,7 +62,7 @@ try
         trees.Add(CSharpSyntaxTree.ParseText(source, parse, path));
         files.Add(new { path, sha256 = hash, length = bytes.Length });
     }
-    var tpa = ((string?)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") ?? "")
+    string[] tpa = ((string?)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") ?? "")
         .Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries);
     var referenceIdentities = tpa.Select(p => new { path = p,
         sha256 = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(p))).ToLowerInvariant() }).ToArray();
@@ -70,9 +70,9 @@ try
     var usingLines = new List<string>();
     foreach (var item in root.GetProperty("globalUsings").EnumerateArray())
     {
-        var name = item.GetProperty("identity").GetString() ?? "";
-        var alias = item.GetProperty("alias").ValueKind == JsonValueKind.String ? item.GetProperty("alias").GetString() : null;
-        var isStatic = item.GetProperty("static").ValueKind == JsonValueKind.String &&
+        string name = item.GetProperty("identity").GetString() ?? "";
+        string? alias = item.GetProperty("alias").ValueKind == JsonValueKind.String ? item.GetProperty("alias").GetString() : null;
+        bool isStatic = item.GetProperty("static").ValueKind == JsonValueKind.String &&
             string.Equals(item.GetProperty("static").GetString(), "true", StringComparison.OrdinalIgnoreCase);
         if (SyntaxFactory.ParseName(name).ContainsDiagnostics ||
             alias is { Length: > 0 } && !SyntaxFacts.IsValidIdentifier(alias))
@@ -92,7 +92,7 @@ try
     string? graphDigest = null;
     if (args.Length >= 4)
     {
-        var graphBytes = File.ReadAllBytes(args[3]);
+        byte[] graphBytes = File.ReadAllBytes(args[3]);
         graphDigest = Convert.ToHexString(SHA256.HashData(graphBytes)).ToLowerInvariant();
         using var graphDoc = JsonDocument.Parse(graphBytes);
         var graph = graphDoc.RootElement;
@@ -108,20 +108,20 @@ try
             if (referenceCompilations.TryGetValue(path, out var built)) return built;
             if (!entries.TryGetValue(path, out var entry) || !inProgress.Add(path))
                 throw new InvalidDataException("Missing or cyclic project reference: " + path);
-            var projectHash = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path))).ToLowerInvariant();
+            string projectHash = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path))).ToLowerInvariant();
             if (projectHash != entry.GetProperty("projectSha256").GetString())
                 throw new InvalidDataException("Stale project file: " + path);
             var props = entry.GetProperty("properties");
-            var projectLanguage = props.GetProperty("LangVersion").GetString();
+            string? projectLanguage = props.GetProperty("LangVersion").GetString();
             if (!LanguageVersionFacts.TryParse(projectLanguage, out var projectVersion))
                 throw new InvalidDataException("Unsupported referenced project language: " + projectLanguage);
-            var projectDefines = (props.GetProperty("DefineConstants").GetString() ?? "").Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            string[] projectDefines = (props.GetProperty("DefineConstants").GetString() ?? "").Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             var projectParse = new CSharpParseOptions(projectVersion, preprocessorSymbols: projectDefines);
             var projectSources = new List<SyntaxTree>();
             foreach (var file in entry.GetProperty("files").EnumerateArray())
             {
-                var filePath = file.GetProperty("path").GetString()!;
-                var bytes = File.ReadAllBytes(filePath);
+                string filePath = file.GetProperty("path").GetString()!;
+                byte[] bytes = File.ReadAllBytes(filePath);
                 if (bytes.LongLength != file.GetProperty("length").GetInt64() ||
                     Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant() != file.GetProperty("sha256").GetString())
                     throw new InvalidDataException("Stale referenced source: " + filePath);
@@ -131,9 +131,9 @@ try
             var projectUsings = new List<string>();
             foreach (var item in entry.GetProperty("globalUsings").EnumerateArray())
             {
-                var name = item.GetProperty("identity").GetString() ?? "";
-                var alias = item.GetProperty("alias").ValueKind == JsonValueKind.String ? item.GetProperty("alias").GetString() : null;
-                var isStatic = item.GetProperty("static").ValueKind == JsonValueKind.String && string.Equals(item.GetProperty("static").GetString(), "true", StringComparison.OrdinalIgnoreCase);
+                string name = item.GetProperty("identity").GetString() ?? "";
+                string? alias = item.GetProperty("alias").ValueKind == JsonValueKind.String ? item.GetProperty("alias").GetString() : null;
+                bool isStatic = item.GetProperty("static").ValueKind == JsonValueKind.String && string.Equals(item.GetProperty("static").GetString(), "true", StringComparison.OrdinalIgnoreCase);
                 if (SyntaxFactory.ParseName(name).ContainsDiagnostics || alias is { Length: > 0 } && !SyntaxFacts.IsValidIdentifier(alias))
                     throw new InvalidDataException("Invalid referenced global using.");
                 projectUsings.Add("global using " + (isStatic ? "static " : "") + (string.IsNullOrEmpty(alias) ? "" : alias + " = ") + name + ";");
@@ -142,7 +142,7 @@ try
                 .Select(x => BuildProject(x.GetString()!).ToMetadataReference()).ToArray();
             var usingTree = CSharpSyntaxTree.ParseText(string.Join("\n", projectUsings), projectParse, "<MSBuild-evaluated-global-usings>");
             var projectNullable = props.GetProperty("Nullable").GetString() == "enable" ? NullableContextOptions.Enable : NullableContextOptions.Disable;
-            var nameOfAssembly = props.GetProperty("AssemblyName").GetString();
+            string? nameOfAssembly = props.GetProperty("AssemblyName").GetString();
             built = CSharpCompilation.Create(string.IsNullOrWhiteSpace(nameOfAssembly) ? Path.GetFileNameWithoutExtension(path) : nameOfAssembly,
                 projectSources.Append(usingTree), refs.Cast<MetadataReference>().Concat(dependencies),
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, nullableContextOptions: projectNullable));
@@ -159,7 +159,7 @@ try
     // SDK-style projects expose transitive ProjectReference assemblies to the
     // root compilation. They remain separate compilations and retain provenance.
     var directReferences = referenceCompilations.Values.Select(c => c.ToMetadataReference());
-    var rootAssembly = properties.TryGetProperty("AssemblyName", out var assemblyProperty) &&
+    string rootAssembly = properties.TryGetProperty("AssemblyName", out var assemblyProperty) &&
         !string.IsNullOrWhiteSpace(assemblyProperty.GetString()) ? assemblyProperty.GetString()! : "HardwareBridge.Inventory";
     var compilation = CSharpCompilation.Create(rootAssembly, trees.Append(generatedUsings),
         refs.Cast<MetadataReference>().Concat(directReferences),
@@ -169,18 +169,18 @@ try
     {
         // This opt-in runs only the named, byte-pinned framework generator in the
         // installed .NET reference pack, not arbitrary project analyzers.
-        var manifestBytes = File.ReadAllBytes(args[5]);
+        byte[] manifestBytes = File.ReadAllBytes(args[5]);
         using var manifestDoc = JsonDocument.Parse(manifestBytes);
         var generatorManifest = manifestDoc.RootElement;
         if (generatorManifest.GetProperty("schema").GetString() != "hardwarebridge.sdk-json-generator/v1")
             throw new InvalidDataException("Invalid generator manifest.");
-        var generatorPath = Path.GetFullPath(generatorManifest.GetProperty("path").GetString()!);
-        var packRoot = Path.GetFullPath(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "dotnet", "packs", "Microsoft.NETCore.App.Ref"));
+        string generatorPath = Path.GetFullPath(generatorManifest.GetProperty("path").GetString()!);
+        string packRoot = Path.GetFullPath(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "dotnet", "packs", "Microsoft.NETCore.App.Ref"));
         if (!generatorPath.StartsWith(packRoot + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) ||
             !string.Equals(Path.GetFileName(generatorPath), "System.Text.Json.SourceGeneration.dll", StringComparison.OrdinalIgnoreCase))
             throw new InvalidDataException("Only the explicitly pinned installed SDK JSON generator is allowed.");
-        var generatorBytes = File.ReadAllBytes(generatorPath);
-        var generatorHash = Convert.ToHexString(SHA256.HashData(generatorBytes)).ToLowerInvariant();
+        byte[] generatorBytes = File.ReadAllBytes(generatorPath);
+        string generatorHash = Convert.ToHexString(SHA256.HashData(generatorBytes)).ToLowerInvariant();
         if (generatorHash != generatorManifest.GetProperty("sha256").GetString())
             throw new InvalidDataException("Stale SDK generator bytes.");
         var reference = new AnalyzerFileReference(generatorPath, new SdkAnalyzerLoader());
@@ -196,7 +196,7 @@ try
             sha256 = Convert.ToHexString(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(source.SourceText.ToString()))).ToLowerInvariant(),
             text = source.SourceText.ToString()
         })).ToArray();
-        var generatorDiagnostics = driverDiagnostics.Concat(run.Diagnostics).Select(d => d.ToString()).Distinct().ToArray();
+        string[] generatorDiagnostics = driverDiagnostics.Concat(run.Diagnostics).Select(d => d.ToString()).Distinct().ToArray();
         compilation = (CSharpCompilation)updated;
         foreach (var tree in compilation.SyntaxTrees.Except(trees).Where(t => t != generatedUsings))
             projectTrees.Add(tree, compilation);
@@ -254,9 +254,9 @@ try
                     target = target.OriginalDefinition;
                 else continue;
                 if (target is null || SymbolEqualityComparer.Default.Equals(target, member)) continue;
-                var id = SymbolId(target);
-                var assembly = target.ContainingAssembly?.Identity.ToString() ?? "";
-                var key = kind + "|" + assembly + "|" + id;
+                string id = SymbolId(target);
+                string assembly = target.ContainingAssembly?.Identity.ToString() ?? "";
+                string key = kind + "|" + assembly + "|" + id;
                 edges.TryAdd(key, new { kind, target = id, targetDisplay = SymbolName(target),
                     targetAssembly = assembly, firstLocation = Position(node.GetLocation()) });
             }
@@ -318,7 +318,7 @@ try
         targetFramework = properties.GetProperty("TargetFramework").GetString(), rootAssembly, languageVersion = language, roslynLanguageVersion = version.ToString(), languageVersionExact = languageExact, roslynVersion = typeof(CSharpCompilation).Assembly.GetName().Version?.ToString(), defines, globalUsings = root.GetProperty("globalUsings").Clone(),
         projectReferences = root.GetProperty("projectReferences").Clone(), projectGraphSha256 = graphDigest, generatorProvenance, projectDiagnostics, runtimeMetadataReferences = referenceIdentities, files, diagnostics, types = results
     };
-    var json = JsonSerializer.SerializeToUtf8Bytes(output, new JsonSerializerOptions { WriteIndented = true });
+    byte[] json = JsonSerializer.SerializeToUtf8Bytes(output, new JsonSerializerOptions { WriteIndented = true });
     // Refuse to overwrite any input, including the model's files. The caller selects a new output.
     if (paths.Contains(destination) || string.Equals(destination, Path.GetFullPath(args[0]), StringComparison.OrdinalIgnoreCase) ||
         args.Length >= 4 && string.Equals(destination, Path.GetFullPath(args[3]), StringComparison.OrdinalIgnoreCase) ||

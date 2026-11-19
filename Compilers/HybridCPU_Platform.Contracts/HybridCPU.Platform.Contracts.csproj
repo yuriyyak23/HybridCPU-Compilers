@@ -13,4 +13,9 @@
     <EmbeddedResource Remove="obj\**\*" />
     <None Remove="obj\**\*" />
   </ItemGroup>
-</Project>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="5.9.0" />
+  </ItemGroup>
+
+  </Project>

@@ -11,4 +11,7 @@
     <AssemblyName>HybridCPU.RefPlan6.ScalarControlFlowV2.Corpus</AssemblyName>
     <RootNamespace>HybridCPU.RefPlan6.Corpus</RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="5.9.0" />
+  </ItemGroup>
 </Project>

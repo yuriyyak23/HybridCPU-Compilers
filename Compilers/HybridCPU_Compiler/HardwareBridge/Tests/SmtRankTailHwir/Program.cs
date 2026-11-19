@@ -72,7 +72,7 @@ string dirtyInputStatus = Git("-C", ModelRoot, "status", "--short", "--", Admiss
 string[] dirtyInputPaths = dirtyInputStatus.Split('\n', StringSplitOptions.RemoveEmptyEntries);
 string modelTreeState = dirtyInputPaths.Length == 0 ? "listed-inputs-clean-at-base-commit" : "dirty-working-tree-listed-inputs-captured";
 var tc = new HwToolchainIdentity("11.0.100", "15.0", "hwp-hwir-comb-v1", "circt-cli");
-var sourceHashes = new[] { Hash(smt), Hash(scheduler), Hash(admission) };
+string[] sourceHashes = new[] { Hash(smt), Hash(scheduler), Hash(admission) };
 byte[] classes = Read(@"CloseToHSL\Core\Pipeline\Scheduling\SlotLegality\SlotClassDefinitions.cs");
 byte[] capacitySource = Read(@"CloseToHSL\Core\Pipeline\Scheduling\SlotLegality\SlotClassCapacity.cs");
 byte[] laneIdSource = Read(@"CloseToHSL\Core\Pipeline\Scheduling\LaneId.cs");
@@ -123,7 +123,7 @@ string FullCapturedPath(string sourcePath)
 var sourceOrigins = candidate.Design.Modules.SelectMany(m => m.Nodes.Select(n => n.Origin).Append(m.Origin))
     .Where(o => o is not null && o.Commit == Commit && pinnedSources.Any(s => ("HybridCPU_ISE/" + s.RelativePath.Replace('\\', '/')).EndsWith(o.Path.Replace('\\', '/'), StringComparison.OrdinalIgnoreCase)))
     .Select(o => o!).GroupBy(o => o.Type + "." + o.Member, StringComparer.Ordinal).ToArray();
-var sourceSymbols = sourceOrigins.Select(group =>
+object[] sourceSymbols = sourceOrigins.Select(group =>
 {
     var origins = group.GroupBy(o => (FullCapturedPath(o.Path), o.Line, o.Column)).Select(g => g.First()).ToArray();
     string symbol = group.Key;
@@ -1008,5 +1008,5 @@ static async Task PublishCandidate(string runDirectory, string workspace)
     if (session.Artifacts.Count < 9 || session.Artifacts.Any(a => !a.HasDeclaredDigest || a.Artifact.Sha256 != a.ActualSha256 || a.Artifact.ByteLength != a.ActualSize))
         throw new InvalidDataException("Studio artifact inspection found missing digest or length mismatches: artifacts=" + session.Artifacts.Count);
     Console.WriteLine($"Studio API PASS: {moduleCount} modules, {instanceCount} instances, {session.Graph.Nodes.Count} nodes, {session.Graph.Edges.Count} edges; hierarchy paging, source inventory search, selected-node navigation, captured SMT excerpt and {session.Artifacts.Count} hash/length-checked artifacts resolved; trust={session.Graph.Trust}; diagnostics={session.Diagnostics.Count}");
-    foreach (var diagnostic in session.Diagnostics) Console.WriteLine("Studio diagnostic: " + diagnostic);
+    foreach (string diagnostic in session.Diagnostics) Console.WriteLine("Studio diagnostic: " + diagnostic);
 }

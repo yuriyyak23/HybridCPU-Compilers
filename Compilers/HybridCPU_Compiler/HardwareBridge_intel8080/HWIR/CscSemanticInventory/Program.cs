@@ -10,8 +10,8 @@ using Microsoft.CodeAnalysis.Text;
 // executed and no source-tree files are changed by this tool.
 if (args.Length != 3 || args.Any(p => !Path.IsPathFullyQualified(p)))
     throw new ArgumentException("Expected absolute evaluated graph, isolated Csc audit, and new TEMP output paths.");
-var output = Path.GetFullPath(args[2]);
-var temp = Path.TrimEndingDirectorySeparator(Path.GetFullPath(Path.GetTempPath()));
+string output = Path.GetFullPath(args[2]);
+string temp = Path.TrimEndingDirectorySeparator(Path.GetFullPath(Path.GetTempPath()));
 if (!output.StartsWith(temp + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) || File.Exists(output))
     throw new InvalidDataException("Output must be new and inside TEMP.");
 for (var parent = new DirectoryInfo(Path.GetDirectoryName(output)!); parent is not null; parent = parent.Parent)
@@ -24,7 +24,7 @@ static byte[] Bounded(string path, int max)
         throw new InvalidDataException("Missing, linked or oversized input: " + path);
     return File.ReadAllBytes(path);
 }
-var graphBytes = Bounded(args[0], 4 * 1024 * 1024); var auditBytes = Bounded(args[1], 8 * 1024 * 1024);
+byte[] graphBytes = Bounded(args[0], 4 * 1024 * 1024); byte[] auditBytes = Bounded(args[1], 8 * 1024 * 1024);
 using var graphDoc = JsonDocument.Parse(graphBytes); using var auditDoc = JsonDocument.Parse(auditBytes);
 var graph = graphDoc.RootElement; var audit = auditDoc.RootElement;
 if (graph.GetProperty("schema").GetString() != "hardwarebridge.evaluated-project-graph/v2" ||
@@ -37,8 +37,8 @@ var seenProjects = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 var referenceCache = new Dictionary<string, MetadataReference>(StringComparer.OrdinalIgnoreCase);
 static byte[] ReadPinned(JsonElement entry, int limit)
 {
-    var path = entry.GetProperty("path").GetString()!; if (!Path.IsPathFullyQualified(path)) throw new InvalidDataException("Relative compiler input.");
-    var bytes = Bounded(path, limit); if (Hash(bytes) != entry.GetProperty("sha256").GetString()) throw new InvalidDataException("Compiler input changed: " + path);
+    string path = entry.GetProperty("path").GetString()!; if (!Path.IsPathFullyQualified(path)) throw new InvalidDataException("Relative compiler input.");
+    byte[] bytes = Bounded(path, limit); if (Hash(bytes) != entry.GetProperty("sha256").GetString()) throw new InvalidDataException("Compiler input changed: " + path);
     return bytes;
 }
 static object Location(Location location)
@@ -54,13 +54,13 @@ foreach (var project in projects)
     if (project.GetProperty("missingEvaluatedSources").GetArrayLength() != 0 || project.GetProperty("changedCopiedSources").GetArrayLength() != 0 || project.GetProperty("missingEvaluatedDefines").GetArrayLength() != 0 || !project.GetProperty("generatorOutputRequested").GetBoolean())
         throw new InvalidDataException("Compiler observation has incomplete or changed inputs: " + projectPath);
     if (!LanguageVersionFacts.TryParse(project.GetProperty("languageVersion").GetString(), out var language)) throw new InvalidDataException("Unsupported C# language version.");
-    var defines = project.GetProperty("compilerDefines").EnumerateArray().Select(x => x.GetString()!).ToArray();
+    string[] defines = project.GetProperty("compilerDefines").EnumerateArray().Select(x => x.GetString()!).ToArray();
     var parse = new CSharpParseOptions(language, preprocessorSymbols: defines);
     var trees = new List<SyntaxTree>(); var identities = new List<object>(); var treePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
     void AddSource(JsonElement entry, string kind)
     {
-        var bytes = ReadPinned(entry, 2 * 1024 * 1024); var path = entry.GetProperty("path").GetString()!;
-        var logical = entry.TryGetProperty("originalPath", out var original) && original.ValueKind == JsonValueKind.String ? original.GetString()! : path;
+        byte[] bytes = ReadPinned(entry, 2 * 1024 * 1024); string path = entry.GetProperty("path").GetString()!;
+        string logical = entry.TryGetProperty("originalPath", out var original) && original.ValueKind == JsonValueKind.String ? original.GetString()! : path;
         if (!treePaths.Add(logical)) throw new InvalidDataException("Duplicate source tree identity: " + logical);
         using var stream = new MemoryStream(bytes, false);
         trees.Add(CSharpSyntaxTree.ParseText(SourceText.From(stream, encoding: null, checksumAlgorithm: SourceHashAlgorithm.Sha256), parse, logical));
@@ -72,13 +72,13 @@ foreach (var project in projects)
     var references = new List<MetadataReference>();
     foreach (var entry in project.GetProperty("references").EnumerateArray())
     {
-        var path = entry.GetProperty("path").GetString()!; var hash = entry.GetProperty("sha256").GetString()!; var cacheKey = path + "|" + hash;
+        string path = entry.GetProperty("path").GetString()!; string hash = entry.GetProperty("sha256").GetString()!; string cacheKey = path + "|" + hash;
         if (!referenceCache.TryGetValue(cacheKey, out var reference))
-        { var bytes = ReadPinned(entry, 128 * 1024 * 1024); reference = MetadataReference.CreateFromImage(ImmutableArray.Create(bytes), filePath: path); referenceCache.Add(cacheKey, reference); }
+        { byte[] bytes = ReadPinned(entry, 128 * 1024 * 1024); reference = MetadataReference.CreateFromImage(ImmutableArray.Create(bytes), filePath: path); referenceCache.Add(cacheKey, reference); }
         references.Add(reference);
     }
     var nullable = project.GetProperty("nullable").GetString() switch { "enable" => NullableContextOptions.Enable, "disable" => NullableContextOptions.Disable, "annotations" => NullableContextOptions.Annotations, "warnings" => NullableContextOptions.Warnings, _ => throw new InvalidDataException("Unsupported nullable mode.") };
-    var assemblyName = node.GetProperty("properties").GetProperty("assemblyName").GetString();
+    string? assemblyName = node.GetProperty("properties").GetProperty("assemblyName").GetString();
     var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: project.GetProperty("allowUnsafe").GetBoolean(), checkOverflow: project.GetProperty("checkOverflow").GetBoolean(), nullableContextOptions: nullable);
     var compilation = CSharpCompilation.Create(assemblyName, trees, references, options);
     var diagnostics = compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).GroupBy(d => d.Id)
@@ -105,7 +105,7 @@ foreach (var project in projects)
                 else if (kind == "member-reference" && target is IFieldSymbol or IPropertySymbol or IEventSymbol) target = target.OriginalDefinition;
                 else continue;
                 if (target is null || SymbolEqualityComparer.Default.Equals(target, member)) continue;
-                var assembly = target.ContainingAssembly?.Identity.ToString() ?? ""; var id = SymbolId(target);
+                string assembly = target.ContainingAssembly?.Identity.ToString() ?? ""; string id = SymbolId(target);
                 edges.TryAdd(kind + "|" + assembly + "|" + id, new { kind, target = id, targetAssembly = assembly, firstLocation = Location(current.GetLocation()) });
             }
         }

@@ -25,12 +25,12 @@ static string Identity(ProjectGraphNode node) => node.ProjectInstance.FullPath +
 var nodes = graph.ProjectNodes.OrderBy(Identity, StringComparer.OrdinalIgnoreCase).Select(node =>
 {
     var instance = node.ProjectInstance;
-    var files = instance.GetItems("Compile").Select(item => item.GetMetadataValue("FullPath")).Order(StringComparer.OrdinalIgnoreCase).ToArray();
-    var assetsPath = instance.GetPropertyValue("ProjectAssetsFile");
+    string[] files = instance.GetItems("Compile").Select(item => item.GetMetadataValue("FullPath")).Order(StringComparer.OrdinalIgnoreCase).ToArray();
+    string assetsPath = instance.GetPropertyValue("ProjectAssetsFile");
     object? assets = null;
     if (Path.IsPathFullyQualified(assetsPath) && File.Exists(assetsPath))
     {
-        var bytes = File.ReadAllBytes(assetsPath);
+        byte[] bytes = File.ReadAllBytes(assetsPath);
         assets = new { path = assetsPath, length = bytes.LongLength, sha256 = Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant() };
     }
     var evaluatedItems = new[] { "Reference", "PackageReference", "FrameworkReference", "Analyzer" }.ToDictionary(kind => kind,
@@ -54,7 +54,7 @@ if (args.Length == 4)
     var inventoryFile = new FileInfo(args[3]);
     if (!inventoryFile.Exists || inventoryFile.Length is < 1 or > 32 * 1024 * 1024 || (inventoryFile.Attributes & FileAttributes.ReparsePoint) != 0)
         throw new InvalidDataException("Prior source inventory is missing, linked or oversized.");
-    var inventoryBytes = File.ReadAllBytes(inventoryFile.FullName);
+    byte[] inventoryBytes = File.ReadAllBytes(inventoryFile.FullName);
     using var inventoryDoc = JsonDocument.Parse(inventoryBytes, new JsonDocumentOptions { MaxDepth = 64 });
     var inventory = inventoryDoc.RootElement;
     if (inventory.GetProperty("schema").GetString() != "circuitweave.source-coverage-index/v1" ||
@@ -78,7 +78,7 @@ if (args.Length == 4)
             if (previous.GetProperty(name).GetString() != current) differences.Add(name + ": prior=" + previous.GetProperty(name).GetString() + "; current=" + current);
         return new { project = node.project, previousFound = true, added = newFiles.Except(oldFiles, StringComparer.OrdinalIgnoreCase).Order(StringComparer.OrdinalIgnoreCase).ToArray(), removed = oldFiles.Except(newFiles, StringComparer.OrdinalIgnoreCase).Order(StringComparer.OrdinalIgnoreCase).ToArray(), propertyDifferences = differences.ToArray() };
     }).ToArray();
-    var absentProjects = projectsByPath.Keys.Except(nodes.Select(n => n.project), StringComparer.OrdinalIgnoreCase).Order(StringComparer.OrdinalIgnoreCase).ToArray();
+    string[] absentProjects = projectsByPath.Keys.Except(nodes.Select(n => n.project), StringComparer.OrdinalIgnoreCase).Order(StringComparer.OrdinalIgnoreCase).ToArray();
     var identities = new Dictionary<string, (long Length, string Hash)>(StringComparer.OrdinalIgnoreCase);
     void AddIdentities(JsonElement items)
     {

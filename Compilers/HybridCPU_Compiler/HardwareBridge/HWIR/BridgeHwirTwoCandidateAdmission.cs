@@ -120,7 +120,7 @@ public static class BridgeHwirTwoCandidateAdmission
         HwModule? classOccupancyModule=null;
         if(count==4)
         {
-            var classPorts=new List<HwPortContract>();var classNodes=new List<HwNode>();var classTotals=new[]{4,2,1,1,1,1};
+            var classPorts=new List<HwPortContract>();var classNodes=new List<HwNode>(); int[] classTotals =new[]{4,2,1,1,1,1};
             classNodes.Add(new HwConstantNode("class_zero8",u8,"00000000",classCapacityOrigin));
             for(int slot=0;slot<8;slot++){classPorts.Add(new HwPortContract("slot"+slot+"_present",HwPortDirection.Input,u1));classPorts.Add(new HwPortContract("slot"+slot+"_class",HwPortDirection.Input,new HwBitVectorType(3)));}
             for(int classIndex=0;classIndex<6;classIndex++)
@@ -142,15 +142,15 @@ public static class BridgeHwirTwoCandidateAdmission
         foreach(var p in child.Ports.Where(p=>p.Direction==HwPortDirection.Input&&certificateState.Contains(p.Name)))ports.Add(p);
         foreach(var p in child.Ports.Where(p=>p.Direction==HwPortDirection.Input&&((state.Contains(p.Name)&&!(count==4&&(p.Name=="occupancy"||p.Name.StartsWith("occupied",StringComparison.Ordinal))))||p.Name.StartsWith("total",StringComparison.Ordinal)&&count!=4)))ports.Add(p);
         if(count==4){for(int i=0;i<8;i++){ports.Add(new($"bundle_slot{i}_present",HwPortDirection.Input,u1));ports.Add(new($"bundle_slot{i}_class",HwPortDirection.Input,new HwBitVectorType(3)));}ports.Add(new("bundle_is_nop_mask",HwPortDirection.Input,u8));ports.Add(new("bundle_stealable_mask",HwPortDirection.Input,u8));ports.Add(new("initial_occupancy",HwPortDirection.Output,u8));ports.Add(new("initial_empty_slot_mask",HwPortDirection.Output,u8));ports.Add(new("initial_reference_opportunity_mask",HwPortDirection.Output,u8));for(int i=0;i<6;i++)ports.Add(new($"initial_class_occupied{i}",HwPortDirection.Output,u8));ports.Add(new("final_empty_slot_mask",HwPortDirection.Output,u8));ports.Add(new("final_reference_opportunity_mask",HwPortDirection.Output,u8));}
-        foreach(var name in budgets)nodes.Add(new HwConstantNode("state_id_"+name,u8,Convert.ToString(int.Parse(name[6..]),2).PadLeft(8,'0'),origin));
-        foreach(var name in budgets)ports.Add(new(name,HwPortDirection.Input,u8));foreach(var name in previous)ports.Add(new(name,HwPortDirection.Input,u32));
+        foreach(string name in budgets)nodes.Add(new HwConstantNode("state_id_"+name,u8,Convert.ToString(int.Parse(name[6..]),2).PadLeft(8,'0'),origin));
+        foreach(string name in budgets)ports.Add(new(name,HwPortDirection.Input,u8));foreach(string name in previous)ports.Add(new(name,HwPortDirection.Input,u32));
         for(int vt=0;vt<4;vt++){ports.Add(new($"projected_count_vt{vt}",HwPortDirection.Input,u8));ports.Add(new($"projected_capacity_vt{vt}",HwPortDirection.Input,u8));}
         string[] perCandidate=["slot_class","owner_context_id","domain_tag","candidate_shared_low","candidate_shared_high","candidate_register_hazard_mask","phase_key_valid","phase_template_matches","phase_shared_low","phase_shared_high","phase_vt0_mask","phase_vt1_mask","phase_vt2_mask","phase_vt3_mask","is_assist","is_memory","is_loadstore","is_load","is_store","bank_id","bank_pending","bundle_store_bank_pending","outer_gate_condition_facts","pinning_kind","pinned_lane","permitted_lanes","opportunistic"];
         string[] decisionOutputs=["defined","accepted","selected_lane","reject_reason","stage_b_evaluated","certificate_reject_detail","speculation_budget_exhaustion_event","smt_rejection_event"];
         for(int i=0;i<count;i++){if(count==4)ports.Add(new("c"+i+"_present",HwPortDirection.Input,u1));if(trackVt)ports.Add(new("c"+i+"_vt",HwPortDirection.Input,new HwBitVectorType(2)));foreach(var p in child.Ports.Where(p=>p.Direction==HwPortDirection.Input&&perCandidate.Contains(p.Name)))ports.Add(p with{Name="c"+i+"_"+p.Name});if(!trackVt)ports.Add(new("c"+i+"_candidate_virtual_thread_id",HwPortDirection.Input,u32));}
         ports.Add(new(count==2?"valid_pair":"valid_all",HwPortDirection.Output,u1));for(int i=0;i<count;i++)foreach(var p in child.Ports.Where(p=>p.Direction==HwPortDirection.Output&&decisionOutputs.Contains(p.Name)))ports.Add(p with{Name="c"+i+"_"+p.Name});
         foreach(var p in child.Ports.Where(p=>p.Direction==HwPortDirection.Output&&(p.Name=="next_occupancy"||p.Name.StartsWith("next_occupied",StringComparison.Ordinal))))ports.Add(p with{Name="final_"+p.Name});
-        foreach(var name in budgets)ports.Add(new("final_"+name,HwPortDirection.Output,u8));foreach(var name in previous)ports.Add(new("final_"+name,HwPortDirection.Output,u32));ports.Add(new("final_injections",HwPortDirection.Output,u32));
+        foreach(string name in budgets)ports.Add(new("final_"+name,HwPortDirection.Output,u8));foreach(string name in previous)ports.Add(new("final_"+name,HwPortDirection.Output,u32));ports.Add(new("final_injections",HwPortDirection.Output,u32));
         for(int vt=0;vt<4;vt++)ports.Add(new($"final_projected_count_vt{vt}",HwPortDirection.Output,u8));
         foreach(string name in memoryStateNames)ports.Add(new("final_"+name,HwPortDirection.Output,name.StartsWith("remaining_",StringComparison.Ordinal)?u8:u32));
         ports.Add(new("final_speculation_budget_exhaustion_events",HwPortDirection.Output,u64));

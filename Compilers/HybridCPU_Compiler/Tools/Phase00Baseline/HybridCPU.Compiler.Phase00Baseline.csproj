@@ -7,6 +7,9 @@
     <AssemblyName>HybridCPU.Compiler.Phase00Baseline</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="5.9.0" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\HybridCPU_Compiler.csproj" />
   </ItemGroup>
 </Project>

@@ -34,7 +34,7 @@ public static class BridgeHwirSlotClassMask
                 if (arm.Expression is not ThrowExpressionSyntax || arm != sw.Arms.Last()) throw new InvalidDataException("Lane mask fallback changed.");
                 continue;
             }
-            var name = arm.Pattern.ToString();
+            string name = arm.Pattern.ToString();
             if (!name.StartsWith("SlotClass.", StringComparison.Ordinal) || arm.Expression is not IdentifierNameSyntax mask ||
                 !classes.TryGetValue(name[10..], out byte code) || !constants.TryGetValue(mask.Identifier.ValueText, out byte value) || arm.WhenClause is not null)
                 throw new InvalidDataException("Unsupported lane mask arm.");

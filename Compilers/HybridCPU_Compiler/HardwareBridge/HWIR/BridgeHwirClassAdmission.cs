@@ -15,7 +15,7 @@ public static class BridgeHwirClassAdmission
     public static HwValidatedDesign Compile(byte[] admission,byte[] scheduler,byte[] classes,string[] hashes,string commit,HwToolchainIdentity toolchain)
     {
         static string Hash(byte[] b)=>Convert.ToHexString(SHA256.HashData(b)).ToLowerInvariant();
-        var inputs=new[]{admission,scheduler,classes};
+        byte[][] inputs =new[]{admission,scheduler,classes};
         if(hashes.Length!=3||inputs.Where((b,i)=>b.Length>2_000_000||Hash(b)!=hashes[i]).Any()||commit.Length!=40||commit.Any(c=>!Uri.IsHexDigit(c))) throw new InvalidDataException("Stage A source identity differs.");
         static SyntaxNode Parse(byte[] b)=>CSharpSyntaxTree.ParseText(new UTF8Encoding(false,true).GetString(b)).GetRoot();
         static bool Same(SyntaxNode a,SyntaxNode b)=>a.DescendantTokens().Select(t=>t.Text).SequenceEqual(b.DescendantTokens().Select(t=>t.Text));

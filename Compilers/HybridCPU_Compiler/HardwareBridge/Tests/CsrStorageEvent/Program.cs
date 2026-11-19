@@ -169,7 +169,7 @@ string? sourceExcerpt = CapturedNodeSource.Excerpt(session, sourceOrigin);
 if (sourceExcerpt?.Contains("RegisterDefaults", StringComparison.Ordinal) != true || !sourceExcerpt.Contains("captured snapshot bytes", StringComparison.Ordinal))
     throw new InvalidDataException("Studio captured-source excerpt did not resolve for CSR module.");
 Console.WriteLine($"Studio API PASS: {moduleNodes} modules, {instanceNodes} instances, {session.Graph.Nodes.Count} nodes, {session.Graph.Edges.Count} edges; roots/children paging; captured CsrFile excerpt resolved; trust={session.Graph.Trust}");
-var integratedSourceSet = new[]
+string[] integratedSourceSet = new[]
 {
     BridgeHwirStageFlowCycleCsr.StageFlowSha256,
     BridgeHwirStageFlowCycleCsr.PipelineControlSha256,

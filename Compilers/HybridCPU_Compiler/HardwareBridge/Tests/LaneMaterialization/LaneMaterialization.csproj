@@ -1,6 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net11.0</TargetFramework><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings></PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="5.9.0" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\HWIR\HardwareBridge.Hwir.csproj" />
     <ProjectReference Include="C:\Users\Yuriy\Desktop\CircuitWeave-main\src\CircuitWeave.Backend.Circt\CircuitWeave.Backend.Circt.csproj" />
     <ProjectReference Include="C:\Users\Yuriy\Desktop\CircuitWeave-main\src\CircuitWeave.Visualization.Publishing\CircuitWeave.Visualization.Publishing.csproj" />

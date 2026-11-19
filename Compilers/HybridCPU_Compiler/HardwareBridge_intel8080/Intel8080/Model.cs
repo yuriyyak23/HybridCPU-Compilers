@@ -53,7 +53,7 @@ public static class Analyzer
                         _ => null
                     };
                     if(op is null)continue;
-                    var row=$"{op}@{tree.GetLineSpan(node.Span).StartLinePosition.Line+1}";
+                    string row =$"{op}@{tree.GetLineSpan(node.Span).StartLinePosition.Line+1}";
                     if(node is StatementSyntax or AssignmentExpressionSyntax or InvocationExpressionSyntax or BinaryExpressionSyntax or ElementAccessExpressionSyntax)ops.Add(row);
                     else other.Add(row);
                 }
@@ -66,7 +66,7 @@ public static class Analyzer
 
     public static IReadOnlyList<OpcodeIr> BuildOpcodeIr(ImportModel model)
     {
-        var opsFile=model.Files.FirstOrDefault(f=>Path.GetFileName(f.Path).Equals("Ops.cs",StringComparison.OrdinalIgnoreCase))?.Path;
+        string? opsFile =model.Files.FirstOrDefault(f=>Path.GetFileName(f.Path).Equals("Ops.cs",StringComparison.OrdinalIgnoreCase))?.Path;
         var methods=new Dictionary<string,(string File,int Line)>(StringComparer.Ordinal);
         foreach(var type in model.Types.Where(t=>Path.GetFileName(t.File).Equals("Ops.cs",StringComparison.OrdinalIgnoreCase)))
             foreach(var member in type.Members.Where(m=>m.Kind=="method")) methods.TryAdd(member.Name,(type.File,member.Line));
@@ -156,7 +156,7 @@ public static class Analyzer
             sourceFile = opsPath, sourceLine = MethodLine(RequireMethod(opsTree, item.Method, "Memory", "Cpu")),
             operandRegister = item.Register
         }).ToArray();
-        var traces = new[] { add, szpc, zero, sign, carry, parity, aux, getParity }
+        object[] traces = new[] { add, szpc, zero, sign, carry, parity, aux, getParity }
             .Select(method => Span(model, method)).ToArray();
 
         return new
@@ -255,7 +255,7 @@ public static class Analyzer
             sourceFile = opsPath, sourceLine = MethodLine(RequireMethod(opsTree, item.Method, "Memory", "Cpu")),
             operandRegister = item.Register, sourceCycles = item.Cycles
         }).ToArray();
-        var traces = new[] { adc, memoryWrapper, szpc, zero, sign, carry, parity, aux, getParity,
+        object[] traces = new[] { adc, memoryWrapper, szpc, zero, sign, carry, parity, aux, getParity,
             RequireMethod(opsTree, "ADC_B", "Memory", "Cpu"), RequireMethod(opsTree, "ADC_C", "Memory", "Cpu"),
             RequireMethod(opsTree, "ADC_E", "Memory", "Cpu"), RequireMethod(opsTree, "ADC_H", "Memory", "Cpu"),
             RequireMethod(opsTree, "ADC_L", "Memory", "Cpu") }.Select(method => Span(model, method)).ToArray();
@@ -356,7 +356,7 @@ public static class Analyzer
             sourceFile = opsPath, sourceLine = MethodLine(RequireMethod(opsTree, item.Method, "Memory", "Cpu")),
             operandRegister = item.Register, sourceCycles = item.Cycles
         }).ToArray();
-        var traces = new[] { sbb, memoryWrapper, szpc, zero, sign, carry, parity, aux, getParity,
+        object[] traces = new[] { sbb, memoryWrapper, szpc, zero, sign, carry, parity, aux, getParity,
             RequireMethod(opsTree, "SBB_C", "Memory", "Cpu"), RequireMethod(opsTree, "SBB_D", "Memory", "Cpu"),
             RequireMethod(opsTree, "SBB_E", "Memory", "Cpu"), RequireMethod(opsTree, "SBB_H", "Memory", "Cpu"),
             RequireMethod(opsTree, "SBB_L", "Memory", "Cpu"), RequireMethod(opsTree, "SBB_A", "Memory", "Cpu")
@@ -457,7 +457,7 @@ public static class Analyzer
             Equation("PC_SUB_B_next", "increment", 16, "PC + 1", sub),
             Equation("PC_SUI_next", "increment", 16, "PC + 2", sui)
         };
-        var traces = new[] { sub, subB, sui, szpc, zero, sign, carry, parity, aux, getParity }
+        object[] traces = new[] { sub, subB, sui, szpc, zero, sign, carry, parity, aux, getParity }
             .Select(method => Span(model, method)).ToArray();
 
         return new
@@ -553,7 +553,7 @@ public static class Analyzer
             sourceLine = MethodLine(RequireMethod(opsTree, item.Method, "Memory", "Cpu")),
             operandRegister = item.Operand
         }).ToArray();
-        var traces = wrappers.Append(dad).Append(carry).Select(method => Span(model, method)).ToArray();
+        object[] traces = wrappers.Append(dad).Append(carry).Select(method => Span(model, method)).ToArray();
         return new
         {
             schema = "hardwarebridge.intel8080.dad-hwir/v1",
@@ -660,7 +660,7 @@ public static class Analyzer
             Equation("PC_XRI_source_next", "increment", 16, "PC + 2 (XOR helper increments once; XRI wrapper increments once)", xri),
             Equation("SZP", "flags", 3, "Z=(result8==0), S=result8[7], P=even_parity8(result8)", calcSzpcByte),
         };
-        var traces = new[] { ana, xor, aor, oraB, oraM, ani, xri, ori, calcSzpcByte, calcCarryByte, parity, aux, getParity }
+        object[] traces = new[] { ana, xor, aor, oraB, oraM, ani, xri, ori, calcSzpcByte, calcCarryByte, parity, aux, getParity }
             .Select(method => Span(model, method)).ToArray();
         return new
         {
@@ -725,7 +725,7 @@ public static class Analyzer
         var table = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>()
             .SingleOrDefault(variable => variable.Identifier.ValueText == "ParityTable")
             ?? throw new InvalidDataException("Utils.ParityTable source initializer missing.");
-        var values = table.Initializer?.Value.DescendantNodesAndSelf().OfType<LiteralExpressionSyntax>()
+        int[] values = table.Initializer?.Value.DescendantNodesAndSelf().OfType<LiteralExpressionSyntax>()
             .Select(literal => literal.Token.Value).OfType<int>().ToArray() ?? Array.Empty<int>();
         if (values.Length != 256) throw new InvalidDataException($"Expected 256 parity entries, found {values.Length}.");
         for (int value = 0; value < 256; value++)
@@ -785,7 +785,7 @@ public static class Analyzer
             byte[] bytes=File.ReadAllBytes(path);
             var tree=CSharpSyntaxTree.ParseText(System.Text.Encoding.UTF8.GetString(bytes),parseOptions,path);
             syntaxTrees.Add(tree); files.Add(new(path,Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant(),bytes.LongLength));
-            var diagnostics=tree.GetDiagnostics().Where(d=>d.Severity==DiagnosticSeverity.Error).Select(d=>d.GetMessage()).Take(8).ToArray();
+            string[] diagnostics =tree.GetDiagnostics().Where(d=>d.Severity==DiagnosticSeverity.Error).Select(d=>d.GetMessage()).Take(8).ToArray();
             foreach(var node in tree.GetRoot().DescendantNodes().OfType<BaseTypeDeclarationSyntax>())
             {
                 declarations.Add((path,node));
@@ -795,7 +795,7 @@ public static class Analyzer
                 if(node.DescendantNodes().Any(n=>n is ArrayTypeSyntax or ArrayCreationExpressionSyntax))warnings.Add("Array-backed state requires an explicit hardware memory choice.");
                 if(node.DescendantNodes().Any(n=>n is EventFieldDeclarationSyntax or EventDeclarationSyntax))warnings.Add("Events need signal-level interpretation.");
                 if(node.DescendantNodes().OfType<IdentifierNameSyntax>().Any(n=>n.Identifier.ValueText is "Dictionary" or "ConcurrentQueue" or "ILogger"))warnings.Add("Dictionary, queue, or logging is not directly hardware behavior.");
-                var refs=node.DescendantNodes().OfType<TypeSyntax>().Select(t=>t.ToString()).Distinct().Order(StringComparer.Ordinal).ToArray();
+                string[] refs =node.DescendantNodes().OfType<TypeSyntax>().Select(t=>t.ToString()).Distinct().Order(StringComparer.Ordinal).ToArray();
                 types.Add(new(node.Identifier.ValueText,Namespace(node),node.Kind().ToString(),path,tree.GetLineSpan(node.Identifier.Span).StartLinePosition.Line+1,members,refs,warnings.Distinct().ToArray()));
             }
         }
@@ -803,7 +803,7 @@ public static class Analyzer
             .Select(path=>(MetadataReference)MetadataReference.CreateFromFile(path)).ToArray() ?? Array.Empty<MetadataReference>();
         var compilation=CSharpCompilation.Create("Intel8080.SourceAnalysis",syntaxTrees,references,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary,allowUnsafe:true));
-        var compilationDiagnostics=compilation.GetDiagnostics().Where(d=>d.Severity==DiagnosticSeverity.Error)
+        string[] compilationDiagnostics =compilation.GetDiagnostics().Where(d=>d.Severity==DiagnosticSeverity.Error)
             .Take(100).Select(d=>$"{d.Id}: {d.GetMessage()} ({d.Location.GetLineSpan().Path}:{d.Location.GetLineSpan().StartLinePosition.Line+1})").ToArray();
         var semanticReferences=new List<SemanticReference>();
         var memberDependencies=new List<MemberDependency>();
@@ -847,7 +847,7 @@ public static class Analyzer
                 };
                 var ownerType=referenceNode.Ancestors().OfType<BaseTypeDeclarationSyntax>().FirstOrDefault();
                 if(ownerType is not null)owner=ownerType.Identifier.ValueText+"."+owner;
-                var targetFile=location?.SourceTree?.FilePath;
+                string? targetFile =location?.SourceTree?.FilePath;
                 int? targetLine=location is null?null:location.SourceTree!.GetLineSpan(location.SourceSpan).StartLinePosition.Line+1;
                 memberDependencies.Add(new(kind,owner,tree.FilePath,source.Line+1,referenceNode.ToString(),symbol?.ToDisplayString(),targetFile,targetLine));
                 if(kind=="method-call")semanticReferences.Add(new(tree.FilePath,source.Line+1,referenceNode.ToString(),symbol?.ToDisplayString(),targetFile,targetLine));
@@ -867,12 +867,12 @@ public static class Analyzer
                 if(!constant.HasValue||constant.Value is not IConvertible convertible) continue;
                 byte code; try { code=convertible.ToByte(System.Globalization.CultureInfo.InvariantCulture); } catch(OverflowException) { continue; }
                 var target=semantic.GetSymbolInfo(entry.Expressions[1]).Symbol as IMethodSymbol;
-                string method=target?.Name ?? entry.Expressions[1].ToString().Split('.').Last(); var line=entry.SyntaxTree.GetLineSpan(entry.Span).StartLinePosition.Line+1;
+                string method=target?.Name ?? entry.Expressions[1].ToString().Split('.').Last(); int line =entry.SyntaxTree.GetLineSpan(entry.Span).StartLinePosition.Line+1;
                 opcodes.Add(new(code,method,target is not null,file,line));
             }
         }
-        var decision = new[]{"8080 address width 16; data width 8 (architecture assumption)","clock/reset, memory, I/O and IRQ contracts are design decisions; emulator C# does not establish cycle timing","Roslyn semantic compilation is in-memory for symbol binding; no project build, emit or source execution"};
-        var unsupported = new[]{"Dictionary delegates/control flow, queue interrupts, events, logger and byte-array memory require manual hardware mapping","No generic C# to MLIR/RTL lowering is performed by this analyzer","Opcode syntax scan is not functional instruction verification"};
+        string[] decision = new[]{"8080 address width 16; data width 8 (architecture assumption)","clock/reset, memory, I/O and IRQ contracts are design decisions; emulator C# does not establish cycle timing","Roslyn semantic compilation is in-memory for symbol binding; no project build, emit or source execution"};
+        string[] unsupported = new[]{"Dictionary delegates/control flow, queue interrupts, events, logger and byte-array memory require manual hardware mapping","No generic C# to MLIR/RTL lowering is performed by this analyzer","Opcode syntax scan is not functional instruction verification"};
         return new("hardwarebridge.intel8080.import/v2","Roslyn in-memory semantic compilation using SDK trusted platform assemblies; diagnostics retained; no emit, project build, source execution or hardware elaboration",sourceRoot,files,types,opcodes.OrderBy(x=>x.Code).ToArray(),semanticReferences,memberDependencies,compilationDiagnostics,decision,unsupported);
     }
 

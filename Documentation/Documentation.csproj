@@ -8,6 +8,10 @@
 		<IsTestProject>false</IsTestProject>
 	</PropertyGroup>
 
+	<ItemGroup>
+	  <PackageReference Include="Microsoft.CodeAnalysis" Version="5.9.0" />
+	</ItemGroup>
+
 
 	
 

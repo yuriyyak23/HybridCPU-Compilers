@@ -26,18 +26,18 @@ public static class BridgeHwirModelInventory
             index.GetProperty("schema").GetString() != "circuitweave.source-coverage-index/v1" ||
             index.GetProperty("disposition").GetString() != "incomplete-unqualified")
             throw new InvalidDataException("Unsupported bounded source inventory.");
-        var reportSha = index.GetProperty("semanticReportSha256").GetString();
+        string? reportSha = index.GetProperty("semanticReportSha256").GetString();
         if (reportSha is not { Length: 64 } || reportSha.Any(c => !char.IsAsciiHexDigit(c)))
             throw new InvalidDataException("Invalid semantic report identity.");
         var symbols = index.GetProperty("symbols");
         if (symbols.ValueKind != JsonValueKind.Array || symbols.GetArrayLength() > 100_000)
             throw new InvalidDataException("Invalid source symbol count.");
         var identities = new HashSet<(string Assembly, string Symbol)>();
-        var classes = 0; var structs = 0; var interfaces = 0; var enums = 0; var delegates = 0;
-        var declarations = 0; var members = 0;
+        int classes = 0; int structs = 0; int interfaces = 0; int enums = 0; int delegates = 0;
+        int declarations = 0; int members = 0;
         foreach (var type in symbols.EnumerateArray())
         {
-            var assembly = Required(type, "assembly"); var symbol = Required(type, "symbol");
+            string assembly = Required(type, "assembly"); string symbol = Required(type, "symbol");
             if (!identities.Add((assembly, symbol))) throw new InvalidDataException("Duplicate semantic source type identity.");
             switch (Required(type, "kind"))
             {
@@ -85,7 +85,7 @@ public static class BridgeHwirModelInventory
 
     private static string Required(JsonElement item, string property)
     {
-        var value = item.GetProperty(property).GetString();
+        string? value = item.GetProperty(property).GetString();
         if (string.IsNullOrWhiteSpace(value) || value.Length > 8192 || value.Any(char.IsControl))
             throw new InvalidDataException("Invalid source identity: " + property);
         return value;
@@ -93,9 +93,9 @@ public static class BridgeHwirModelInventory
 
     private static (string Path, int Line, int Column) CheckLocation(JsonElement location)
     {
-        var path = Required(location, "file");
-        var line = location.GetProperty("startLine").GetInt32();
-        var column = location.GetProperty("startColumn").GetInt32();
+        string path = Required(location, "file");
+        int line = location.GetProperty("startLine").GetInt32();
+        int column = location.GetProperty("startColumn").GetInt32();
         if (line < 1 || column < 1) throw new InvalidDataException("Invalid source coordinate.");
         return (path, line, column);
     }

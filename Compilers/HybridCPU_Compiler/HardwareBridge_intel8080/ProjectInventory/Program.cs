@@ -6,14 +6,14 @@ using Microsoft.Build.Evaluation;
 if (args.Length != 3 || args.Any(x => !Path.IsPathFullyQualified(x)))
     throw new ArgumentException("Expected absolute project, SDK directory and new output file paths.");
 
-var projectPath = Path.GetFullPath(args[0]);
-var sdk = Path.GetFullPath(args[1]);
-var output = Path.GetFullPath(args[2]);
+string projectPath = Path.GetFullPath(args[0]);
+string sdk = Path.GetFullPath(args[1]);
+string output = Path.GetFullPath(args[2]);
 if (!File.Exists(projectPath)) throw new FileNotFoundException("Project file not found.", projectPath);
-var allowedRoot = Path.GetFullPath(@"C:\Users\Yuriy\Desktop\CircuitWeave-main\artifacts\8080").TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+string allowedRoot = Path.GetFullPath(@"C:\Users\Yuriy\Desktop\CircuitWeave-main\artifacts\8080").TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
 if (!output.StartsWith(allowedRoot, StringComparison.OrdinalIgnoreCase))
     throw new InvalidOperationException("8080 project inventory output must remain inside CircuitWeave-main/artifacts/8080.");
-var modelRoot = Directory.GetParent(Path.GetDirectoryName(projectPath)!)!.FullName;
+string modelRoot = Directory.GetParent(Path.GetDirectoryName(projectPath)!)!.FullName;
 if (output.StartsWith(Path.TrimEndingDirectorySeparator(modelRoot) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
     throw new InvalidOperationException("Output inside the source project tree is forbidden.");
 for (var parent = new DirectoryInfo(Path.GetDirectoryName(output)!); parent is not null; parent = parent.Parent)
@@ -26,11 +26,11 @@ Environment.SetEnvironmentVariable("MSBuildSDKsPath", Path.Combine(sdk, "Sdks"))
 Environment.SetEnvironmentVariable("MSBUILD_EXE_PATH", Path.Combine(sdk, "MSBuild.dll"));
 using var collection = new ProjectCollection(new Dictionary<string, string> { ["Configuration"] = "Debug" });
 var project = collection.LoadProject(projectPath);
-var importedPaths = project.Imports.Select(x => x.ImportedProject.FullPath).Append(project.FullPath)
+string[] importedPaths = project.Imports.Select(x => x.ImportedProject.FullPath).Append(project.FullPath)
     .Distinct(StringComparer.OrdinalIgnoreCase).Order(StringComparer.OrdinalIgnoreCase).ToArray();
 var files = importedPaths.Select(path =>
 {
-    var bytes = File.ReadAllBytes(path);
+    byte[] bytes = File.ReadAllBytes(path);
     return new { path, length = bytes.LongLength, sha256 = Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant() };
 }).ToArray();
 var result = new

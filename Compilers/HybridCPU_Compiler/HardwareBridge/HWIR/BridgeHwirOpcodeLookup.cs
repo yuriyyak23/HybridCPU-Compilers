@@ -26,7 +26,7 @@ public static class BridgeHwirOpcodeLookup
         var ports = top.Ports.ToList(); var instances = top.Instances.ToList(); var u3 = new HwBitVectorType(3);
         for (int i = 0; i < 8; i++)
         {
-            var prefix = "slot" + i + "_"; string wire = prefix + "opcode_wire", output = prefix + "opcode_outcome";
+            string prefix = "slot" + i + "_"; string wire = prefix + "opcode_wire", output = prefix + "opcode_outcome";
             if (!top.Nodes.OfType<HwWireNode>().Any(n => n.Id == wire)) throw new InvalidDataException("Missing slot opcode wire.");
             ports.Add(new HwPortContract(output, HwPortDirection.Output, u3));
             instances.Add(new HwInstanceNode(prefix + "opcode_lookup", "opcode_outcome_projection",
@@ -102,7 +102,7 @@ public static class BridgeHwirOpcodeLookup
         var policySet = (ObjectCreationExpressionSyntax)policyEntry.Right;
         if (policySet.Type.ToString() != "HashSet<string>" || policySet.ArgumentList?.Arguments.Single().Expression.ToString() != "StringComparer.Ordinal") throw new InvalidDataException("Policy set or comparer changed.");
         int[] prohibitedCodes = policySet.Initializer!.Expressions.Cast<LiteralExpressionSyntax>().Select(s => s.Token.ValueText)
-            .Where(s => int.TryParse(s, NumberStyles.None, CultureInfo.InvariantCulture, out var n) && n.ToString(CultureInfo.InvariantCulture) == s)
+            .Where(s => int.TryParse(s, NumberStyles.None, CultureInfo.InvariantCulture, out int n) && n.ToString(CultureInfo.InvariantCulture) == s)
             .Select(s => int.Parse(s, CultureInfo.InvariantCulture)).ToArray();
         var surfaceType = surfaceRoot.DescendantNodes().OfType<ClassDeclarationSyntax>().Single(c => c.Identifier.ValueText == "IsaV4Surface");
         var prohibitedField = surfaceType.Members.OfType<FieldDeclarationSyntax>().Single(f => f.Declaration.Variables.Any(v => v.Identifier.ValueText == "ProhibitedOpcodes"));

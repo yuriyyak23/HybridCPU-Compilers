@@ -43,7 +43,7 @@ public static class BridgeHwirSchedulerCounterCall
         // Rebind the captured prefix in a minimal context. This confirms symbols
         // for the projection only, not the full source project or hardware clock.
         var projected = method.WithBody(SyntaxFactory.Block(guard, increment, SyntaxFactory.ParseStatement("return null!;")));
-        var text = "#nullable enable\nusing System; using System.Collections.Generic; namespace YAKSys_Hybrid_CPU.Memory { public class MemorySubsystem {} } " +
+        string text = "#nullable enable\nusing System; using System.Collections.Generic; namespace YAKSys_Hybrid_CPU.Memory { public class MemorySubsystem {} } " +
             "namespace YAKSys_Hybrid_CPU.Core { public class MicroOp {} public partial class MicroOpScheduler { " + field.ToFullString() + projected.ToFullString() + " } }";
         var projectionTree = CSharpSyntaxTree.ParseText(text, parse);
         var references = ((string?)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") ?? "").Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries).Select(p => MetadataReference.CreateFromFile(p));
@@ -68,7 +68,7 @@ public static class BridgeHwirSchedulerCounterCall
             op.Target is not IFieldReferenceOperation reference || !SymbolEqualityComparer.Default.Equals(reference.Field, boundField))
             throw new InvalidDataException("Counter increment does not bind to unchecked captured field.");
         var pos = method.Identifier.GetLocation().GetLineSpan().StartLinePosition;
-        var digest = Hash(Encoding.UTF8.GetBytes("scheduler-call-prefix/v1|" + expectedSchedulerSha256 + "|" + expectedMethodSha256 + "|unchecked"));
+        string digest = Hash(Encoding.UTF8.GetBytes("scheduler-call-prefix/v1|" + expectedSchedulerSha256 + "|" + expectedMethodSha256 + "|unchecked"));
         var origin = new HwSourceOrigin("https://github.com/yuriyyak23/HybridCPU-v2", baseCommit,
             "HybridCPU_ISE/CloseToHSL/Core/Pipeline/Scheduling/Smt/MicroOpScheduler.SMT.cs", "CircuitWeave.SchedulerCall.Projection",
             "YAKSys_Hybrid_CPU.Core.MicroOpScheduler", "PackBundleIntraCoreSmt", digest, HwSourceRole.Primary, pos.Line + 1, pos.Character + 1);

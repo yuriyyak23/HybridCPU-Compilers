@@ -24,14 +24,14 @@ public static class BridgeHwirRawSlot
         var tree = CSharpSyntaxTree.ParseText(new UTF8Encoding(false, true).GetString(stages));
         var reader = tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().Single(c => c.Identifier.ValueText == "RawBundleReader" && c.Ancestors().OfType<BaseNamespaceDeclarationSyntax>().Single().Name.ToString() == "YAKSys_Hybrid_CPU.Core.Decoder");
         var method = reader.Members.OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.ValueText == "Read");
-        var expected = "{ if (bundle.Length != BundleMetadata.BundleSlotCount) { throw new ArgumentException($\"Decoder bundles must contain exactly {BundleMetadata.BundleSlotCount} slots.\", nameof(bundle)); } ImmutableArray<RawSlot>.Builder slots = ImmutableArray.CreateBuilder<RawSlot>(BundleMetadata.BundleSlotCount); for (int slotIndex = 0; slotIndex < bundle.Length; slotIndex++) { slots.Add(RawSlotReader.Read(in bundle[slotIndex], slotIndex)); } return new RawBundle(slots.MoveToImmutable()); }";
+        string expected = "{ if (bundle.Length != BundleMetadata.BundleSlotCount) { throw new ArgumentException($\"Decoder bundles must contain exactly {BundleMetadata.BundleSlotCount} slots.\", nameof(bundle)); } ImmutableArray<RawSlot>.Builder slots = ImmutableArray.CreateBuilder<RawSlot>(BundleMetadata.BundleSlotCount); for (int slotIndex = 0; slotIndex < bundle.Length; slotIndex++) { slots.Add(RawSlotReader.Read(in bundle[slotIndex], slotIndex)); } return new RawBundle(slots.MoveToImmutable()); }";
         if (method.Body?.NormalizeWhitespace().ToFullString() != SyntaxFactory.ParseStatement(expected).NormalizeWhitespace().ToFullString()) throw new InvalidDataException("Raw bundle reader changed.");
         var pipeline = tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().Single(c => c.Identifier.ValueText == "DeclarativeDecoderPipeline" && c.Ancestors().OfType<BaseNamespaceDeclarationSyntax>().Single().Name.ToString() == "YAKSys_Hybrid_CPU.Core.Decoder");
         var decode = pipeline.Members.OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.ValueText == "TryDecodeBundle" && m.ParameterList.Parameters.Count == 7);
         var loop = decode.DescendantNodes().OfType<ForEachStatementSyntax>().Single(f => f.Identifier.ValueText == "slot");
         if (loop.Expression.NormalizeWhitespace().ToFullString() != "rawBundle.Slots" || loop.Statement.DescendantNodes().OfType<IfStatementSyntax>().Count(x => x.Condition.NormalizeWhitespace().ToFullString() == "slot.Opcode == 0") != 1)
             throw new InvalidDataException("Bundle empty-slot dispatch changed.");
-        var expectedLoop = "{ InstructionSlotMetadata slotMetadata = ResolveSlotMetadata(bundleAnnotations, slot.SlotIndex); if (slot.Opcode == 0) { if (!TryDecodeEmptySlot(in slot, slotMetadata, out CanonicalDecodedInstruction emptySlot, out failure)) { decodedBundle = null; return false; } decodedSlots.Add(null); canonicalSlots.Add(emptySlot); continue; } if (!TryDecodeOccupiedSlot(in slot, slotMetadata, out DeclarativeDecodedSlot? decodedSlot, out failure)) { decodedBundle = null; return false; } decodedSlots.Add(decodedSlot); canonicalSlots.Add(decodedSlot!.CanonicalInstruction); }";
+        string expectedLoop = "{ InstructionSlotMetadata slotMetadata = ResolveSlotMetadata(bundleAnnotations, slot.SlotIndex); if (slot.Opcode == 0) { if (!TryDecodeEmptySlot(in slot, slotMetadata, out CanonicalDecodedInstruction emptySlot, out failure)) { decodedBundle = null; return false; } decodedSlots.Add(null); canonicalSlots.Add(emptySlot); continue; } if (!TryDecodeOccupiedSlot(in slot, slotMetadata, out DeclarativeDecodedSlot? decodedSlot, out failure)) { decodedBundle = null; return false; } decodedSlots.Add(decodedSlot); canonicalSlots.Add(decodedSlot!.CanonicalInstruction); }";
         if (loop.Statement.NormalizeWhitespace().ToFullString() != SyntaxFactory.ParseStatement(expectedLoop).NormalizeWhitespace().ToFullString())
             throw new InvalidDataException("Bundle slot order or early-return contract changed.");
         var emptyMethod=pipeline.Members.OfType<MethodDeclarationSyntax>().Single(m=>m.Identifier.ValueText=="TryDecodeEmptySlot");
@@ -61,9 +61,9 @@ public static class BridgeHwirRawSlot
             new("prefix_outcome",HwPortDirection.Output,u2),new("prefix_stop_slot",HwPortDirection.Output,u3),new("prefix_failure_kind",HwPortDirection.Output,u2) };
         var nodes=new List<HwNode> { new HwConstantNode("eight",u32,Convert.ToString(8,2).PadLeft(32,'0'),origin), new HwOperationNode("length_valid","eq",["bundle_length","eight"],u1,Origin:origin), new HwOutputDriveNode("drive_valid","valid","length_valid",origin) };
         var instances=new List<HwInstanceNode>();
-        for (var i=0;i<8;i++)
+        for (int i =0;i<8;i++)
         {
-            var prefix="slot"+i+"_"; nodes.Add(new HwConstantNode(prefix+"index",u32,Convert.ToString(i,2).PadLeft(32,'0'),origin));
+            string prefix ="slot"+i+"_"; nodes.Add(new HwConstantNode(prefix+"index",u32,Convert.ToString(i,2).PadLeft(32,'0'),origin));
             nodes.Add(new HwWireNode(prefix+"child_valid",u1,origin)); nodes.Add(new HwWireNode(prefix+"opcode_wire",u16,origin));
             nodes.Add(new HwWireNode(prefix+"empty_wire",u1,origin)); nodes.Add(new HwWireNode(prefix+"failure_wire",u2,origin));
             nodes.Add(new HwOutputDriveNode(prefix+"drive_empty",prefix+"empty",prefix+"empty_wire",origin));
@@ -75,7 +75,7 @@ public static class BridgeHwirRawSlot
             ports.Add(new(prefix+"all_zero",HwPortDirection.Output,u1));
             ports.Add(new(prefix+"dma_present",HwPortDirection.Input,u1)); ports.Add(new(prefix+"accelerator_present",HwPortDirection.Input,u1)); ports.Add(new(prefix+"descriptor_present",HwPortDirection.Output,u1));
             ports.Add(new(prefix+"empty_failure_kind",HwPortDirection.Output,u2));
-            for (var n=0;n<4;n++) { var word="word"+n; ports.Add(new(prefix+word,HwPortDirection.Input,u64)); ports.Add(new(prefix+"out_"+word,HwPortDirection.Output,u64)); connections[word]=prefix+word; connections["out_"+word]=prefix+"out_"+word; }
+            for (int n =0;n<4;n++) { string word ="word"+n; ports.Add(new(prefix+word,HwPortDirection.Input,u64)); ports.Add(new(prefix+"out_"+word,HwPortDirection.Output,u64)); connections[word]=prefix+word; connections["out_"+word]=prefix+"out_"+word; }
             instances.Add(new HwInstanceNode(prefix+"reader","raw_slot_projection",connections,new Dictionary<string,string>(),Origin:origin));
             instances.Add(new HwInstanceNode(prefix+"empty_classifier","raw_slot_empty_projection",new Dictionary<string,string> { ["opcode"]=prefix+"opcode_wire",["empty"]=prefix+"empty_wire" },new Dictionary<string,string>(),Origin:origin));
             instances.Add(new HwInstanceNode(prefix+"zero_carrier","raw_slot_zero_carrier_projection",new Dictionary<string,string> { ["word0"]=prefix+"word0",["word1"]=prefix+"word1",["word2"]=prefix+"word2",["word3"]=prefix+"word3",["dma_present"]=prefix+"dma_present",["accelerator_present"]=prefix+"accelerator_present",["all_zero"]=prefix+"all_zero",["descriptor_present"]=prefix+"descriptor_present",["failure_kind"]=prefix+"failure_wire" },new Dictionary<string,string>(),Origin:origin));
@@ -84,14 +84,15 @@ public static class BridgeHwirRawSlot
             new("prefix_stop_slot",HwPortDirection.Output,u3),new("prefix_failure_kind",HwPortDirection.Output,u2) };
         var prefixConnections=new Dictionary<string,string> { ["length_valid"]="length_valid",["prefix_outcome"]="prefix_outcome",
             ["prefix_stop_slot"]="prefix_stop_slot",["prefix_failure_kind"]="prefix_failure_kind" };
-        for(var i=0;i<8;i++) { var name="slot"+i+"_"; prefixPorts.Add(new(name+"empty_wire",HwPortDirection.Input,u1));
+        for(int i =0;i<8;i++) {
+            string name ="slot"+i+"_"; prefixPorts.Add(new(name+"empty_wire",HwPortDirection.Input,u1));
             prefixPorts.Add(new(name+"failure_wire",HwPortDirection.Input,u2)); prefixConnections[name+"empty_wire"]=name+"empty_wire"; prefixConnections[name+"failure_wire"]=name+"failure_wire"; }
         var prefixNodes=new List<HwNode> { new HwConstantNode("prefix_zero2",u2,"00",emptyOrigin),new HwConstantNode("prefix_fail",u2,"01",emptyOrigin),
             new HwConstantNode("prefix_deferred",u2,"10",emptyOrigin),new HwConstantNode("prefix_invalid",u2,"11",emptyOrigin),new HwConstantNode("prefix_zero3",u3,"000",emptyOrigin),new HwConstantNode("prefix_one1",u1,"1",emptyOrigin) };
         string state="prefix_zero2", index="prefix_zero3", kind="prefix_zero2";
-        for (var i=7;i>=0;i--)
+        for (int i =7;i>=0;i--)
         {
-            var p="prefix"+i+"_"; var slotPrefix="slot"+i+"_";
+            string p ="prefix"+i+"_"; string slotPrefix ="slot"+i+"_";
             prefixNodes.Add(new HwConstantNode(p+"index",u3,Convert.ToString(i,2).PadLeft(3,'0'),emptyOrigin));
             prefixNodes.Add(new HwOperationNode(p+"ok","eq",[slotPrefix+"failure_wire","prefix_zero2"],u1,Origin:emptyOrigin));
             prefixNodes.Add(new HwOperationNode(p+"failed","xor",[p+"ok","prefix_one1"],u1,Origin:emptyOrigin));
@@ -128,12 +129,12 @@ public static class BridgeHwirRawSlot
         var metadataTree = CSharpSyntaxTree.ParseText(utf8.GetString(metadata));
         var reader = stageTree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().Single(c => c.Identifier.ValueText == "RawSlotReader" && c.Ancestors().OfType<BaseNamespaceDeclarationSyntax>().Single().Name.ToString() == "YAKSys_Hybrid_CPU.Core.Decoder");
         var method = reader.Members.OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.ValueText == "Read");
-        var expected = "{ if ((uint)slotIndex >= BundleMetadata.BundleSlotCount) { throw new ArgumentOutOfRangeException(nameof(slotIndex)); } return new RawSlot(slotIndex, instruction, unchecked((ushort)instruction.OpCode), instruction.Word0, instruction.Word1, instruction.Word2, instruction.Word3); }";
+        string expected = "{ if ((uint)slotIndex >= BundleMetadata.BundleSlotCount) { throw new ArgumentOutOfRangeException(nameof(slotIndex)); } return new RawSlot(slotIndex, instruction, unchecked((ushort)instruction.OpCode), instruction.Word0, instruction.Word1, instruction.Word2, instruction.Word3); }";
         if (method.Body?.NormalizeWhitespace().ToFullString() != SyntaxFactory.ParseStatement(expected).NormalizeWhitespace().ToFullString()) throw new InvalidDataException("Raw-slot reader body changed.");
         var carrier = layoutTree.GetRoot().DescendantNodes().OfType<StructDeclarationSyntax>().Single(s => s.Identifier.ValueText == "VLIW_Instruction" && s.Ancestors().OfType<BaseNamespaceDeclarationSyntax>().Single().Name.ToString() == "HybridCPU_ISE.Arch");
-        for (var i = 0; i < 4; i++)
+        for (int i = 0; i < 4; i++)
         {
-            var name = "word" + i;
+            string name = "word" + i;
             var field = carrier.Members.OfType<FieldDeclarationSyntax>().Single(f => f.Declaration.Variables.Any(v => v.Identifier.ValueText == name));
             var prop = carrier.Members.OfType<PropertyDeclarationSyntax>().Single(p => p.Identifier.ValueText == "Word" + i);
             var getter = prop.AccessorList!.Accessors.Single(a => a.IsKind(SyntaxKind.GetAccessorDeclaration));
@@ -147,7 +148,7 @@ public static class BridgeHwirRawSlot
         var rawSlot = stageTree.GetRoot().DescendantNodes().OfType<RecordDeclarationSyntax>().Single(r => r.Identifier.ValueText == "RawSlot" && r.Ancestors().OfType<BaseNamespaceDeclarationSyntax>().Single().Name.ToString() == "YAKSys_Hybrid_CPU.Core.Decoder");
         var projectedFields = carrier.Members.OfType<FieldDeclarationSyntax>().Where(f => f.Declaration.Variables.Any(v => new[] { "word0", "word1", "word2", "word3" }.Contains(v.Identifier.ValueText))).ToArray();
         var projectedProperties = carrier.Members.OfType<PropertyDeclarationSyntax>().Where(p => new[] { "Word0", "Word1", "Word2", "Word3", "OpCode" }.Contains(p.Identifier.ValueText)).ToArray();
-        var projected = "using System; using HybridCPU_ISE.Arch; using YAKSys_Hybrid_CPU.Core; namespace HybridCPU_ISE.Arch { public struct VLIW_Instruction { " +
+        string projected = "using System; using HybridCPU_ISE.Arch; using YAKSys_Hybrid_CPU.Core; namespace HybridCPU_ISE.Arch { public struct VLIW_Instruction { " +
             string.Concat(projectedFields.Select(f => f.ToFullString())) + string.Concat(projectedProperties.Select(p => p.ToFullString())) +
             " } } namespace YAKSys_Hybrid_CPU.Core { public class BundleMetadata { " + count.ToFullString() + " } } namespace YAKSys_Hybrid_CPU.Core.Decoder { " +
             rawSlot.ToFullString() + " public static class RawSlotReader { " + method.ToFullString() + " } }";
@@ -176,7 +177,7 @@ public static class BridgeHwirRawSlot
                 throw new InvalidDataException("Raw-slot carrier property bound incorrectly.");
         }
         var pos = method.Identifier.GetLocation().GetLineSpan().StartLinePosition;
-        var identity = Hash(Encoding.UTF8.GetBytes("raw-slot-projection/v1|" + stagesSha + "|" + layoutSha + "|" + metadataSha));
+        string identity = Hash(Encoding.UTF8.GetBytes("raw-slot-projection/v1|" + stagesSha + "|" + layoutSha + "|" + metadataSha));
         var origin = new HwSourceOrigin("https://github.com/yuriyyak23/HybridCPU-v2", commit, "HybridCPU_ISE/CloseToHSL/Core/Decoder/DeclarativeDecoderStages.cs", "CircuitWeave.RawSlot.Projection", "YAKSys_Hybrid_CPU.Core.Decoder.RawSlotReader", "Read", identity, HwSourceRole.Primary, pos.Line + 1, pos.Character + 1);
         var u1 = new HwBitVectorType(1); var u16 = new HwBitVectorType(16); var u32 = new HwBitVectorType(32); var u64 = new HwBitVectorType(64);
         HwPortContract[] ports = [new("slot_index",HwPortDirection.Input,u32), new("word0",HwPortDirection.Input,u64), new("word1",HwPortDirection.Input,u64), new("word2",HwPortDirection.Input,u64), new("word3",HwPortDirection.Input,u64), new("valid",HwPortDirection.Output,u1), new("opcode",HwPortDirection.Output,u16), new("out_word0",HwPortDirection.Output,u64), new("out_word1",HwPortDirection.Output,u64), new("out_word2",HwPortDirection.Output,u64), new("out_word3",HwPortDirection.Output,u64)];

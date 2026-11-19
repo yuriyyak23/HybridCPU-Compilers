@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <Compile Remove="Validation\**\*.cs;.artifacts\**\*.cs" />
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="5.9.0" />
     <ProjectReference Include="..\HybridCPU_Compiler\HybridCPU_Compiler.csproj">
       <AdditionalProperties>DefineTestSupport=$(DefineTestSupport)</AdditionalProperties>
     </ProjectReference>

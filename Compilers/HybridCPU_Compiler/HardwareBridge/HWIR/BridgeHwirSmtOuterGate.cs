@@ -261,7 +261,7 @@ public static class BridgeHwirSmtOuterGate
         string allowed = "one1", reason = "zero8";
         for (int i = 5; i >= 0; i--)
         {
-            string p = "condition" + i + "_"; var shiftValue = Convert.ToString(i, 2).PadLeft(32, '0');
+            string p = "condition" + i + "_"; string shiftValue = Convert.ToString(i, 2).PadLeft(32, '0');
             nodes.Add(new HwConstantNode(p + "shift", u32, shiftValue, origin));
             nodes.Add(new HwConstantNode(p + "reason", u8, Convert.ToString(i < 2 ? 5 : i < 4 ? 6 : i == 4 ? 7 : 8, 2).PadLeft(8, '0'), origin));
             nodes.Add(new HwOperationNode(p + "shifted", "lshr32_mask5", ["outer_gate_condition_facts", p + "shift"], u32, Origin: origin));

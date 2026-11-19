@@ -15,14 +15,16 @@ public sealed unsafe class LlvmModuleImporterV1
     private static readonly HashSet<LLVMOpcode> Phase09StructuralOpcodes =
     [
         LLVMOpcode.LLVMRet,
-        LLVMOpcode.LLVMBr,
+        LLVMOpcode.LLVMCondBr,
+        LLVMOpcode.LLVMUncondBr,
         LLVMOpcode.LLVMUnreachable
     ];
 
     private static readonly HashSet<LLVMOpcode> Phase10MappedOpcodes =
     [
         LLVMOpcode.LLVMRet,
-        LLVMOpcode.LLVMBr,
+        LLVMOpcode.LLVMCondBr,
+        LLVMOpcode.LLVMUncondBr,
         LLVMOpcode.LLVMAdd,
         LLVMOpcode.LLVMSub,
         LLVMOpcode.LLVMMul,

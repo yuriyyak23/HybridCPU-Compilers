@@ -3,24 +3,24 @@ using HardwareBridge.Intel8080;
 
 if (args.Length != 3 || !Path.IsPathFullyQualified(args[0]) || !Path.IsPathFullyQualified(args[1]) || !Path.IsPathFullyQualified(args[2]))
     throw new ArgumentException("Usage: <source-root> <selected-files.json> <new-output.json> (all absolute paths)");
-var root=Path.GetFullPath(args[0]); var selectionPath=Path.GetFullPath(args[1]); var output=Path.GetFullPath(args[2]);
+string root =Path.GetFullPath(args[0]); string selectionPath =Path.GetFullPath(args[1]); string output =Path.GetFullPath(args[2]);
 if(!Directory.Exists(root)||!File.Exists(selectionPath)) throw new FileNotFoundException("Source root or selected-file list is missing.");
-var allowedRoot=Path.GetFullPath(@"C:\Users\Yuriy\Desktop\CircuitWeave-main\artifacts\8080").TrimEnd(Path.DirectorySeparatorChar)+Path.DirectorySeparatorChar;
+string allowedRoot =Path.GetFullPath(@"C:\Users\Yuriy\Desktop\CircuitWeave-main\artifacts\8080").TrimEnd(Path.DirectorySeparatorChar)+Path.DirectorySeparatorChar;
 static bool IsUnder(string path,string allowed)=>path.StartsWith(allowed,StringComparison.OrdinalIgnoreCase);
 if(!IsUnder(output,allowedRoot)||!IsUnder(selectionPath,allowedRoot)) throw new InvalidOperationException("8080 analysis outputs and selection must remain inside CircuitWeave-main/artifacts/8080.");
-foreach(var candidate in new[]{Path.GetDirectoryName(selectionPath)!,Path.GetDirectoryName(output)!})
+foreach(string? candidate in new[]{Path.GetDirectoryName(selectionPath)!,Path.GetDirectoryName(output)!})
     for(var current=new DirectoryInfo(candidate);current is not null;current=current.Parent)
         if(Directory.Exists(current.FullName)&&(current.Attributes&FileAttributes.ReparsePoint)!=0) throw new IOException("Linked 8080 artifact path refused: "+current.FullName);
-var selected=JsonSerializer.Deserialize<string[]>(File.ReadAllText(selectionPath))??throw new InvalidDataException("Selection must be a JSON string array.");
-var irPath=Path.Combine(Path.GetDirectoryName(output)!,"opcode-ir-candidate.json");
-var methodIrPath=Path.Combine(Path.GetDirectoryName(output)!,"ops-method-ir.json");
-var addBehaviorPath=Path.Combine(Path.GetDirectoryName(output)!,"add-behavior-projection.json");
-var adcBehaviorPath=Path.Combine(Path.GetDirectoryName(output)!,"adc-behavior-projection.json");
-var sbbBehaviorPath=Path.Combine(Path.GetDirectoryName(output)!,"sbb-behavior-projection.json");
-var subBehaviorPath=Path.Combine(Path.GetDirectoryName(output)!,"sub-behavior-projection.json");
-var dadBehaviorPath=Path.Combine(Path.GetDirectoryName(output)!,"dad-behavior-projection.json");
-var logicalBehaviorPath=Path.Combine(Path.GetDirectoryName(output)!,"logical-behavior-projection.json");
-foreach(var candidate in new[]{output,irPath,methodIrPath,addBehaviorPath,adcBehaviorPath,sbbBehaviorPath,subBehaviorPath,dadBehaviorPath,logicalBehaviorPath}) if(File.Exists(candidate)||Directory.Exists(candidate)) throw new IOException("Output already exists; refusing overwrite: "+candidate);
+string[] selected =JsonSerializer.Deserialize<string[]>(File.ReadAllText(selectionPath))??throw new InvalidDataException("Selection must be a JSON string array.");
+string irPath =Path.Combine(Path.GetDirectoryName(output)!,"opcode-ir-candidate.json");
+string methodIrPath =Path.Combine(Path.GetDirectoryName(output)!,"ops-method-ir.json");
+string addBehaviorPath =Path.Combine(Path.GetDirectoryName(output)!,"add-behavior-projection.json");
+string adcBehaviorPath =Path.Combine(Path.GetDirectoryName(output)!,"adc-behavior-projection.json");
+string sbbBehaviorPath =Path.Combine(Path.GetDirectoryName(output)!,"sbb-behavior-projection.json");
+string subBehaviorPath =Path.Combine(Path.GetDirectoryName(output)!,"sub-behavior-projection.json");
+string dadBehaviorPath =Path.Combine(Path.GetDirectoryName(output)!,"dad-behavior-projection.json");
+string logicalBehaviorPath =Path.Combine(Path.GetDirectoryName(output)!,"logical-behavior-projection.json");
+foreach(string? candidate in new[]{output,irPath,methodIrPath,addBehaviorPath,adcBehaviorPath,sbbBehaviorPath,subBehaviorPath,dadBehaviorPath,logicalBehaviorPath}) if(File.Exists(candidate)||Directory.Exists(candidate)) throw new IOException("Output already exists; refusing overwrite: "+candidate);
 var model=Analyzer.Analyze(root,selected);
 Directory.CreateDirectory(Path.GetDirectoryName(output)!);
 using(var stream=new FileStream(output,FileMode.CreateNew,FileAccess.Write,FileShare.None))

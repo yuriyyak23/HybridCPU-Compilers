@@ -67,7 +67,7 @@ var directed = new List<(string Name, Dictionary<string, ulong> Inputs)>
     ("Legacy non-Assist bypasses reservation inputs", LegacyNonAssist())
 };
 foreach (var item in directed) Check(item.Inputs);
-var lines = BuildTestbench(directed);
+string lines = BuildTestbench(directed);
 await File.WriteAllTextAsync(Path.Combine(output, "assist-attempt-chain.tb.sv"), lines);
 await File.WriteAllTextAsync(Path.Combine(output, "assist-attempt-chain-semantic.json"), JsonSerializer.Serialize(new
 {

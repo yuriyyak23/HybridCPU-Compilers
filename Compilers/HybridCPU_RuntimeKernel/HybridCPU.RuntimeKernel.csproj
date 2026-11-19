@@ -11,6 +11,7 @@
     <Compile Remove="obj\**\*.cs" />
     <EmbeddedResource Remove="obj\**\*" />
     <None Remove="obj\**\*" />
-    <ProjectReference Include="..\HybridCPU_Platform.Contracts\HybridCPU.Platform.Contracts.csproj" />
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="5.9.0" />
+    <ProjectReference Include="..\HybridCPU_Platform.Contracts\HybridCPU.Platform.Contracts.csproj" GlobalPropertiesToRemove="DefineTestSupport;EnableInternalTestHooks;BaseIntermediateOutputPath;MSBuildProjectExtensionsPath;OutputPath;HybridCpuTestArtifactsRoot;HybridCpuIseProjectReferenceProperties" />
   </ItemGroup>
 </Project>

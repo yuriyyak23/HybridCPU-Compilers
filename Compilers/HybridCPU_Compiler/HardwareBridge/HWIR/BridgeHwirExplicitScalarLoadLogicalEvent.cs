@@ -45,10 +45,10 @@ public static class BridgeHwirExplicitScalarLoadLogicalEvent
             !owner.Members.OfType<FieldDeclarationSyntax>().Any(f => f.Declaration.Variables.Any(v => v.Identifier.ValueText == "_nextRequestId" && v.Initializer?.Value.ToString() == "1"))) throw new InvalidDataException("Capacity/initial request identity changed.");
         Contains("TryAcceptExplicitPacketScalarLoad", "TryAcceptRead(ReadRequestClass.ExplicitPacketScalar,deviceId,address,size)");
         Contains("TryAcceptRead", "sizeisnot(1or2or4or8)", "outstandingForClass>=capacity", "_outstanding.Add(", "_readQueue.Enqueue(requestId)");
-        var acceptText = Method("TryAcceptRead").ToString();
+        string acceptText = Method("TryAcceptRead").ToString();
         if (acceptText.IndexOf("_outstanding.Add", StringComparison.Ordinal) >= acceptText.IndexOf("_readQueue.Enqueue", StringComparison.Ordinal)) throw new InvalidDataException("Admission queue order changed.");
         Contains("TickOneCycle", "_memoryCycle=checked(_memoryCycle+1)", "_nextCompletions.Clear()", "_readQueue.Dequeue()", "_nextCompletions.Add(");
-        var tick = Method("TickOneCycle").ToString();
+        string tick = Method("TickOneCycle").ToString();
         if (tick.IndexOf("_publishedCompletions.Add", StringComparison.Ordinal) >= tick.IndexOf("_readQueue.Dequeue", StringComparison.Ordinal)) throw new InvalidDataException("Publication/service order changed.");
         Contains("TryTakeCompletion", "_publishedCompletions.Remove(requestId,outcompletion)", "_outstanding.Remove(requestId,outControllerRequestrequest)");
         Contains("TryCancel", "_outstanding.Remove(requestId,outControllerRequestrequest)", "_nextCompletions.Remove(requestId)", "_publishedCompletions.Remove(requestId)");
@@ -65,35 +65,35 @@ public static class BridgeHwirExplicitScalarLoadLogicalEvent
         var expressions = new Dictionary<string,string>(StringComparer.Ordinal);
         HwBitVectorType T(int width) => new(width);
         string Input(string name, int width) { ports.Add(new(name, HwPortDirection.Input, T(width))); return name; }
-        string C(ulong value, int width) { if(constants.TryGetValue((value,width),out var prior)) return prior; string id = "k" + serial++; nodes.Add(new HwConstantNode(id, T(width), Convert.ToString(unchecked((long)value), 2).PadLeft(width, '0')[^width..], origin)); constants.Add((value,width),id); return id; }
-        var zero = C(0, 1); var one = C(1, 1); var z64 = C(0, 64); var o64 = C(1, 64); var z32 = C(0, 32); var o32 = C(1, 32);
-        string Op(string opcode, int width, params string[] args) { string key = opcode + "|" + width + "|" + string.Join("|", args); if(expressions.TryGetValue(key,out var prior)) return prior; string id = "n" + serial++; nodes.Add(new HwOperationNode(id, opcode, args, T(width), Origin: origin)); expressions.Add(key,id); return id; }
+        string C(ulong value, int width) { if(constants.TryGetValue((value,width),out string? prior)) return prior; string id = "k" + serial++; nodes.Add(new HwConstantNode(id, T(width), Convert.ToString(unchecked((long)value), 2).PadLeft(width, '0')[^width..], origin)); constants.Add((value,width),id); return id; }
+        string zero = C(0, 1); string one = C(1, 1); string z64 = C(0, 64); string o64 = C(1, 64); string z32 = C(0, 32); string o32 = C(1, 32);
+        string Op(string opcode, int width, params string[] args) { string key = opcode + "|" + width + "|" + string.Join("|", args); if(expressions.TryGetValue(key,out string? prior)) return prior; string id = "n" + serial++; nodes.Add(new HwOperationNode(id, opcode, args, T(width), Origin: origin)); expressions.Add(key,id); return id; }
         string Eq(string a, string b) => Op("eq", 1, a, b);
         string And(string a, string b) => a == b ? a : a == zero || b == zero ? zero : a == one ? b : b == one ? a : Op("and", 1, a, b);
         string Or(string a, string b) => a == b ? a : a == one || b == one ? one : a == zero ? b : b == zero ? a : Op("or", 1, a, b);
         string Not(string a) => a == zero ? one : a == one ? zero : Op("xor", 1, a, C(1,1));
-        string Mux(string c, string yes, string no, int width) { if(yes==no)return yes;if(c==one)return yes;if(c==zero)return no;string key = "mux|" + width + "|" + c + "|" + yes + "|" + no; if(expressions.TryGetValue(key,out var prior)) return prior; string id = "n" + serial++; nodes.Add(new HwMuxNode(id, c, yes, no, T(width), origin)); expressions.Add(key,id); return id; }
+        string Mux(string c, string yes, string no, int width) { if(yes==no)return yes;if(c==one)return yes;if(c==zero)return no;string key = "mux|" + width + "|" + c + "|" + yes + "|" + no; if(expressions.TryGetValue(key,out string? prior)) return prior; string id = "n" + serial++; nodes.Add(new HwMuxNode(id, c, yes, no, T(width), origin)); expressions.Add(key,id); return id; }
         void Output(string name, string value, int width) { ports.Add(new(name, HwPortDirection.Output, T(width))); nodes.Add(new HwOutputDriveNode("drive_" + name, name, value, origin)); }
-        var phase = Enumerable.Range(0, 4).Select(i => C((ulong)i, 2)).ToArray();
-        var eventCount = Input("event_count", 32); var cycle = Input("cycle", 64); var nextId = Input("next_id", 64); var ev = Input("event_kind", 3);
-        var eventFlags = Enumerable.Range(0, 4).Select(i => Eq(ev, C((ulong)i, 3))).ToArray();
-        var reqId = Input("request_id", 64); var device = Input("device", 64); var address = Input("address", 64); var size = Input("size", 32);
-        var bank = Input("bank_index", 32); var generation = Input("bank_generation", 64); var captureOk = Input("capture_ok", 1);
-        var backendValid = Input("backend_valid", 1); var backendSucceeded = Input("backend_succeeded", 1); var backendData = Input("backend_data", 64);
+        string[] phase = Enumerable.Range(0, 4).Select(i => C((ulong)i, 2)).ToArray();
+        string eventCount = Input("event_count", 32); string cycle = Input("cycle", 64); string nextId = Input("next_id", 64); string ev = Input("event_kind", 3);
+        string[] eventFlags = Enumerable.Range(0, 4).Select(i => Eq(ev, C((ulong)i, 3))).ToArray();
+        string reqId = Input("request_id", 64); string device = Input("device", 64); string address = Input("address", 64); string size = Input("size", 32);
+        string bank = Input("bank_index", 32); string generation = Input("bank_generation", 64); string captureOk = Input("capture_ok", 1);
+        string backendValid = Input("backend_valid", 1); string backendSucceeded = Input("backend_succeeded", 1); string backendData = Input("backend_data", 64);
         string[] matchFields = ["id", "device", "address", "size", "bank_index", "bank_generation"];
         var backend = matchFields.ToDictionary(f => f, f => Input("backend_" + f, f is "size" or "bank_index" ? 32 : 64));
         (string name, int width)[] fields = [("phase",2),("id",64),("device",64),("address",64),("size",32),("bank_index",32),("bank_generation",64),("data",64),("succeeded",1),("published_cycle",64)];
         var slots = Enumerable.Range(0, 8).Select(i => fields.ToDictionary(f => f.name, f => Input("s" + i + "_" + f.name, f.width))).ToArray();
         string SizeOk(string s) => Or(Or(Eq(s,C(1,32)), Eq(s,C(2,32))),Or(Eq(s,C(4,32)), Eq(s,C(8,32))));
         string BankOk(string b) => Op("ult64", 1, Op("zext",64,b), C(1UL << 31,64));
-        var empty = slots.Select(s => Eq(s["phase"],phase[0])).ToArray(); var queued = slots.Select(s => Eq(s["phase"],phase[1])).ToArray();
-        var next = slots.Select(s => Eq(s["phase"],phase[2])).ToArray(); var published = slots.Select(s => Eq(s["phase"],phase[3])).ToArray();
+        string[] empty = slots.Select(s => Eq(s["phase"],phase[0])).ToArray(); string[] queued = slots.Select(s => Eq(s["phase"],phase[1])).ToArray();
+        string[] next = slots.Select(s => Eq(s["phase"],phase[2])).ToArray(); string[] published = slots.Select(s => Eq(s["phase"],phase[3])).ToArray();
         string valid = And(Op("ult64",1,Op("zext",64,eventCount),C(4096,64)), Not(Eq(nextId,z64)));
         valid = And(valid, Not(Op("ult64",1,C(4097,64),nextId)));
         valid = And(valid, Not(Op("ult64",1,Op("zext",64,eventCount),cycle)));
         valid = And(valid, Not(Op("ult64",1,Op("add",64,Op("zext",64,eventCount),o64),nextId)));
         valid = And(valid, Or(Or(eventFlags[0],eventFlags[1]),Or(eventFlags[2],eventFlags[3])));
-        string freeSeen = zero; var allocate = new string[8]; var oldest = new string[8];
+        string freeSeen = zero; string[] allocate = new string[8]; string[] oldest = new string[8];
         for (int i=0;i<8;i++)
         {
             allocate[i] = And(empty[i],Not(freeSeen)); freeSeen = Or(freeSeen,empty[i]);
@@ -112,11 +112,11 @@ public static class BridgeHwirExplicitScalarLoadLogicalEvent
         valid=And(valid,Or(Not(And(eventFlags[0],And(SizeOk(size),freeSeen))),And(captureOk,And(BankOk(bank),Not(Eq(generation,z64))))));
         string accept=And(valid,And(eventFlags[0],And(SizeOk(size),freeSeen)));
         string advance=And(valid,eventFlags[1]); string service=And(advance,hasQueued); string take=zero; string cancel=zero;
-        var nextCycle=Op("add",64,cycle,o64);
+        string nextCycle =Op("add",64,cycle,o64);
         Output("valid",valid,1); Output("next_event_count",Mux(valid,Op("add",32,eventCount,o32),eventCount,32),32);
         Output("next_cycle",Mux(advance,nextCycle,cycle,64),64); Output("next_request_id",Mux(accept,Op("add",64,nextId,o64),nextId,64),64);
         // admission_status 0=None, 1=Accepted, 2=Backpressured, 3=RejectedSize.
-        var status=Mux(SizeOk(size),Mux(freeSeen,C(1,2),C(2,2),2),C(3,2),2);
+        string status =Mux(SizeOk(size),Mux(freeSeen,C(1,2),C(2,2),2),C(3,2),2);
         Output("admission_status",Mux(And(valid,eventFlags[0]),status,phase[0],2),2); Output("accepted_id",Mux(accept,nextId,z64,64),64);
         Output("serviced",service,1); foreach(string f in matchFields) Output("service_"+f,Mux(service,selected[f],f is "size" or "bank_index"?z32:z64,f is "size" or "bank_index"?32:64),f is "size" or "bank_index"?32:64);
         string takenData=z64, takenSuccess=zero, takenCycle=z64; string publishedCount=C(0,4);
