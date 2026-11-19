@@ -52,7 +52,8 @@ jobs:
           grep -q 'HBINT0101' /tmp/hb-int01-refusal.log
           sha256sum /tmp/hb-int01-refusal.log
       - name: Deferred opt-in native and external Core checks
-        run: echo 'NotRun: explicit pinned cross-repo P14, Golden source, CIRCT, RTL and physical qualification'
+        run: |
+          echo 'NotRun: explicit pinned cross-repo P14, Golden source, CIRCT, RTL and physical qualification'
   windows-pinned-legacy:
     runs-on: windows-latest
     timeout-minutes: 30
@@ -114,4 +115,5 @@ jobs:
             Get-FileHash $log -Algorithm SHA256
           }
       - name: Golden and native qualification deliberately not executed
-        run: echo 'NotRun: actual Golden checkout source SHA, native ToolBridge, RTL acceptance, physical signoff'
+        run: |
+          echo 'NotRun: actual Golden checkout source SHA, native ToolBridge, RTL acceptance, physical signoff'
