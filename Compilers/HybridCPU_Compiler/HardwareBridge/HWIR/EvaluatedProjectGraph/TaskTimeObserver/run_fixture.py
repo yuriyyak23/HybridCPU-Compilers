@@ -16,7 +16,7 @@ sys.path.insert(0, str(HERE.parent))
 import task_csc_observation as observer
 import segmented_csc_capture_v2 as v2
 
-SDK = "11.0.100-rc.2.26504.105"
+SDK = "11.0.100"
 
 
 def sha(path):
