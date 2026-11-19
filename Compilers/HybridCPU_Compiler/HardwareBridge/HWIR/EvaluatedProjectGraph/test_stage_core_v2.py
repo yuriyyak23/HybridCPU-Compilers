@@ -128,6 +128,38 @@ class CoreV2StagingTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "extra/missing"):
             stage.verify(self.target, self.pin, self.roots_sha)
 
+    def test_recomputed_noncanonical_jsonl_is_rejected(self):
+        self.run_stage()
+        index_path = self.target / "bridge-index.json"
+        index = json.loads(index_path.read_bytes())
+        chunk_path = self.target / index["Chunks"][0]["Path"]
+        original = chunk_path.read_bytes().splitlines(keepends=True)
+        row = json.loads(original[0])
+        original[0] = json.dumps(row, separators=(", ", ": "), ensure_ascii=True).encode() + b"\n"
+        chunk_path.write_bytes(b"".join(original))
+        index["Chunks"][0]["Bytes"] = chunk_path.stat().st_size
+        index["Chunks"][0]["Sha256"] = stage.sha(chunk_path.read_bytes())
+        full = b"".join((self.target / d["Path"]).read_bytes() for d in index["Chunks"])
+        index["ClosureSha256"] = stage.sha(full)
+        index_path.write_bytes(stage.json_bytes(index))
+        mapping_path = self.target / "capture-map.json"
+        mapping = json.loads(mapping_path.read_bytes())
+        mapping["CoreClosureSha256"] = index["ClosureSha256"]
+        mapping_path.write_bytes(stage.json_bytes(mapping))
+        with self.assertRaisesRegex(ValueError, "noncanonical Core JSONL"):
+            stage.verify(self.target, self.pin, self.roots_sha)
+
+    def test_invalid_utf8_source_is_not_promoted_to_core(self):
+        self.fixture.original.write_bytes(b"\xff\n")
+        self.fixture.source.write_bytes(b"\xff\n")
+        self.fixture.observation["projects"][0]["sources"][0]["sha256"] = c.sha(b"\xff\n")
+        self.fixture.save()
+        self.bundle, self.pin = self.fixture.run_capture()
+        self.addCleanup(lambda: shutil.rmtree(self.bundle, ignore_errors=True))
+        with self.assertRaisesRegex(ValueError, "Core source must be UTF-8"):
+            self.run_stage()
+        self.assertFalse(self.target.exists())
+
     def test_too_many_core_rows_are_blocked(self):
         doc = json.loads((Path(self.bundle) / "index.json").read_bytes())
         doc["entries"] = [copy.deepcopy(doc["entries"][0]) for _ in range(stage.MAX_ROWS + 1)]
