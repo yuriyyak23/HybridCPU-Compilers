@@ -29,3 +29,6 @@ See [HB-INT-02 segmented v2 capture and migration](HB_INT_02_Segmented_Csc_Closu
 ## HB-INT-02/03: existing Core v2 large-capture projection (producer only)
 
 [HB-INT-02/03 bounded Core v2 transport adapter](HB_INT_02_Core_V2_Projection.md) maps an already frozen HB-INT-02 segmented Csc capture to the existing Core CW-INT-03 source index v2 contract, with explicit roots, staged bytes, manifest chunks and an unqualified source-identity crosswalk. This is opt-in read-only software-facts interchange, **not** Csc execution, Core source verification, or hardware admission. SourceSnapshot v1 and the HB-INT-03 provenance envelope v2 remain unchanged.
+
+
+**HB-INT-02 v2 cross-runtime QA:** [HB_INT_02_Core_V2_Parity.md](HB_INT_02_Core_V2_Parity.md) tests the existing Python capture→Core projection (PR #14) byte-for-byte against the production .NET 11 Bridge serializer; synthetic-only, not Core independent import or RTL proof.
