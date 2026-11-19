@@ -1,0 +1,89 @@
+name: HB-INT-02 Csc-to-Core v2 byte transport (unqualified)
+on:
+  pull_request:
+    paths:
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/**'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CscCoreV2Parity/**'
+      - '.github/workflows/hb-int-02-core-transport.yml'
+  push:
+    branches: [master]
+    paths:
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/**'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CscCoreV2Parity/**'
+      - '.github/workflows/hb-int-02-core-transport.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-only:
+    name: Python-only synthetic source capture / mutation on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2025, ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Real Python stdlib producer-to-transport positive / adversarial tests
+        shell: bash
+        run: |
+          python -m unittest discover -s Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph -p test_csc_to_core_v2.py -v
+          python -m unittest discover -s Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph -p test_segmented_csc_capture_v2.py -v
+
+  windows-wire-parity:
+    name: Windows .NET 11 actual Bridge v2 codec vs Python transport bytes
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 11.0.100-rc.2.26504.105
+      - name: Generate isolated test-only Csc observation and compare with real Bridge codec
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = [IO.Path]::GetTempPath()
+          $workspace = Join-Path $root ("hb-int-02-parity-" + [Guid]::NewGuid().ToString('N'))
+          $sdk = Join-Path $root ("hb-int-02-sdk-" + [Guid]::NewGuid().ToString('N'))
+          New-Item -ItemType Directory $sdk | Out-Null
+          $settings = '{"sdk":{"version":"11.0.100-rc.2.26504.105","rollForward":"disable","allowPrerelease":true}}'
+          [IO.File]::WriteAllText((Join-Path $sdk 'global.json'), $settings, [Text.UTF8Encoding]::new($false))
+          $env:DOTNET_CLI_HOME = Join-Path $sdk 'home'
+          $env:NUGET_PACKAGES = Join-Path $sdk 'nuget'
+          $env:DOTNET_NOLOGO = '1'
+          $project = Join-Path $env:GITHUB_WORKSPACE 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CscCoreV2Parity/HardwareBridge.CscCoreV2Parity.csproj'
+          $producer = Join-Path $env:GITHUB_WORKSPACE 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/test_csc_to_core_v2.py'
+          $log = Join-Path $sdk 'parity.stdout.txt'
+          try {
+            & python $producer --emit-parity-fixture $workspace
+            if ($LASTEXITCODE -ne 0) { throw "synthetic fixture generation failed exit=$LASTEXITCODE" }
+            Push-Location $sdk
+            try {
+              & dotnet --version
+              if ($LASTEXITCODE -ne 0) { throw "dotnet SDK missing" }
+              & dotnet run --project $project --configuration Release "-p:ArtifactsPath=$(Join-Path $sdk 'build')" -- $workspace 2>&1 | Tee-Object -FilePath $log
+              $exitCode = $LASTEXITCODE
+            } finally { Pop-Location }
+            $sha = (Get-FileHash -LiteralPath $log -Algorithm SHA256).Hash
+            $indexSha = (Get-FileHash -LiteralPath (Join-Path $workspace 'bridge-index.json') -Algorithm SHA256).Hash
+            Write-Host "Bridge v2 parity raw stdout SHA256=$sha, Core-shaped index SHA256=$indexSha, actual exit=$exitCode"
+            if ($exitCode -ne 0) { exit $exitCode }
+          } finally {
+            if (Test-Path $workspace) { Remove-Item $workspace -Recurse -Force }
+          }
+
+# This workflow validates software-fact byte parity only.
+# No Core checkout, Golden Csc invocation, independent source qualification,
+# RTL acceptance, target observation, or Physical signoff is performed here.
