@@ -69,7 +69,8 @@
     <Compile Include="BridgeHwirVmxValidationCurrent.cs" />
     <Compile Include="BridgeHwirVectorSegmentReadAdmission.cs" />
     <!-- Regression-only adapter; caller pins the checked-out Core project explicitly. -->
-    <ProjectReference Include="$(CircuitWeaveFrontendRoslynProject)" Condition="'$(CircuitWeaveFrontendRoslynProject)' != ''" />
+    <ProjectReference Include="$(CircuitWeaveRepoRoot)/src/CircuitWeave.Frontend.Roslyn/CircuitWeave.Frontend.Roslyn.csproj"
+                      Condition="'$(CircuitWeaveRepoRoot)' != '' and '$(CircuitWeaveExpectedHeadSha)' != '' and '$(BridgeExpectedSdkVersion)' != ''" />
     <Reference Include="Microsoft.CodeAnalysis"><HintPath>$(MSBuildSDKsPath)/../Roslyn/bincore/Microsoft.CodeAnalysis.dll</HintPath><Private>true</Private></Reference>
     <Reference Include="Microsoft.CodeAnalysis.CSharp"><HintPath>$(MSBuildSDKsPath)/../Roslyn/bincore/Microsoft.CodeAnalysis.CSharp.dll</HintPath><Private>true</Private></Reference>
   </ItemGroup>
