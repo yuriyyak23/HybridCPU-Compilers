@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 import re
 import shutil
+import signal
 import stat
 import subprocess
 import sys
@@ -138,13 +139,27 @@ def run(label, argv, cwd, logs, timeout=900, env=None):
     try:
         with out.open("xb") as stdout, err.open("xb") as stderr:
             proc = subprocess.Popen([str(executable), *argv[1:]], cwd=cwd, env=env, stdin=subprocess.DEVNULL,
-                                    stdout=stdout, stderr=stderr, start_new_session=(os.name != "nt"))
-            try:
-                result["exit"] = proc.wait(timeout=timeout)
-            except subprocess.TimeoutExpired:
-                proc.kill()
-                proc.wait()
-                result["status"] = "Blocked"
+                                    stdout=stdout, stderr=stderr, start_new_session=(os.name != "nt"),
+                                    creationflags=(subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0))
+            deadline = time.monotonic() + timeout
+            while True:
+                try:
+                    result["exit"] = proc.wait(timeout=.1)
+                    break
+                except subprocess.TimeoutExpired:
+                    if time.monotonic() < deadline and out.stat().st_size <= MAX_LOG and err.stat().st_size <= MAX_LOG:
+                        continue
+                    result["status"] = "Blocked"
+                    try:
+                        if os.name == "nt":
+                            subprocess.run(["taskkill", "/T", "/F", "/PID", str(proc.pid)],
+                                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=10)
+                        else:
+                            os.killpg(proc.pid, signal.SIGKILL)
+                    except (OSError, subprocess.TimeoutExpired):
+                        proc.kill()
+                    result["exit"] = proc.wait()
+                    break
     except OSError as e:
         result["status"] = "NotRun"
         raise Blocked("command launch failure: " + type(e).__name__) from e
@@ -214,6 +229,14 @@ def main(args):
                 "NUGET_PACKAGES": str(out / "nuget-packages"),
                 "DOTNET_SKIP_FIRST_TIME_EXPERIENCE": "1"})
     try:
+        (out / "global.json").write_text(json.dumps({"sdk": {"version": args.sdk,
+            "rollForward": "disable", "allowPrerelease": True}}), encoding="utf-8")
+        dotnet = reject_links(args.dotnet)
+        sdk_probe = run("dotnet-version", [str(dotnet), "--version"], out, logs, args.timeout, env)
+        receipt["commands"].append(sdk_probe)
+        require(sdk_probe["status"] == "Passed" and
+                (logs / "dotnet-version.stdout.bin").read_text().strip() == args.sdk,
+                "wrong or missing pinned .NET SDK")
         isolated = out / "isolated-source"; clean_copy(golden, isolated)
         # Never silently treat a pre-written graph/observation as a Csc execution receipt.
         if args.observer_argv:
@@ -254,6 +277,14 @@ def main(args):
         capture_tmp.rename(capture)
         receipt["stages"]["R1-02-capture"] = "Passed"
         receipt["captureIndexSha256"] = sha_file(capture / "index.json")[0]
+        # Ordered producer claims are *unqualified*, never independent admission.
+        require(type(index.get("entries")) is list and len(index["entries"]) <= 8192, "unbounded capture entries")
+        receipt["unqualifiedCaptureRows"] = [
+            {"ordinal": i, "kind": r["kind"], "role": r["role"],
+             "logicalPathSha256": hashlib.sha256(r["logicalPath"].encode("utf-8")).hexdigest(),
+             "sha256": r["sha256"], "bytes": r["bytes"],
+             "chunks": [{"sha256": ch["sha256"], "bytes": ch["bytes"]} for ch in r["chunks"]]}
+            for i, r in enumerate(index["entries"])]
         if args.scope == "golden":
             for p, digest in ((args.pe, args.pe_sha), (args.pdb, args.pdb_sha)):
                 check_sha(digest, "PE/PDB SHA")
@@ -268,6 +299,8 @@ def main(args):
             result = run("R1-03-pe-pdb", factcmd, isolated, logs, args.timeout, env)
             receipt["commands"].append(result)
             require(result["status"] == "Passed", "real PE/PDB facts command failed")
+            for p, digest in ((args.pe, args.pe_sha), (args.pdb, args.pdb_sha)):
+                require(sha_file(p)[0] == digest, "PE/PDB bytes changed during facts replay")
             require(within(reject_links(args.facts), out) and
                     sha_file(args.facts)[0] == check_sha(args.facts_sha, "compiler facts"),
                     "compiler facts payload was not pinned")
@@ -292,20 +325,16 @@ def main(args):
         closure = stage_index["ClosureSha256"]
         receipt["coreIndexSha256"] = digest
         receipt["coreClosureSha256"] = closure
+        receipt["coreIndexChunks"] = [
+            {"ordinal": i, "path": d["Path"], "sha256": d["Sha256"],
+             "bytes": d["Bytes"], "rows": d["Rows"]}
+            for i, d in enumerate(stage_index["Chunks"])]
         # Build the test-only caller in a writable copy; NEVER write to pinned Core.
         build_core = out / "core-build"; clean_copy(core, build_core)
         host = out / "core-reader-host"; clean_copy(HOST, host)
         (host / "CoreReaderHost.csproj").write_text((host / "CoreReaderHost.csproj").read_text().replace(
             "__CORE_FRONTEND_PROJECT__",
             (build_core / "src/CircuitWeave.Frontend.Roslyn/CircuitWeave.Frontend.Roslyn.csproj").as_posix()), encoding="utf-8")
-        (out / "global.json").write_text(json.dumps({"sdk": {"version": args.sdk,
-            "rollForward": "disable", "allowPrerelease": True}}), encoding="utf-8")
-        dotnet = reject_links(args.dotnet)
-        sdk_probe = run("dotnet-version", [str(dotnet), "--version"], out, logs, args.timeout, env)
-        receipt["commands"].append(sdk_probe)
-        require(sdk_probe["status"] == "Passed" and
-                (logs / "dotnet-version.stdout.bin").read_text().strip() == args.sdk,
-                "wrong or missing pinned .NET SDK")
         cmd = [str(dotnet), "run", "--project", str(host / "CoreReaderHost.csproj"),
                "--configuration", "Release", "--", str(index_path), str(stage), closure, digest]
         result = run("R2-02-core-reader", cmd, out, logs, args.timeout, env)
