@@ -38,6 +38,12 @@ elseif ($CoreImporterProject -or $ExpectedCoreSha -or $RequirePaired) {
 
 New-Item -ItemType Directory -Path $OutputRoot -ErrorAction Stop | Out-Null
 $artifacts = Join-Path $OutputRoot 'build'
+# Pin CLI selection *from a fresh external work directory*: hosted runners may
+# already have a newer GA SDK than the requested prerelease.
+[IO.File]::WriteAllText((Join-Path $OutputRoot 'global.json'),
+    (([ordered]@{ sdk = [ordered]@{
+        version = $ExpectedSdkVersion; rollForward = 'disable'; allowPrerelease = $true
+    } } | ConvertTo-Json -Depth 4)), [Text.UTF8Encoding]::new($false))
 $env:DOTNET_CLI_HOME = Join-Path $OutputRoot 'dotnet-home'
 $env:NUGET_PACKAGES = Join-Path $OutputRoot 'nuget-packages'
 $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = '1'
@@ -76,7 +82,7 @@ $report = [ordered]@{
 $failed = $false
 $notRun = $false
 try {
-    $sdk = Invoke-HbRecordedCommand 'dotnet-version' 'dotnet' @('--version') $bridge $OutputRoot $TimeoutSeconds
+    $sdk = Invoke-HbRecordedCommand 'dotnet-version' 'dotnet' @('--version') $OutputRoot $OutputRoot $TimeoutSeconds
     $report.Commands += $sdk
     if ($sdk.Status -ne 'Passed') {
         $notRun = $true
@@ -89,14 +95,14 @@ try {
     $protocolProject = Join-Path $PSScriptRoot 'HardwareBridge.ProtocolTests.csproj'
     $protocolArgs = @('run','--project',$protocolProject,'--configuration','Release',
         "-p:ArtifactsPath=$artifacts",'-p:UseArtifactsOutput=true')
-    $protocol = Invoke-HbRecordedCommand 'v1-protocol-tests' 'dotnet' $protocolArgs $bridge $OutputRoot $TimeoutSeconds
+    $protocol = Invoke-HbRecordedCommand 'v1-protocol-tests' 'dotnet' $protocolArgs $OutputRoot $OutputRoot $TimeoutSeconds
     $report.Commands += $protocol
     $report.Matrix.SidecarV1 = $protocol.Status
     if ($protocol.Status -ne 'Passed') { throw 'Independent v1 protocol test executable failed or blocked' }
     $project = Join-Path $PSScriptRoot 'HardwareBridge.SelfTests.csproj'
     $args = @('run','--project',$project,'--configuration','Release',
         "-p:ArtifactsPath=$artifacts",'-p:UseArtifactsOutput=true')
-    $standalone = Invoke-HbRecordedCommand 'companion-selftests' 'dotnet' $args $bridge $OutputRoot $TimeoutSeconds
+    $standalone = Invoke-HbRecordedCommand 'companion-selftests' 'dotnet' $args $OutputRoot $OutputRoot $TimeoutSeconds
     $report.Commands += $standalone
     $report.Matrix.StandaloneCompanion = $standalone.Status
     $report.Matrix.CscPePdb = $standalone.Status
@@ -135,7 +141,7 @@ try {
         $pairedArgs = @('run','--project',$coreProject,'--configuration','Release',
             "-p:ArtifactsPath=$artifacts",'-p:UseArtifactsOutput=true')
         if ($CoreImporterArguments.Count -gt 0) { $pairedArgs += '--'; $pairedArgs += $CoreImporterArguments }
-        $paired = Invoke-HbRecordedCommand 'paired-core-importer' 'dotnet' $pairedArgs $core $OutputRoot $TimeoutSeconds
+        $paired = Invoke-HbRecordedCommand 'paired-core-importer' 'dotnet' $pairedArgs $OutputRoot $OutputRoot $TimeoutSeconds
         $report.Commands += $paired
         $report.Matrix.StrictCoreImporter = $paired.Status
         if ($paired.Status -ne 'Passed') { throw 'Core importer integration test failed/blocked' }
