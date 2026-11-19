@@ -57,3 +57,5 @@ optional paired workflow is disabled until both the pin and project path
 are explicitly reviewed. Missing v2 segmented producer, actual CPU Csc
 closure, Core independent source verifier, native tool approvals and
 downstream RTL/physical receipts remain **Blocked/NotRun**, never PASS.
+
+**Separate isolated protocol host:** `Tests/HardwareBridge.ProtocolTests.csproj` compiles the actual unchanged Bridge v1 codec/source/facts/oracle implementations without Roslyn/CIL dependencies. It runs before `HardwareBridge.SelfTests.csproj`. Both are required to be green for standalone QA; the isolated host must **not** be used to waive an upstream failing `HybridCPU.Compiler.Core` build or the real Csc PE/PDB gate. An external `global.json` locks the exact prerelease SDK because Windows hosted runners may also carry a newer GA SDK. Raw logs and exit states from both hosts are kept separately.
