@@ -4,7 +4,7 @@ from pathlib import Path
 import re
 import xml.etree.ElementTree as ET
 
-root = Path(__file__).resolve().parents[3]
+root = Path(__file__).resolve().parents[4]
 bridge = root / "Compilers" / "HybridCPU_Compiler" / "HardwareBridge"
 hwir = bridge / "HWIR" / "HardwareBridge.Hwir.csproj"
 companion = bridge / "HardwareBridge.Companion.csproj"
