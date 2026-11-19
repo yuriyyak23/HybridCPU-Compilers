@@ -1,6 +1,11 @@
 """HB-INT-02/HB-INT-03: project a captured (unqualified) Csc byte inventory
 into the EXISTING CW-INT-03 v2 index wire contract.
 
+DEPRECATED compatibility writer for primary-only capture source claims.
+It MUST refuse owned-body captures: this entrypoint historically promoted them
+to source. Use stage_core_v2.py with reviewed roots/capture pins for release.
+No silent migration of the old root-list contract.
+
 No compiler/targets/Golden code execution. This is a producer/stager only.
 The Core owner MUST independently pin ExpectedLiveClosureSha256 and rehash
 the workspace before considering a candidate source inventory.
@@ -111,6 +116,8 @@ def exact_index(capture_dir):
         if row["kind"] in SOURCE_KINDS:
             if row["role"] not in ("primary", "owned-body", "metadata-only"):
                 reject("unknown source owner role")
+            if row["role"] == "owned-body":
+                reject("DEPRECATED legacy projection refuses owned-body: use reviewed stage_core_v2")
             try:
                 # Core OwnedFileReader requires strict UTF-8 source inputs.
                 decoder = __import__("codecs").getincrementaldecoder("utf-8")("strict")
