@@ -195,10 +195,27 @@ internal static class BridgeIndexV2Tests
             candidate with { Methods = new[] {
                 candidate.Methods[0] with { MethodName = "WrongMethod" } } },
             candidateInputs, candidateEvidence));
+        // This fixture uses an unpinned null root token; a different
+        // positive token alone is NOT independently disprovable. Reject zero,
+        // then separately test an explicit token-pinned source root.
         RejectWrite(() => BridgeProvenanceCodecV2.Write(snapshot,
             candidate with { Methods = new[] {
-                candidate.Methods[0] with { MetadataToken = 0x06000002 } } },
+                candidate.Methods[0] with { MetadataToken = 0 } } },
             candidateInputs, candidateEvidence));
+        var tokenPinnedRoots = new[] { new BridgeRootSelectorV1("Fixture", "F",
+            0x06000001, Array.Empty<string>(), Array.Empty<string>()) };
+        var tokenPinnedSnapshot = BridgeSourceSnapshotV1.Capture(
+            new BridgeSourceRequestV1("HBINT03Fixture", "CSharp13",
+                new[] { new BridgeSourceTextV1("src/Fixture.cs", sourceText) },
+                new ReadOnlyMemory<byte>[] { reference }, tokenPinnedRoots,
+                Array.Empty<int>(), new[] { 0 }),
+            "test-only-policy", "test-only-compiler", "test-only-roslyn");
+        RejectWrite(() => BridgeProvenanceCodecV2.Write(tokenPinnedSnapshot,
+            candidate with {
+                SnapshotDigest = tokenPinnedSnapshot.SnapshotDigest,
+                Methods = new[] {
+                    candidate.Methods[0] with { MetadataToken = 0x06000002 } }
+            }, candidateInputs, candidateEvidence));
         RejectWrite(() => BridgeProvenanceCodecV2.Write(snapshot,
             candidate with { Methods = new[] {
                 candidate.Methods[0] with { ImportStatus = "Rejected" } } },
