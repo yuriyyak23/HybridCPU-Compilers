@@ -87,6 +87,15 @@ public static class GoldenRawTraceCodecV1
                 !string.Equals(Hash(bytes.Span), document.Sha256, StringComparison.Ordinal))
                 throw new ArgumentException("HB4000: Original source bytes differ from snapshot.");
         }
+        // Budget and null preflight before copying caller-owned nested collections.
+        if (initialState.Count > MaxCells || recordedSteps.Count > MaxSteps ||
+            recordedSteps.Any(s => s is null || s.Before is null || s.After is null ||
+                s.Inputs is null || s.Outputs is null || s.Events is null || s.Choices is null ||
+                s.Before.Count > MaxCells || s.After.Count > MaxCells ||
+                s.Inputs.Count > MaxCells || s.Outputs.Count > MaxCells ||
+                s.Events.Count > MaxEventsPerStep || s.Choices.Count > MaxChoices ||
+                s.Choices.Any(c => c is null || c.Allowed is null || c.Allowed.Count > 16)))
+            throw new ArgumentException("HB4002: Raw trace collection budget or null field.");
         var documents = Array.AsReadOnly(source.Documents.ToArray());
         string sourceSetHash = Hash(JsonSerializer.SerializeToUtf8Bytes(documents));
         string assemblyHash = Hash(compiledAssemblyBytes.Span);
