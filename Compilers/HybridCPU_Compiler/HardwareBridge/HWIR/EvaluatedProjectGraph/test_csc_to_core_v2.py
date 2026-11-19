@@ -180,5 +180,27 @@ class ConversionTests(unittest.TestCase):
         self.assertFalse(Path(self.output).exists())
 
 
+def emit_parity_fixture(destination):
+    """Test-only synthetic observed Csc capture. Not a real compiler execution receipt."""
+    fixture = ClosureTests("test_positive_capture_and_byte_replay")
+    fixture.setUp()
+    try:
+        original = sha(fixture.original)
+        capture, expected = fixture.run_capture()
+        selectors = [{"TypeName": "Fixture", "MethodName": "AddWord",
+                      "MetadataToken": None, "TypeArguments": [], "MethodArguments": []}]
+        root = transport.export(capture, expected, selectors, destination)
+        if sha(fixture.original) != original:
+            raise ValueError("Golden fixture input bytes changed")
+        print("SYNTHETIC-ONLY HB->Core transport fixture=" + destination +
+              " ClosureSha256=" + root + " GoldenFixtureSha256=" + original)
+    finally:
+        fixture.doCleanups()
+        fixture.tearDown()
+
+
 if __name__ == "__main__":
-    unittest.main()
+    if len(sys.argv) == 3 and sys.argv[1] == "--emit-parity-fixture":
+        emit_parity_fixture(sys.argv[2])
+    else:
+        unittest.main()
