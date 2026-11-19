@@ -5,7 +5,7 @@ param(
     [Parameter(Mandatory)][string]$GoldenRoot,
     [Parameter(Mandatory)][string]$ExpectedGoldenSha,
     [Parameter(Mandatory)][string]$OutputRoot,
-    [string]$BridgeRoot = (Join-Path $PSScriptRoot '..'),
+    [string]$BridgeRoot = (Join-Path $PSScriptRoot '../../../..'),
     [string]$ExpectedBridgeSha = '',
     [string]$CoreRoot = '',
     [string]$ExpectedCoreSha = '',
@@ -86,7 +86,7 @@ try {
     if ($versionText -cne $ExpectedSdkVersion) {
         throw "Wrong .NET SDK: pinned $ExpectedSdkVersion, executed $versionText"
     }
-    $project = Join-Path $bridge 'Tests/HardwareBridge.SelfTests.csproj'
+    $project = Join-Path $PSScriptRoot 'HardwareBridge.SelfTests.csproj'
     $args = @('run','--project',$project,'--configuration','Release',
         "-p:ArtifactsPath=$artifacts",'-p:UseArtifactsOutput=true')
     $standalone = Invoke-HbRecordedCommand 'companion-selftests' 'dotnet' $args $bridge $OutputRoot $TimeoutSeconds
