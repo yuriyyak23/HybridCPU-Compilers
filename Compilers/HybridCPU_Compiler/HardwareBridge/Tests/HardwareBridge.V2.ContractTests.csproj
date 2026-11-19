@@ -13,6 +13,8 @@
     <Compile Include="..\SourceSnapshot\BridgeSidecarCodecV1.cs" />
     <Compile Include="..\SourceSnapshot\BridgeSegmentIndexV2.cs" />
     <Compile Include="..\SourceSnapshot\BridgeProvenanceCodecV2.cs" />
+    <Compile Include="..\SourceSnapshot\BridgeV2WorkspacePublisher.cs" />
+    <Compile Include="BridgeV2WorkspaceTests.cs" />
     <Compile Include="..\CompilerFacts\BridgeCompilerFactsV1.cs" />
     <Compile Include="..\GoldenOracle\TrustedAddWordOracleV1.cs" />
     <Compile Include="BridgeIndexV2Tests.cs" />
