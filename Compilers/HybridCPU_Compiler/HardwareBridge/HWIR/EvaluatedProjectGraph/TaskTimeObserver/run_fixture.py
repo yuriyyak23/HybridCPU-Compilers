@@ -92,10 +92,12 @@ def run():
         bases = re.findall(r"(?m)^\s*Base Path:\s*(\S+)\s*$", sdk_info)
         if len(bases) != 1:
             raise RuntimeError("unambiguous actual SDK Base Path missing")
-        compiler = Path(bases[0]) / "Roslyn" / "bincore" / "csc.dll"
+        compiler = Path(bases[0]) / "Roslyn" / "bincore" / "csc"
+        managed = compiler.parent / "csc.dll"
         v2.safe_path(str(compiler))
-        version_text = command("csc-version", ["dotnet", str(compiler), "/version"], temp, env, receipts).strip()
-        print("csc.dll SHA256=" + sha(compiler) + " version=" + version_text)
+        v2.safe_path(str(managed))
+        version_text = command("csc-version", [str(compiler), "/version"], temp, env, receipts).strip()
+        print("actual csc apphost SHA256=" + sha(compiler) + " paired csc.dll SHA256=" + sha(managed) + " version=" + version_text)
         logger_project = HERE / "CscTaskLogger.csproj"
         command("build-observer", [
             "dotnet", "build", str(logger_project), "-c", "Release",
