@@ -68,3 +68,8 @@ BridgeSourceSnapshotV1 (hybridcpu.hardwarebridge.source-snapshot/v1; 128 docs/re
 BLOCKED: independent Csc task/process provenance, generator execution and completeness attestation, actual approved isolated Processor Debug/Release and clean/dirty captures, full exact Csc closure, Core reader CW-INT-03, downstream CW-INT-04 independent ownership, RTL acceptance and physical signoff. NotRun: real .NET 11 / MSBuild / Csc / Golden Processor and EDA runs on a host without dotnet or approved tool pins. The included fixture tests exercise **transport only**; they are not real compiler/CPU outputs.
 
 Filesystem pre/post rehash does not prevent every adversarial concurrent rename (notably Windows reparse races). SIGKILL can leave partial TEMP output; never trust partial folders. Do not execute any unapproved target in Golden.
+
+
+## HB-INT-02 → Core v2 continuation
+
+A separately opt-in source-only transport now converts this verified HB capture index (including raw captured chunks) to Core's pre-existing JSONL v2 input format, without invoking Csc, changing v1 or claiming hardware acceptance. See [HB_INT_02_Core_V2_Transport.md](HB_INT_02_Core_V2_Transport.md). Exact Golden processor compiler closure remains Blocked; synthetic bytes are test fixtures, not real Csc receipts.
