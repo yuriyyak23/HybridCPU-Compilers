@@ -73,7 +73,7 @@ internal static class GoldenBoundVectorsTests
             valid.Observation.Cases[1].Output!.ToSigned64() == int.MinValue,
             "Signed bit-pattern reinterpretation lost.");
         GoldenBoundVectorsV1 parsed = GoldenBoundVectorsCodecV1.ReadAndValidate(
-            bytes, source, assemblyHash, reviewedLabel, vectors);
+            bytes, source, assemblyHash, 0, reviewedLabel, vectors);
         Require(parsed.ToJsonUtf8().SequenceEqual(bytes) &&
             parsed.ReplayIdentity == valid.ReplayIdentity, "Canonical roundtrip changed.");
         Require(parsed.OriginalDocuments[0].Sha256 == source.Documents[0].Sha256,
@@ -81,20 +81,30 @@ internal static class GoldenBoundVectorsTests
 
         // This replay reference comes from independent inputs (not from the JSON being parsed).
         Reject<ArgumentException>(() => GoldenBoundVectorsCodecV1.ReadAndValidate(
-            bytes, source, assemblyHash, reviewedLabel,
+            bytes, source, assemblyHash, 0, reviewedLabel,
             vectors.Reverse().ToArray()), "Independently requested vector order mismatch.");
         Reject<ArgumentException>(() => GoldenBoundVectorsCodecV1.ReadAndValidate(
-            bytes, source, new string('0', 64), reviewedLabel, vectors),
+            bytes, source, new string('0', 64), 0, reviewedLabel, vectors),
             "Dangling compiled assembly.");
         Reject<ArgumentException>(() => GoldenBoundVectorsCodecV1.ReadAndValidate(
-            bytes, source, assemblyHash, "unreviewed-adapter", vectors),
+            bytes, source, assemblyHash, 0, "unreviewed-adapter", vectors),
             "Wrong independent reviewed label.");
         Reject<ArgumentException>(() => GoldenBoundVectorsCodecV1.ReadAndValidate(
             bytes, source with { SnapshotDigest = new string('0', 64) },
-            assemblyHash, reviewedLabel, vectors), "Stale source snapshot.");
+            assemblyHash, 0, reviewedLabel, vectors), "Stale source snapshot.");
         Reject<ArgumentException>(() => Capture(originalBytes:
             Encoding.UTF8.GetBytes(goldenText + " ")), "Modified source bytes.");
         Reject<ArgumentException>(() => Capture(rootIndex: 8), "Wrong root index.");
+        Reject<ArgumentException>(() => GoldenBoundVectorsCodecV1.ReadAndValidate(
+            bytes, source, assemblyHash, 1, reviewedLabel, vectors),
+            "Independently expected root index mismatch.");
+        Reject<ArgumentException>(() => GoldenBoundVectorsCodecV1.ReadAndValidate(
+            bytes, source, assemblyHash, -1, reviewedLabel, vectors),
+            "Negative external root index.");
+        Reject<ArgumentException>(() => GoldenBoundVectorsCodecV1.ReadAndValidate(
+            new byte[GoldenBoundVectorsCodecV1.MaxJsonBytes + 1], source, assemblyHash,
+            0, reviewedLabel, vectors), "JSON byte budget.");
+
         Reject<ArgumentException>(() => Capture(compiledBytes: ReadOnlyMemory<byte>.Empty),
             "Empty assembly evidence.");
         Reject<ArgumentException>(() => Capture(compiledBytes: new byte[
@@ -108,7 +118,7 @@ internal static class GoldenBoundVectorsTests
         // This is ONLY replay checksum integrity: a forged, re-signed output still needs Core attestation.
         GoldenBoundVectorsV1 mutated = valid with { Observation = alteredOutput };
         Reject<ArgumentException>(() => GoldenBoundVectorsCodecV1.ReadAndValidate(
-            mutated.ToJsonUtf8(), source, assemblyHash, reviewedLabel, vectors),
+            mutated.ToJsonUtf8(), source, assemblyHash, 0, reviewedLabel, vectors),
             "Unre-signed output mutation.");
         Reject<ArgumentException>(() => Capture(
             response: observed with { AdapterId = "arbitrary-delegate-selected-by-json" }),
@@ -163,7 +173,7 @@ internal static class GoldenBoundVectorsTests
             blockedBatch.Observation.Cases.All(c => c.Output is null),
             "Bound exception must remain Blocked, never hardware PASS.");
         Require(GoldenBoundVectorsCodecV1.ReadAndValidate(
-            blockedBatch.ToJsonUtf8(), source, assemblyHash, reviewedLabel, vectors)
+            blockedBatch.ToJsonUtf8(), source, assemblyHash, 0, reviewedLabel, vectors)
             .Observation.Status == "Blocked", "Blocked v1 case compatibility.");
         Reject<ArgumentException>(() => Capture(
             response: blocked with { Cases = new[] { blocked.Cases[0] } }),
@@ -173,21 +183,21 @@ internal static class GoldenBoundVectorsTests
         Reject<ArgumentException>(() => GoldenBoundVectorsCodecV1.ReadAndValidate(
             Encoding.UTF8.GetBytes(compact.Replace("\"AdapterId\":",
                 "\"Delegate\":\"Evil.Run\",\"AdapterId\":", StringComparison.Ordinal)),
-            source, assemblyHash, reviewedLabel, vectors), "Injected arbitrary delegate JSON.");
+            source, assemblyHash, 0, reviewedLabel, vectors), "Injected arbitrary delegate JSON.");
         Reject<ArgumentException>(() => GoldenBoundVectorsCodecV1.ReadAndValidate(
             Encoding.UTF8.GetBytes(compact.Replace("\"AdapterId\":",
                 "\"AdapterId\":\"explicit-trusted-addword32/v1\",\"AdapterId\":",
-                StringComparison.Ordinal)), source, assemblyHash, reviewedLabel, vectors),
+                StringComparison.Ordinal)), source, assemblyHash, 0, reviewedLabel, vectors),
             "Duplicate JSON member.");
         Reject<ArgumentException>(() => GoldenBoundVectorsCodecV1.ReadAndValidate(
-            Encoding.UTF8.GetBytes(compact + " "), source, assemblyHash, reviewedLabel, vectors),
+            Encoding.UTF8.GetBytes(compact + " "), source, assemblyHash, 0, reviewedLabel, vectors),
             "Noncanonical whitespace.");
         Reject<ArgumentException>(() => GoldenBoundVectorsCodecV1.ReadAndValidate(
             Encoding.UTF8.GetBytes(compact.Replace(GoldenBoundVectorsV1.SchemaId,
                 "unknown/vector/v2", StringComparison.Ordinal)),
-            source, assemblyHash, reviewedLabel, vectors), "Unknown schema.");
+            source, assemblyHash, 0, reviewedLabel, vectors), "Unknown schema.");
         Reject<ArgumentException>(() => GoldenBoundVectorsCodecV1.ReadAndValidate(
-            bytes[..^5], source, assemblyHash, reviewedLabel, vectors), "Truncated JSON.");
+            bytes[..^5], source, assemblyHash, 0, reviewedLabel, vectors), "Truncated JSON.");
 
         // Defensive copy: changing a caller's list after capture never changes persisted batch bytes.
         var callerOwned = vectors.ToList();
@@ -210,7 +220,7 @@ internal static class GoldenBoundVectorsTests
         }));
         reOrdered = reOrdered with { ReplayIdentity = forgedDigest };
         Reject<ArgumentException>(() => GoldenBoundVectorsCodecV1.ReadAndValidate(
-            reOrdered.ToJsonUtf8(), source, assemblyHash, reviewedLabel, vectors),
+            reOrdered.ToJsonUtf8(), source, assemblyHash, 0, reviewedLabel, vectors),
             "Re-signed reorder must not bypass independent requested-vector binding.");
 
         using var cancelled = new CancellationTokenSource();
@@ -219,7 +229,7 @@ internal static class GoldenBoundVectorsTests
             source, new ReadOnlyMemory<byte>[] { original }, assemblyBytes, 0,
             vectors, observed, cancelled.Token), "Cancelled capture.");
         Reject<OperationCanceledException>(() => GoldenBoundVectorsCodecV1.ReadAndValidate(
-            bytes, source, assemblyHash, reviewedLabel, vectors, cancelled.Token),
+            bytes, source, assemblyHash, 0, reviewedLabel, vectors, cancelled.Token),
             "Cancelled read.");
 
         Require(source.SnapshotDigest == BridgeSourceSnapshotV1.Capture(
