@@ -69,7 +69,10 @@ public static class BridgeProvenanceCodecV2
             if (!BridgeSegmentIndexV2.IsSha(facts.SourceInputDigest) ||
                 !BridgeSegmentIndexV2.IsSha(facts.PeSha256) ||
                 !BridgeSegmentIndexV2.IsSha(facts.PdbSha256) ||
-                facts.ImportStatus != "Success" ||
+                facts.ImportStatus != "Success" || facts.RootIdentities is not { Count: > 0 } ||
+                facts.Methods is not { Count: > 0 } ||
+                string.IsNullOrWhiteSpace(facts.GraphDigest) ||
+                string.IsNullOrWhiteSpace(facts.GraphContractDigest) ||
                 evidence.PeImage.IsEmpty || evidence.PdbImage.IsEmpty ||
                 facts.PeSha256 != BridgeSegmentIndexV2.Hash(evidence.PeImage.Span) ||
                 facts.PdbSha256 != BridgeSegmentIndexV2.Hash(evidence.PdbImage.Span))
@@ -102,6 +105,10 @@ public static class BridgeProvenanceCodecV2
                 x.Sha256 == reference.Sha256 && x.Bytes == reference.Bytes))
                 throw new ArgumentException("HBINT03_V2_REFERENCE: role/bytes mismatch.");
         }
+        if (candidate && facts.Methods.Any(m => m is null ||
+            (m.PeSha256 != facts.PeSha256 &&
+                !source.References.Any(r => r.Role == "owned-body" && r.Sha256 == m.PeSha256))))
+            throw new ArgumentException("HBINT03_V2_OWNER: metadata-only cannot supply method body.");
         var pe = transport.Inputs.Where(x => x.Role == "compiler-pe").ToArray();
         var pdb = transport.Inputs.Where(x => x.Role == "compiler-pdb").ToArray();
         if (pe.Length != (candidate ? 1 : 0) || pdb.Length != (candidate ? 1 : 0) ||
@@ -111,6 +118,8 @@ public static class BridgeProvenanceCodecV2
 
         if (evidence.SourceRoles is null || evidence.SourceRoles.Count != sourceRows.Length)
             throw new ArgumentException("HBINT03_V2_SOURCE_ROLE: explicit roles missing.");
+        if (evidence.SourceRoles.Any(x => x is null))
+            throw new ArgumentException("HBINT03_V2_SOURCE_ROLE: null source role.");
         var roles = evidence.SourceRoles.OrderBy(x => x.Path, StringComparer.Ordinal).ToArray();
         for (int i = 0; i < roles.Length; i++)
         {
