@@ -12,6 +12,7 @@ import shutil
 import stat
 import sys
 import tempfile
+import time
 
 SCHEMA = "hybridcpu.hardwarebridge.csc-closure-index/v2"
 OBS_SCHEMA = "hybridcpu.hardwarebridge.csc-observation/v2"
@@ -54,7 +55,7 @@ def safe_path(path, *, file=True):
             info = ancestor.lstat()  # reject symlink in every existing ancestor
         except FileNotFoundError:
             fail("missing input/chunk: " + str(ancestor))
-        if stat.S_ISLNK(info.st_mode):
+        if stat.S_ISLNK(info.st_mode) or getattr(ancestor, "is_junction", lambda: False)():
             fail("symlink/reparse path: " + str(ancestor))
     info = p.stat()
     if (file and not stat.S_ISREG(info.st_mode)) or (not file and not stat.S_ISDIR(info.st_mode)):
@@ -200,12 +201,17 @@ def build_inputs(graph_path, observation_path, golden_root):
         if role not in ("primary", "owned-body", "metadata-only") or (node["project"] == graph["root"]) != (role == "primary"):
             fail("inconsistent root/owned/metadata project role")
         cwd = safe_path(project["workingDirectory"], file=False)
+        temp_root = Path(os.path.abspath(tempfile.gettempdir()))
+        if not inside(cwd, temp_root) or cwd == temp_root:
+            fail("Csc observation must use an isolated TEMP project directory")
         if inside(cwd, root):
             fail("Csc build observation points inside Golden tree")
         argv = project["argv"]
         if sha(canonical(argv)) != project["argvSha256"]:
             fail("changed Csc option/argument vector")
         sources, artifacts, generator_dir = command_files(argv, cwd)
+        if any(not inside(Path(src), temp_root) for src in sources) or (generator_dir is not None and not inside(Path(generator_dir), temp_root)):
+            fail("Csc sources/generator output must be isolated under TEMP")
         out = next(t.split(":", 1)[1] for t in argv if t.lower().startswith("/out:"))
         output_path = Path(out) if os.path.isabs(out) else cwd / out
         if inside(Path(os.path.abspath(output_path)), root):
@@ -247,6 +253,8 @@ def build_inputs(graph_path, observation_path, golden_root):
                     safe_path(str(path))
                     if path.suffix == ".cs":
                         actual.add(str(path))
+                        if len(actual) > 5000:
+                            fail("excessive generator-emitted source inventory")
             declared = {str(Path(s["path"])) for s in generated}
             if len(declared) != len(generated) or actual != declared:
                 fail("missing/extra emitted generator source")
@@ -265,6 +273,8 @@ def build_inputs(graph_path, observation_path, golden_root):
         compiler = project["compiler"]
         add(nid, "csc-binary", "metadata-only", "tools/csc", compiler["path"], compiler["sha256"])
         project_path = str(safe_path(node["project"]))
+        if node["project"] == graph["root"] and graph.get("rootProjectSha256") and graph["rootProjectSha256"] != project["projectSha256"]:
+            fail("root evaluated project changed since graph observation")
         add(nid, "project", "metadata-only", "msbuild/project", project_path, project["projectSha256"])
         assets = node.get("projectAssets")
         if assets:
@@ -284,21 +294,30 @@ def build_inputs(graph_path, observation_path, golden_root):
     return rows, commands, originals, sha(graph_bytes), sha(obs_bytes)
 
 
-def capture(graph, observation, golden_root, out_dir, after_copy=None):
+def capture(graph, observation, golden_root, out_dir, after_copy=None, *, timeout_seconds=300):
+    if not isinstance(timeout_seconds, (int, float)) or not 0 < timeout_seconds <= 3600:
+        fail("invalid bounded capture timeout")
+    deadline = time.monotonic() + timeout_seconds
+    def check_timeout():
+        if time.monotonic() >= deadline:
+            fail("capture timeout")
     output = Path(os.path.abspath(out_dir))
     temp = Path(os.path.abspath(tempfile.gettempdir()))
     if output.parent != temp or output.exists() or output.is_symlink():
         fail("output must be a NEW direct TEMP child directory")
     safe_path(str(output.parent), file=False)
     rows, commands, originals, graph_sha, obs_sha = build_inputs(graph, observation, golden_root)
+    check_timeout()
     output.mkdir(mode=0o700)
     try:
         chunk_no = 0
         for row in rows:
+            check_timeout()
             file_hash = hashlib.sha256()
             parts = []
             with safe_path(row["path"]).open("rb") as source:
                 while block := source.read(CHUNK_SIZE):
+                    check_timeout()
                     name = "chunk-%08d.bin" % chunk_no
                     chunk_no += 1
                     with (output / name).open("xb") as sink:
@@ -310,10 +329,13 @@ def capture(graph, observation, golden_root, out_dir, after_copy=None):
             row["chunks"] = parts
         if after_copy is not None:  # test hook, not exposed by CLI
             after_copy()
+        check_timeout()
         for row in rows:
+            check_timeout()
             if hash_file(row["path"]) != (row["sha256"], row["bytes"]):
                 fail("input mutated after capture " + row["logicalPath"])
         for original, digest, length in originals:
+            check_timeout()
             if hash_file(original) != (digest, length):
                 fail("Golden source mutated during capture")
         payload = {"schema": SCHEMA, "disposition": "unqualified-software-observation", "graphSha256": graph_sha,
@@ -325,7 +347,9 @@ def capture(graph, observation, golden_root, out_dir, after_copy=None):
             fail("v2 index exceeds budget")
         with (output / "index.json").open("xb") as stream:
             stream.write(index_bytes)
+        check_timeout()
         verify(output)
+        check_timeout()
         return index["closureRootSha256"]
     except BaseException:
         shutil.rmtree(output)
@@ -384,11 +408,12 @@ def main():
     cap = sub.add_parser("capture")
     for flag in ("graph", "observation", "golden-root", "output"):
         cap.add_argument("--" + flag, required=True)
+    cap.add_argument("--timeout-seconds", type=float, default=300)
     check = sub.add_parser("verify")
     check.add_argument("--output", required=True)
     args = parser.parse_args()
     if args.command == "capture":
-        result = capture(args.graph, args.observation, args.golden_root, args.output)
+        result = capture(args.graph, args.observation, args.golden_root, args.output, timeout_seconds=args.timeout_seconds)
     else:
         result = verify(args.output)
     print("HB-INT-02 unqualified software closure SHA256=" + result)
