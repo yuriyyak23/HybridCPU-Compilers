@@ -125,16 +125,19 @@ def run(label, argv, cwd, logs, timeout=900, env=None):
     require(0 < timeout <= 3600, "invalid timeout")
     require(isinstance(argv, list) and argv and all(isinstance(x, str) and x and len(x) < 8192 for x in argv),
             "invalid ordered argv")
-    executable = reject_links(argv[0]); require(executable.is_file(), "missing executable: " + argv[0])
+    # System-installed shims (/usr/bin/python3, /usr/bin/dotnet) may be links.
+    # Resolve the executable to the final regular file, hash those actual bytes,
+    # and EXECUTE THAT PATH; never allow this exception for source/artifacts.
+    executable = reject_links(os.path.realpath(argv[0])); require(executable.is_file(), "missing executable: " + argv[0])
     exe_sha, exe_bytes = sha_file(executable)
-    result = {"label": label, "argv": argv, "cwd": str(cwd),
+    result = {"label": label, "argv": argv, "actualExecutable": str(executable), "cwd": str(cwd),
               "executableSha256": exe_sha, "executableBytes": exe_bytes,
               "exit": None, "stdoutSha256": None, "stderrSha256": None, "status": "NotRun"}
     out = logs / (label + ".stdout.bin")
     err = logs / (label + ".stderr.bin")
     try:
         with out.open("xb") as stdout, err.open("xb") as stderr:
-            proc = subprocess.Popen(argv, cwd=cwd, env=env, stdin=subprocess.DEVNULL,
+            proc = subprocess.Popen([str(executable), *argv[1:]], cwd=cwd, env=env, stdin=subprocess.DEVNULL,
                                     stdout=stdout, stderr=stderr, start_new_session=(os.name != "nt"))
             try:
                 result["exit"] = proc.wait(timeout=timeout)
