@@ -1,29 +1,7 @@
-# HB-INT-01 — Detached HWIR regression compatibility
+# HB-INT-01 — Detached HWIR compatibility (migration notice)
 
-**Scope:** regression-only configuration of `HardwareBridge.Hwir.csproj`. The production software-facts producer remains `HardwareBridge.Companion.csproj` and has no Core `ProjectReference`. No exporter schema, Golden source or parent compiler is changed.
+This is the original detached-boundary description from [HB PR #5](https://github.com/yuriyyak23/HybridCPU-Compilers/pull/5). The **current build contract** in this PR is [HB-INT-01 pinned opt-in](HB_INT_01_Pinned_OptIn.md). Follow that document instead of running older commands that pass only CircuitWeaveFrontendRoslynProject.
 
-## Explicit cross-repository build (not production dependency)
+The default HardwareBridge.Hwir.csproj is now standalone **source snapshot v1 only**, not the legacy source-derived compiler. Legacy BridgeHwir compilers are unchanged but require EnableBridgeHwirLegacyFixtures=true, explicit CircuitWeaveRepoRoot, CircuitWeaveFrontendRoslynProject, reviewed CircuitWeaveExpectedHeadSha and exact BridgeExpectedSdkVersion. The Core-owned launcher in [CW-INT-02 PR #2](https://github.com/yuriyyak23/CircuitWeave/pull/2) must pass these properties before its opt-in P14 vector tests can execute. **Until that paired change is reviewed, legacy parity is Blocked.**
 
-Use two independently chosen checkout directories. Record and review the actual 40-hex commit IDs before executing the compatibility fixture:
-
-```bash
-CORE_ROOT=/absolute/path/to/any-core-checkout
-BRIDGE_ROOT=/absolute/path/to/any-hybridcpu-compilers-checkout
-CORE_SHA=$(git -C "$CORE_ROOT" rev-parse HEAD)
-BRIDGE_SHA=$(git -C "$BRIDGE_ROOT" rev-parse HEAD)
-test "$CORE_SHA" = "<reviewed-core-commit>"
-test "$BRIDGE_SHA" = "<reviewed-bridge-commit>"
-dotnet build "$BRIDGE_ROOT/Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/HardwareBridge.Hwir.csproj" \
-  -p:CircuitWeaveFrontendRoslynProject="$CORE_ROOT/src/CircuitWeave.Frontend.Roslyn/CircuitWeave.Frontend.Roslyn.csproj"
-```
-
-The caller must ensure these paths and commits are trustworthy. An absent or missing explicit project path fails with `HBINT0101` / `HBINT0102`. The fixed `CircuitWeave-main` dependency has been removed; the Bridge HWIR project is **not** a prerequisite of `HardwareBridge.Companion.csproj`.
-
-The optional P14 Core compatibility launcher is `eng/cw-int-02-bridge-compat.sh <bridge-checkout> <40-hex-bridge-revision> <40-hex-core-revision>` in the Core repository. This verifies the actual checkout HEAD against the pin, and passes the absolute Core project as an MSBuild property. Its old BridgeHwir source-specific cases remain candidate-only; it is NOT a new Core IR owner or independent RTL verification gate.
-
-## Compatibility and incomplete gates
-
-- Wire source is unchanged: `hybridcpu.hardwarebridge.sidecar/v1`.
-- The Core-owned `circuitweave.bridge-import/v1` descriptor binds existing sidecar bytes, revision label and explicit caller-supplied SHA-256 pins. This descriptor is not Bridge-written or proof of source/PE/PDB closure.
-- Full source/Csc identity verification, native CIRCT/RTL qualification, target observation, Processor top and physical signoff remain Blocked/NotRun until their independent follow-on packages deliver evidence.
-- No platform-native or .NET tests are claimed here until actual CI logs exist.
+HardwareBridge.Companion.csproj remains opt-in source/facts/allowlisted Golden observation only, with no Core reference. Wire schema hybridcpu.hardwarebridge.sidecar/v1 is unchanged. Core bridge-import/v1 remains Core-owned. Neither the historical scalar fixtures nor an exit code, hash or source snapshot constitute independently accepted RTL, a full Processor, target timing, or physical signoff. Capture actual positive/negative build logs, hashes and independent Golden source immutability receipts; absent .NET/native/Golden prerequisites remain NotRun.
