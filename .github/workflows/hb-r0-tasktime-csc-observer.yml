@@ -1,0 +1,69 @@
+name: HB R0 task-time Csc observation (toy only; NOT Golden/RTL qualification)
+on:
+  pull_request:
+    paths:
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/TaskTimeObserver/**'
+      - '.github/workflows/hb-r0-tasktime-csc-observer.yml'
+  push:
+    branches:
+      - 'feat/hb-r0-tasktime-csc-observer-*'
+    paths:
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/TaskTimeObserver/**'
+      - '.github/workflows/hb-r0-tasktime-csc-observer.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  approved-linux-toy:
+    name: Linux .NET 11 real two-project Csc + live event logger + v2 negative gates
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Read-only checkout; no Golden checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '11.0.100-rc.2.26504.105'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Pin pristine source index
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "$(git status --porcelain --untracked-files=all)"
+          git rev-parse HEAD
+      - name: Bounded parser/contract negative fixtures (NOT Csc execution)
+        shell: bash
+        working-directory: Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/TaskTimeObserver
+        run: |
+          set -euo pipefail
+          python -m unittest -v test_task_csc_observation
+          python ../test_segmented_csc_capture_v2.py -v
+      - name: Execute real approved toy Csc in new TEMP copy (NO Golden)
+        shell: bash
+        env:
+          HB_CSC_RECEIPTS_DIR: ${{ runner.temp }}/hb-r0-tasktime-receipts
+        run: |
+          set -euo pipefail
+          python Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/TaskTimeObserver/run_fixture.py
+      - name: Verify source checkout unchanged (including untracked)
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          git status --porcelain --untracked-files=all
+          test -z "$(git status --porcelain --untracked-files=all)"
+      - name: Publish raw toy receipts even on failure (NO Golden claim)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hb-r0-task-csc-toy-receipts
+          path: ${{ runner.temp }}/hb-r0-tasktime-receipts/
+          if-no-files-found: warn
+          retention-days: 7
+# A passing toy fixture cannot prove Golden, Roslyn root closure, RTL or EDA.
