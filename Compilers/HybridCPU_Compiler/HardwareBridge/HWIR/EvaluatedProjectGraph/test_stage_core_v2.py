@@ -170,5 +170,105 @@ class CoreV2StagingTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.run_stage()
 
+    def test_release_stager_1_64_65_and_1001_actual_captured_sources(self):
+        # The HB02 capture includes mandatory compiler/reference/project metadata
+        # in addition to the counted Csc source rows. No real Csc is invoked.
+        self.fixture.generated.unlink()
+        self.fixture.observation["projects"][0]["generatorSources"] = []
+        observed = 1
+        for count in (1, 64, 65, 1001):
+            while observed < count:
+                i = observed
+                original = self.fixture.golden / f"R{i:04d}.cs"
+                copied = self.fixture.copy / original.name
+                original.write_bytes(f"// exact captured source {i}\\n".encode())
+                copied.write_bytes(original.read_bytes())
+                self.fixture.graph["nodes"][0]["compileFiles"].append(str(original))
+                self.fixture.observation["projects"][0]["argv"].append(str(copied))
+                self.fixture.observation["projects"][0]["sources"].append({
+                    "path": str(copied), "logicalPath": "project/" + copied.name,
+                    "sha256": c.sha(copied.read_bytes()), "origin": "evaluated",
+                    "originalPath": str(original)})
+                observed += 1
+            self.fixture.save()
+            captured, pin = self.fixture.run_capture()
+            target = Path(tempfile.gettempdir()) / ("hb-core-boundary-" + uuid.uuid4().hex)
+            self.addCleanup(lambda x=target: shutil.rmtree(x, ignore_errors=True))
+            digest = stage.stage(captured, pin, self.roots, self.roots_sha, target)
+            self.assertEqual(stage.verify(target, pin, self.roots_sha), digest)
+            mapping = json.loads((target / "capture-map.json").read_bytes())
+            self.assertEqual(sum(x["Kind"] == "csc-source" for x in mapping["Rows"]), count)
+            self.assertTrue(all(x["SourceRole"] == "primary"
+                                for x in mapping["Rows"] if x["Kind"] == "csc-source"))
+            index = json.loads((target / "bridge-index.json").read_bytes())
+            self.assertEqual(sum(x["Rows"] for x in index["Chunks"]), len(mapping["Rows"]))
+            self.assertEqual(len(index["Chunks"]), (len(mapping["Rows"]) + 63) // 64)
+            print(f"RELEASE SYNTHETIC count={count} indexSHA={stage.sha((target / 'bridge-index.json').read_bytes())} closure={digest}")
+
+    def test_release_stager_exact_2mib_source_and_overflow(self):
+        limit = 2097152
+        for size in (limit, limit + 1):
+            payload = b"x" * size
+            self.fixture.original.write_bytes(payload)
+            self.fixture.source.write_bytes(payload)
+            self.fixture.observation["projects"][0]["sources"][0]["sha256"] = c.sha(payload)
+            self.fixture.save()
+            captured, pin = self.fixture.run_capture()
+            output = Path(tempfile.gettempdir()) / ("hb-source-limit-" + uuid.uuid4().hex)
+            self.addCleanup(lambda x=output: shutil.rmtree(x, ignore_errors=True))
+            if size == limit:
+                digest = stage.stage(captured, pin, self.roots, self.roots_sha, output)
+                self.assertEqual(stage.verify(output, pin, self.roots_sha), digest)
+            else:
+                with self.assertRaisesRegex(ValueError, "per-file byte budget"):
+                    stage.stage(captured, pin, self.roots, self.roots_sha, output)
+                self.assertFalse(output.exists())
+
+    def test_release_stager_32mib_metadata_and_overflow(self):
+        limit = 33554432
+        for size in (limit, limit + 1):
+            payload = b"m" * size
+            self.fixture.reference.write_bytes(payload)
+            self.fixture.observation["projects"][0]["filePins"][0]["sha256"] = c.sha(payload)
+            self.fixture.observation["projects"][0]["argv"] = [
+                x for x in self.fixture.observation["projects"][0]["argv"]]
+            self.fixture.save()
+            captured, pin = self.fixture.run_capture()
+            output = Path(tempfile.gettempdir()) / ("hb-metadata-limit-" + uuid.uuid4().hex)
+            self.addCleanup(lambda x=output: shutil.rmtree(x, ignore_errors=True))
+            if size == limit:
+                digest = stage.stage(captured, pin, self.roots, self.roots_sha, output)
+                self.assertEqual(stage.verify(output, pin, self.roots_sha), digest)
+            else:
+                with self.assertRaisesRegex(ValueError, "per-file byte budget"):
+                    stage.stage(captured, pin, self.roots, self.roots_sha, output)
+                self.assertFalse(output.exists())
+
+    def test_release_rejects_257_chunk_descriptors_and_case_alias(self):
+        self.run_stage()
+        index_path = self.target / "bridge-index.json"
+        index = json.loads(index_path.read_bytes())
+        index["Chunks"] = [copy.deepcopy(index["Chunks"][0]) for _ in range(257)]
+        index_path.write_bytes(stage.json_bytes(index))
+        with self.assertRaisesRegex(ValueError, "invalid chunk list"):
+            stage.verify(self.target, self.pin, self.roots_sha)
+        shutil.rmtree(self.target)
+        self.run_stage()
+        alias = self.target / "INPUTS" / "00000.bin"
+        alias.parent.mkdir()
+        alias.write_bytes(b"alias")
+        with self.assertRaisesRegex(ValueError, "extra/missing"):
+            stage.verify(self.target, self.pin, self.roots_sha)
+
+    def test_release_refuses_rehashed_ownership_change(self):
+        self.run_stage()
+        map_path = self.target / "capture-map.json"
+        mapping = json.loads(map_path.read_bytes())
+        original = next(x for x in mapping["Rows"] if x["SourceRole"] == "primary")
+        original["SourceRole"] = "metadata-only"
+        map_path.write_bytes(stage.json_bytes(mapping))
+        with self.assertRaises(ValueError):
+            stage.verify(self.target, self.pin, self.roots_sha)
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
