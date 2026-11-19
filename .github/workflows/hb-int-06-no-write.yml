@@ -92,7 +92,7 @@ jobs:
         env:
           HB_BRIDGE_SHA: '${{ github.event.pull_request.head.sha || github.sha }}'
           # No credential is even evaluated on PR runs.
-          HB_CORE_READ_TOKEN: '${{ ((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/master') && secrets.HB_INT_06_CORE_READ_TOKEN || '' }}'
+          HB_CORE_READ_TOKEN: "${{ ((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/master') && secrets.HB_INT_06_CORE_READ_TOKEN || '' }}"
         run: |
           $gate = Join-Path $env:GITHUB_WORKSPACE 'bridge/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/HbInt06.CoreGate.ps1'
           & $gate -Mode Preflight -ExpectedBridgeSha $env:HB_BRIDGE_SHA -ExpectedCoreSha '18caf04768df6abf31f5517dbb489e7fea2e1c7e'
@@ -104,7 +104,7 @@ jobs:
         with:
           repository: yuriyyak23/CircuitWeave
           ref: 18caf04768df6abf31f5517dbb489e7fea2e1c7e
-          token: '${{ ((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/master') && secrets.HB_INT_06_CORE_READ_TOKEN || '' }}'
+          token: "${{ ((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/master') && secrets.HB_INT_06_CORE_READ_TOKEN || '' }}"
           path: core
           fetch-depth: 0
           persist-credentials: false

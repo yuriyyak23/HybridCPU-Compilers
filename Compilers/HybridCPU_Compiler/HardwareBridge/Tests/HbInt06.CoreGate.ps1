@@ -26,7 +26,7 @@ function Assert-HbCoreCheckoutOutcome([string]$Outcome) {
         throw 'Private Core checkout failed (expired, unauthorized or wrong repo/SHA); Core importer NotRun'
     }
 }
-function Invoke-HbCoreGit([string]$Root, [string[]]$Args) {
+function Invoke-HbCoreGit([string]$Root, [string[]]$GitArguments) {
     $start = [Diagnostics.ProcessStartInfo]::new()
     $start.FileName = 'git'
     $start.RedirectStandardOutput = $true
@@ -34,7 +34,7 @@ function Invoke-HbCoreGit([string]$Root, [string[]]$Args) {
     $start.UseShellExecute = $false
     $start.ArgumentList.Add('-C')
     $start.ArgumentList.Add($Root)
-    foreach ($arg in $Args) { $start.ArgumentList.Add($arg) }
+    foreach ($gitArgument in $GitArguments) { $start.ArgumentList.Add($gitArgument) }
     $process = [Diagnostics.Process]::Start($start)
     if ($null -eq $process) { throw 'Cannot inspect Git checkout' }
     try {
