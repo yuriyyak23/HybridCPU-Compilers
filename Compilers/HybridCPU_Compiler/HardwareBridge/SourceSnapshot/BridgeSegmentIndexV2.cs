@@ -29,7 +29,6 @@ public static class BridgeSegmentIndexV2
     public const int MaxRows = 8192;
     public const long MaxWorkspaceBytes = 536_870_912;
     public const long MaxChunkManifestBytes = 67_108_864;
-    private static readonly UTF8Encoding StrictUtf8 = new(false, true);
 
     public static BridgeV2Transport Write(IReadOnlyList<BridgeRootSelectorV1> roots,
         IReadOnlyList<BridgeV2Input> inputs, CancellationToken cancellationToken = default)
@@ -69,6 +68,8 @@ public static class BridgeSegmentIndexV2
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         long total = 0;
         int sources = 0;
+        if (inputs.Any(x => x is null))
+            throw new ArgumentException("HBINT03_V2_INPUT: null file row.");
         foreach (BridgeV2Input input in inputs.OrderBy(x => x.Path, StringComparer.Ordinal))
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -130,6 +131,47 @@ public static class BridgeSegmentIndexV2
             throw new ArgumentException("HBINT03_V2_INDEX_SIZE: index budget.");
         cancellationToken.ThrowIfCancellationRequested();
         return new(index, chunks.AsReadOnly(), rows.AsReadOnly(), digest);
+    }
+
+    /// <summary>Rehashes and compares all raw chunk bytes and index bytes. No disk IO.</summary>
+    public static void ValidateAgainstActualBytes(ReadOnlyMemory<byte> indexUtf8,
+        IReadOnlyList<BridgeV2ChunkContent> actualChunks,
+        IReadOnlyList<BridgeRootSelectorV1> roots, IReadOnlyList<BridgeV2Input> actualInputs,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (indexUtf8.IsEmpty || indexUtf8.Length > MaxIndexBytes || actualChunks is null)
+            throw new BridgeV2RefusalException(BridgeV2Refusal.Oversized, "Missing or oversized index.");
+        try
+        {
+            using JsonDocument parsed = JsonDocument.Parse(indexUtf8, new JsonDocumentOptions {
+                MaxDepth = 16, CommentHandling = JsonCommentHandling.Disallow,
+                AllowTrailingCommas = false
+            });
+            BridgeV2Transport regenerated = Write(roots, actualInputs, cancellationToken);
+            if (!indexUtf8.Span.SequenceEqual(regenerated.IndexUtf8) ||
+                actualChunks.Count != regenerated.Chunks.Count)
+                throw new BridgeV2RefusalException(BridgeV2Refusal.InvalidPin,
+                    "Changed index, root, file inventory or missing chunk.");
+            for (int i = 0; i < actualChunks.Count; i++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (actualChunks[i] is null ||
+                    actualChunks[i].Path != regenerated.Chunks[i].Path ||
+                    !actualChunks[i].Bytes.AsSpan().SequenceEqual(regenerated.Chunks[i].Bytes))
+                    throw new BridgeV2RefusalException(BridgeV2Refusal.InvalidPin,
+                        "Changed, truncated or reordered raw chunk bytes.");
+            }
+        }
+        catch (BridgeV2RefusalException) { throw; }
+        catch (OperationCanceledException ex)
+        {
+            throw new BridgeV2RefusalException(BridgeV2Refusal.Cancelled, ex.Message);
+        }
+        catch (Exception ex) when (ex is JsonException or ArgumentException or OverflowException)
+        {
+            throw new BridgeV2RefusalException(BridgeV2Refusal.InvalidPin, ex.Message);
+        }
     }
 
     public static bool SafeRelativePath(string? path)
