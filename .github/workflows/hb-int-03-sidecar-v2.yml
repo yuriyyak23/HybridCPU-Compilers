@@ -21,7 +21,11 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
+          cd Compilers/HybridCPU_Compiler/HardwareBridge
+          # Pin exact prerelease SDK: runner also carries newer 11.0.100.
+          printf '%s\n' '{"sdk":{"version":"11.0.100-rc.2.26504.105","rollForward":"disable","allowPrerelease":true}}' > global.json
           dotnet --info
+          test "$(dotnet --version)" = '11.0.100-rc.2.26504.105'
           run_logged() {
             local name="$1"; shift
             set +e
@@ -32,6 +36,10 @@ jobs:
             echo "$name exit=$rc"
             return "$rc"
           }
-          run_logged restore dotnet restore Compilers/HybridCPU_Compiler/HardwareBridge/Tests/HardwareBridge.SelfTests.csproj
-          run_logged selftests dotnet run --no-restore --project Compilers/HybridCPU_Compiler/HardwareBridge/Tests/HardwareBridge.SelfTests.csproj -c Release
-          run_logged companion dotnet build --no-restore Compilers/HybridCPU_Compiler/HardwareBridge/HardwareBridge.Companion.csproj -c Release
+          run_logged v2-restore dotnet restore Tests/HardwareBridge.V2.ContractTests.csproj
+          run_logged v2-contract dotnet run --no-restore --project Tests/HardwareBridge.V2.ContractTests.csproj -c Release
+          # Parent software compiler compile-only regression may be independently blocked
+          # by pre-existing HybridCPU.Compiler.Core.IR.Artifacts missing types.
+          run_logged integration-restore dotnet restore Tests/HardwareBridge.SelfTests.csproj
+          run_logged integration-selftests dotnet run --no-restore --project Tests/HardwareBridge.SelfTests.csproj -c Release
+          run_logged companion dotnet build --no-restore HardwareBridge.Companion.csproj -c Release
