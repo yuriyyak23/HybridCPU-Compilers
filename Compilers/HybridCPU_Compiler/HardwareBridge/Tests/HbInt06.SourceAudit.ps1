@@ -67,7 +67,7 @@ function Assert-HbOutputOutside([string]$Output, [string[]]$ProtectedRoots) {
 function Get-HbSourceState([string]$Root) {
     $path = (Resolve-Path -LiteralPath $Root -ErrorAction Stop).ProviderPath
     $top = Invoke-HbGit $path @('rev-parse', '--show-toplevel')
-    if ([IO.Path]::GetFullPath($top).TrimEnd('\','/') -ine
+    if ([IO.Path]::GetFullPath($top).TrimEnd([char[]]@([char]'\',[char]'/')) -ine
         [IO.Path]::GetFullPath($path).TrimEnd('\','/')) {
         throw 'Golden root must be the exact Git repository top-level'
     }
