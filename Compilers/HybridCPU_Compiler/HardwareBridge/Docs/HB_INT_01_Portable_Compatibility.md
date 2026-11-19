@@ -1,0 +1,7 @@
+# HB-INT-01 — Detached HWIR compatibility (migration notice)
+
+This is the original detached-boundary description from [HB PR #5](https://github.com/yuriyyak23/HybridCPU-Compilers/pull/5). The **current build contract** in this PR is [HB-INT-01 pinned opt-in](HB_INT_01_Pinned_OptIn.md). Follow that document instead of running older commands that pass only CircuitWeaveFrontendRoslynProject.
+
+The default HardwareBridge.Hwir.csproj is now standalone **source snapshot v1 only**, not the legacy source-derived compiler. Legacy BridgeHwir compilers are unchanged but require EnableBridgeHwirLegacyFixtures=true, explicit CircuitWeaveRepoRoot, CircuitWeaveFrontendRoslynProject, reviewed CircuitWeaveExpectedHeadSha and exact BridgeExpectedSdkVersion. The Core-owned launcher in [CW-INT-02 PR #2](https://github.com/yuriyyak23/CircuitWeave/pull/2) must pass these properties before its opt-in P14 vector tests can execute. **Until that paired change is reviewed, legacy parity is Blocked.**
+
+HardwareBridge.Companion.csproj remains opt-in source/facts/allowlisted Golden observation only, with no Core reference. Wire schema hybridcpu.hardwarebridge.sidecar/v1 is unchanged. Core bridge-import/v1 remains Core-owned. Neither the historical scalar fixtures nor an exit code, hash or source snapshot constitute independently accepted RTL, a full Processor, target timing, or physical signoff. Capture actual positive/negative build logs, hashes and independent Golden source immutability receipts; absent .NET/native/Golden prerequisites remain NotRun.

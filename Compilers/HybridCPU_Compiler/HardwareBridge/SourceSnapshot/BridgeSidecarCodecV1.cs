@@ -59,6 +59,7 @@ public static class BridgeSidecarCodecV1
         try
         {
             JsonElement root = document.RootElement;
+            RejectDuplicateMembers(root);
             if (root.ValueKind != JsonValueKind.Object ||
                 !TryString(root, "Schema", out string? schema) || schema != SchemaId ||
                 !TryString(root, "PayloadSha256", out string? digest) ||
@@ -100,6 +101,27 @@ public static class BridgeSidecarCodecV1
         {
             document.Dispose();
             throw;
+        }
+    }
+
+    // Exact-property semantics are required before schema/status/digest admission.
+    // JsonDocument.TryGetProperty otherwise allows a last-key-wins ambiguity.
+    private static void RejectDuplicateMembers(JsonElement value)
+    {
+        if (value.ValueKind == JsonValueKind.Object)
+        {
+            var names = new HashSet<string>(StringComparer.Ordinal);
+            foreach (JsonProperty property in value.EnumerateObject())
+            {
+                if (!names.Add(property.Name))
+                    throw new ArgumentException("Duplicate sidecar JSON property: " + property.Name);
+                RejectDuplicateMembers(property.Value);
+            }
+        }
+        else if (value.ValueKind == JsonValueKind.Array)
+        {
+            foreach (JsonElement child in value.EnumerateArray())
+                RejectDuplicateMembers(child);
         }
     }
 

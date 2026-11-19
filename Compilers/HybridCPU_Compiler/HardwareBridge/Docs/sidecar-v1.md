@@ -17,3 +17,8 @@ Serialization is in declared record/anonymous-property order, using default `Sys
 **CircuitWeave integration:** treat the sidecar as a diagnostic source, not as a `BindingLock` or proof. A separate CircuitWeave owner must bind exact manifest/source/PDB/reference closure, evaluate hardware attributes through its resolver, import candidates into its own hardware frontend, and run independent verification ladder/tool/target evidence. Neither this sidecar nor Golden vector agreement can confer `AcceptedRtl`, `Verified`, correct hardware timing, reset, clock, memory or formal status.
 
 **Known limitations:** one-process execution of an explicitly trusted delegate cannot be sandboxed/preempted; transitive runtime helper calls, source-less dependencies, stateful/heap/native/EH cases and any ambiguous method closure remain unsupported. Missing external build prerequisites or SDK are blockers, not successful test results.
+
+
+## Opt-in v2 migration (HB-INT-03)
+
+The v1 wire format and digest preimage above remain unchanged. An independent Core-compatible segmented JSONL transport (`circuitweave.bridge-source-closure-index/v2`) and a **separate**, not-yet-Core-qualified Bridge compiler provenance envelope (`hybridcpu.hardwarebridge.provenance-index/v2`) are available as opt-in codecs only. See [HB_INT_03_V2_Interchange.md](HB_INT_03_V2_Interchange.md). Do not treat v2 checksum/Companion Candidate as binding verification or change the default without paired CW-INT-03/04 reader review.

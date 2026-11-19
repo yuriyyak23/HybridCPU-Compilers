@@ -69,6 +69,8 @@ public sealed record BridgeSourceSnapshotV1(
             Roots.Any(r => r is null || string.IsNullOrWhiteSpace(r.TypeName) ||
                 string.IsNullOrWhiteSpace(r.MethodName) || r.TypeArguments is null ||
                 r.MethodArguments is null || r.TypeArguments.Count > 8 || r.MethodArguments.Count > 8) ||
+            Roots.Select(r => Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(r))))
+                .Distinct(StringComparer.Ordinal).Count() != Roots.Count ||
             Documents.Sum(d => (long)d.Utf8Bytes) + References.Sum(r => (long)r.Bytes) > MaxTotalBytes)
             return false;
         return string.Equals(SnapshotDigest, Hash(JsonSerializer.SerializeToUtf8Bytes(new

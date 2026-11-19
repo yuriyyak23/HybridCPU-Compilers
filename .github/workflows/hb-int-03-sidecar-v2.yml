@@ -1,0 +1,45 @@
+name: HB-INT-03 strict sidecar v2 (unqualified)
+on:
+  pull_request:
+    paths:
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/**'
+      - '.github/workflows/hb-int-03-sidecar-v2.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  bridge-v2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '11.0.100-rc.2.26504.105'
+          dotnet-quality: preview
+      - name: Real SDK, restore, regression and companion build
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          cd Compilers/HybridCPU_Compiler/HardwareBridge
+          # Pin exact prerelease SDK: runner also carries newer 11.0.100.
+          printf '%s\n' '{"sdk":{"version":"11.0.100-rc.2.26504.105","rollForward":"disable","allowPrerelease":true}}' > global.json
+          dotnet --info
+          test "$(dotnet --version)" = '11.0.100-rc.2.26504.105'
+          run_logged() {
+            local name="$1"; shift
+            set +e
+            "$@" 2>&1 | tee "$RUNNER_TEMP/$name.log"
+            local rc="$?"
+            set -e
+            sha256sum "$RUNNER_TEMP/$name.log"
+            echo "$name exit=$rc"
+            return "$rc"
+          }
+          run_logged v2-restore dotnet restore Tests/HardwareBridge.V2.ContractTests.csproj
+          run_logged v2-contract dotnet run --no-restore --project Tests/HardwareBridge.V2.ContractTests.csproj -c Release
+          # Parent software compiler compile-only regression may be independently blocked
+          # by pre-existing HybridCPU.Compiler.Core.IR.Artifacts missing types.
+          run_logged integration-restore dotnet restore Tests/HardwareBridge.SelfTests.csproj
+          run_logged integration-selftests dotnet run --no-restore --project Tests/HardwareBridge.SelfTests.csproj -c Release
+          run_logged companion dotnet build --no-restore HardwareBridge.Companion.csproj -c Release
