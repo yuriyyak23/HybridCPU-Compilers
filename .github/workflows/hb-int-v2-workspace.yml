@@ -1,0 +1,49 @@
+name: HB-INT v2 owned byte workspace (unqualified)
+on:
+  pull_request:
+    paths:
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/SourceSnapshot/BridgeV2OwnedWorkspacePublisher.cs'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/BridgeV2OwnedWorkspaceTests.cs'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/HardwareBridge.V2.ContractTests.csproj'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/BridgeIndexV2TestHost.cs'
+      - '.github/workflows/hb-int-v2-workspace.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  isolated-v2-real-disk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '11.0.100-rc.2.26504.105'
+      - name: Exact SDK, actual compile and filesystem regressions
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          mkdir -p "$RUNNER_TEMP/hb-v2-sdk"
+          cd "$RUNNER_TEMP/hb-v2-sdk"
+          # Never write global.json or build outputs under the Golden source tree.
+          printf '%s\n' '{"sdk":{"version":"11.0.100-rc.2.26504.105","rollForward":"disable","allowPrerelease":true}}' > global.json
+          dotnet --info
+          test "$(dotnet --version)" = '11.0.100-rc.2.26504.105'
+          project="$GITHUB_WORKSPACE/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/HardwareBridge.V2.ContractTests.csproj"
+          output="$RUNNER_TEMP/hb-v2-artifacts"
+          logged() {
+            local name="$1"; shift
+            set +e
+            "$@" 2>&1 | tee "$RUNNER_TEMP/$name.log"
+            local rc="$?"
+            set -e
+            sha256sum "$RUNNER_TEMP/$name.log"
+            echo "$name exit=$rc"
+            return "$rc"
+          }
+          logged restore dotnet restore "$project" -p:ArtifactsPath="$output"
+          logged build dotnet build "$project" --no-restore -c Release -p:ArtifactsPath="$output"
+          logged contract dotnet run --project "$project" --no-build --no-restore -c Release -p:ArtifactsPath="$output"
+          echo 'Compiled source-only test binaries:'
+          find "$output" -type f \( -name '*ContractTests*.dll' -o -name '*ContractTests*.pdb' \) -exec sha256sum {} \;
+          git -C "$GITHUB_WORKSPACE" diff --exit-code -- Compilers/HybridCPU_Compiler/HardwareBridge/GoldenOracle Compilers/HybridCPU_Compiler/HardwareBridge/SourceSnapshot

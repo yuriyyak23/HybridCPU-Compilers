@@ -7,6 +7,7 @@ internal static class BridgeIndexV2TestHost
         try
         {
             BridgeIndexV2Tests.Run();
+            BridgeV2OwnedWorkspaceTests.Run();
             return 0;
         }
         catch (Exception error)

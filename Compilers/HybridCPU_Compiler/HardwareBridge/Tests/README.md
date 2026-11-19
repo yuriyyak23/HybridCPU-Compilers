@@ -75,6 +75,11 @@ This .NET 11-only project compiles the actual production snapshot, fixed AddWord
 
 `BridgeIndexV2Tests.Run()` now also covers graph/root/PE/PDB internal-consistency refusals on synthetic Candidate payloads. Run the isolated production codec host with `dotnet run --project Compilers/HybridCPU_Compiler/HardwareBridge/Tests/HardwareBridge.V2.ContractTests.csproj -c Release`. Results are software contract tests only and do **not** waive the independently failing Companion Csc build; see [policy](../Docs/HB_INT_03_Candidate_Graph_Coherence.md).
 
+
+## HB-INT-02/03/06: real owned temp v2 publisher regression
+
+The isolated v2 .NET 11 contract executable now also runs `BridgeV2OwnedWorkspaceTests` using real filesystem IO against a **synthetic** source tree. It stages an exact Core-compatible index, JSONL chunks and source/reference bytes in a newly owned OS-temp folder; checks SHA-256 before/after and rejects stale/missing/linked sources, invalid origins, cancelled publication and output path collisions. It does not run Csc/Golden, qualify any hardware owner or replace the paired Core importer. See [publisher migration](../Docs/HB_INT_V2_Owned_Workspace_Publishing.md). On CI use the isolated `hb-int-v2-workspace.yml` workflow; full Companion and Golden/CI gates remain independent.
+
 ## HB-INT-04 source-bound vector contract (opt-in, no Core compiler dependency)
 
 ```sh

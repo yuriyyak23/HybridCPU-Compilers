@@ -1,0 +1,31 @@
+name: HB-INT-02 to Core v2 transport projection
+on:
+  pull_request:
+    paths:
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/project_csc_to_core_v2.py'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/test_project_csc_to_core_v2.py'
+      - '.github/workflows/hb-int-02-core-v2-projection.yml'
+  push:
+    branches:
+      - feat/hb-int-02-core-v2-capture-projection
+permissions:
+  contents: read
+jobs:
+  projection:
+    name: Producer-only byte contract; not Core independent qualification
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Python version
+        run: python3 --version
+      - name: First bounded projection and negative/mutation run
+        shell: bash
+        run: |
+          set -o pipefail
+          python3 -m unittest -v Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/test_project_csc_to_core_v2.py 2>&1 | tee "$RUNNER_TEMP/hb02-projection-first.log"
+      - name: Second independent rerun
+        shell: bash
+        run: |
+          set -o pipefail
+          python3 -m unittest -v Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/test_project_csc_to_core_v2.py 2>&1 | tee "$RUNNER_TEMP/hb02-projection-repeat.log"
