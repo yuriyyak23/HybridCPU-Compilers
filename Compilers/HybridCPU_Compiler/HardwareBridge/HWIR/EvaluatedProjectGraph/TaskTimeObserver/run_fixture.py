@@ -130,6 +130,11 @@ def run():
         for idx, event in enumerate(events):
             print("toy live Csc event " + str(idx) + " command prefix=" +
                   repr(event["CommandLine"][:512]), flush=True)
+            import shlex
+            tokens = shlex.split(event["CommandLine"])
+            switches = sorted({t.split(":", 1)[0].lower() for t in tokens
+                               if re.match(r"^/[A-Za-z][A-Za-z0-9+\-]*(?::|$)", t)})
+            print("toy Csc observed option names: " + ",".join(switches), flush=True)
         output = Path(tempfile.gettempdir()) / ("hb-task-capture-" + temp.name)
         graph = Path(tempfile.gettempdir()) / ("hb-task-graph-" + temp.name + ".json")
         obs = Path(tempfile.gettempdir()) / ("hb-task-obs-" + temp.name + ".json")
