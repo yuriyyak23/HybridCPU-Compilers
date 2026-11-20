@@ -4,6 +4,7 @@ on:
     paths:
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/paired_csc_no_write.py'
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/test_paired_csc_no_write.py'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/test_segmented_csc_capture_v2.py'
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/segmented_csc_capture_v2.py'
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/Docs/HB_INT_02_Paired_No_Write.md'
       - '.github/workflows/hb-int-02-paired-no-write.yml'
@@ -33,6 +34,7 @@ jobs:
         id: synthetic
         shell: bash
         run: |
+          set +e
           set -uo pipefail
           logfile="$RUNNER_TEMP/hb02-paired-synthetic.log"
           python3 -m unittest -v \
@@ -45,6 +47,9 @@ jobs:
           sha256sum "$logfile"
           echo "R1_01_EXECUTED_CSC=Blocked (not provided/attested in this job)"
           echo "GOLDEN_CLEAN_DIRTY=NotRun (no authorized separate snapshots)"
+          echo "R1_02_EXTERNAL_EVENT=NotRun (no real approved R1-01 witness)"
+          echo "R1_02_CORE_IMPORT=NotRun (Core-owned authority)"
+          echo "R1_02_PRODUCTION=Blocked (no approved Golden snapshots)"
           exit "$raw_exit"
       - name: Upload ONLY synthetic test log, never source/chunk/receipt workspaces
         if: always()
@@ -53,3 +58,27 @@ jobs:
           name: hb02-paired-synthetic-log
           path: '${{ runner.temp }}/hb02-paired-synthetic.log'
           if-no-files-found: error
+
+  windows-synthetic:
+    name: Windows Python 3.12 synthetic closure/no-write (no Golden)
+    runs-on: windows-2025
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Windows interpreter and bounded synthetic regression
+        shell: pwsh
+        run: |
+          & py -3.12 --version
+          $log = Join-Path $env:RUNNER_TEMP 'hb02-windows-synthetic.log'
+          & py -3.12 -m unittest -v Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/test_segmented_csc_capture_v2.py Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/test_paired_csc_no_write.py *> $log
+          $exitCode = $LASTEXITCODE
+          Get-Content $log
+          $hash = (Get-FileHash -LiteralPath $log -Algorithm SHA256).Hash.ToLowerInvariant()
+          Write-Host "HB02_SYNTHETIC_WINDOWS_EXIT=$exitCode"
+          Write-Host "HB02_SYNTHETIC_WINDOWS_COMBINED_LOG_SHA256=$hash"
+          Write-Host 'R1_01_TRUE_EXECUTION=Blocked'
+          Write-Host 'GOLDEN_CAPTURE=NotRun'
+          Write-Host 'CORE_INDEPENDENT_VERIFIER=NotRun'
+          exit $exitCode

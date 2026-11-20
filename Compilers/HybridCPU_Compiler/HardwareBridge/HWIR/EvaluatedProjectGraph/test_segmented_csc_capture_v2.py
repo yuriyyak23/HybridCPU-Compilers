@@ -218,6 +218,57 @@ class ClosureTests(unittest.TestCase):
         self.assertEqual(len([r for r in index["entries"] if r["kind"] == "csc-source"]), 1001)
         self.assertLess((Path(base)/"index.json").stat().st_size, c.MAX_INDEX)
 
+    def test_strict_json_duplicate_and_nonstandard_constant(self):
+        original = self.observation_path.read_bytes()
+        self.observation_path.write_bytes(original.replace(
+            b'"projects":', b'"projects":[],"projects":', 1))
+        with self.assertRaisesRegex(ValueError, "duplicate JSON property"):
+            c.build_inputs(str(self.graph_path), str(self.observation_path), str(self.golden))
+        self.observation_path.write_bytes(original.replace(
+            b'"projects":', b'"unexpected":NaN,"projects":', 1))
+        with self.assertRaisesRegex(ValueError, "nonstandard JSON constant"):
+            c.build_inputs(str(self.graph_path), str(self.observation_path), str(self.golden))
+
+    def test_traversal_and_hardlink_not_isolated(self):
+        with self.assertRaisesRegex(ValueError, "noncanonical/traversing"):
+            c.safe_path(str(self.golden / "sub" / ".." / "A.cs"))
+        project = self.observation["projects"][0]
+        project["sources"][0]["path"] = str(self.copy / "sub" / ".." / "A.cs")
+        self.save()
+        with self.assertRaisesRegex(ValueError, "noncanonical/traversing"):
+            c.build_inputs(str(self.graph_path), str(self.observation_path), str(self.golden))
+        project["sources"][0]["path"] = str(self.source)
+        self.save()
+        self.source.unlink()
+        import os
+        try:
+            os.link(self.original, self.source)
+        except OSError:
+            self.skipTest("hardlinks not available")
+        with self.assertRaisesRegex(ValueError, "hardlink/alias"):
+            c.build_inputs(str(self.graph_path), str(self.observation_path), str(self.golden))
+
+    def test_full_byte_identity_not_filename(self):
+        other = self.copy / "DifferentName.cs"
+        other.write_bytes(self.source.read_bytes())
+        self.assertEqual(c.hash_file(self.source), c.hash_file(other))
+
+    def test_same_size_mid_read_restore_is_refused(self):
+        from unittest import mock
+        source = self.source
+        original = source.read_bytes()
+        stable_open = c.stable_open
+        def mutate_after_open(path):
+            result = stable_open(path)
+            if str(path) == str(source):
+                source.write_bytes(b"X" * len(original))
+                source.write_bytes(original)
+            return result
+        with mock.patch.object(c, "stable_open", side_effect=mutate_after_open):
+            with self.assertRaisesRegex(ValueError, "concurrent file mutation"):
+                c.hash_file(source)
+
+
 
 if __name__ == "__main__":
     unittest.main()
