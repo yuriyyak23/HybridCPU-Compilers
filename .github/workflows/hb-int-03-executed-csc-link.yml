@@ -1,0 +1,75 @@
+name: HB-INT-03 actual isolated Csc PE-PDB method linkage
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/CompilerFacts/BridgeExecutedCscLinkV1.cs'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CscLinkFixture/**'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/Docs/HB_INT_03_Executed_Csc_Link.md'
+      - '.github/workflows/hb-int-03-executed-csc-link.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  actual-csc-fixture:
+    name: pinned SDK actual Csc -> PE/PDB -> metadata/PDB mutation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '11.0.100-rc.2.26504.105'
+          dotnet-quality: preview
+      - name: Execute pinned actual Csc fixture in isolated runner temp
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          sdk='11.0.100-rc.2.26504.105'
+          work="$RUNNER_TEMP/hb-int-03-csc-link"
+          mkdir -p "$work/obj" "$work/bin"
+          printf '%s\n' '{"sdk":{"version":"11.0.100-rc.2.26504.105","rollForward":"disable","allowPrerelease":true}}' > "$work/global.json"
+          cd "$work"
+          echo "actual SDK=$(dotnet --version) available SDKs:"
+          dotnet --list-sdks
+          test "$(dotnet --version)" = "$sdk"
+          csc="$DOTNET_ROOT/sdk/$sdk/Roslyn/bincore/csc.dll"
+          echo "actual CSC=$csc"
+          test -f "$csc"
+          export HB_CSC_PATH="$csc"
+          export HB_SDK_VERSION="$sdk"
+          echo "SDK=$sdk RUN_SHA=$GITHUB_SHA"
+          dotnet --info
+          project="$GITHUB_WORKSPACE/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CscLinkFixture/HardwareBridge.CscLink.FixtureTests.csproj"
+          set +e
+          dotnet restore "$project" -p:ArtifactsPath="$work" 2>&1 | tee "$work/restore.log"
+          restore_exit=${PIPESTATUS[0]}
+          set -e
+          sha256sum "$work/restore.log"
+          echo "restore-exit=$restore_exit"
+          test "$restore_exit" -eq 0
+          set +e
+          dotnet build "$project" -c Release --no-restore -p:ArtifactsPath="$work" 2>&1 | tee "$work/build.log"
+          build_exit=${PIPESTATUS[0]}
+          set -e
+          sha256sum "$work/build.log"
+          echo "build-exit=$build_exit"
+          test "$build_exit" -eq 0
+          set +e
+          dotnet "$work/bin/HardwareBridge.CscLink.FixtureTests/HardwareBridge.CscLink.FixtureTests.dll" 2>&1 | tee "$work/fixture.log"
+          fixture_exit=${PIPESTATUS[0]}
+          set -e
+          sha256sum "$work/fixture.log"
+          echo "fixture-exit=$fixture_exit"
+          test "$fixture_exit" -eq 0
+      - name: Confirm Golden and tracked source no-write
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          git diff --exit-code
+          test -z "$(git status --porcelain --untracked-files=normal)"
+          echo 'PASS: tracked checkout unchanged (fixture writes only runner TEMP)'
+          echo 'BLOCKED: real Golden executed Csc event, Companion facts, Core reader'
+          echo 'NOTRUN: RTL and physical qualification'
