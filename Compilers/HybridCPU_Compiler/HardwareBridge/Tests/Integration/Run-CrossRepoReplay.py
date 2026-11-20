@@ -292,6 +292,11 @@ def main(args):
                 (logs / "dotnet-version.stdout.bin").read_text().strip() == args.sdk,
                 "wrong or missing pinned .NET SDK")
         isolated = out / "isolated-source"; clean_copy(golden, isolated)
+        isolated_tree = byte_tree_inventory(isolated)
+        receipt["isolatedSourceInventory"] = isolated_tree
+        require(isolated_tree == {key: before[key] for key in
+                ("files", "bytes", "inventorySha256")},
+                "isolated source copy does not match exact original Golden inventory")
         # Never silently treat a pre-written graph/observation as a Csc execution receipt.
         if args.observer_argv:
             cmd = json_file(args.observer_argv)
