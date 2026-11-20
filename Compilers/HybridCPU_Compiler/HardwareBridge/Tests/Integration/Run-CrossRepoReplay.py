@@ -139,7 +139,7 @@ def byte_tree_inventory(root):
             file = Path(current) / name
             require(file.is_file(), "nonregular staged input")
             relative = file.relative_to(root).as_posix()
-            require("\\t" not in relative and "\\n" not in relative, "noncanonical staged path")
+            require("\t" not in relative and "\n" not in relative, "noncanonical staged path")
             digest, size = sha_file(file)
             count += 1
             total += size
@@ -147,7 +147,7 @@ def byte_tree_inventory(root):
             rows.append((relative, size, digest.upper()))
     h = hashlib.sha256()
     for name, size, digest in sorted(rows):
-        h.update(f"{name}\\t{size}\\t{digest}\\n".encode("utf-8"))
+        h.update(f"{name}\t{size}\t{digest}\n".encode("utf-8"))
     return {"files": count, "bytes": total, "inventorySha256": h.hexdigest()}
 
 
@@ -403,13 +403,11 @@ def main(args):
         response = json_file(out / "core-reader-result.json")
         require(response.get("state") == "Candidate" and
                 response.get("code") == "CWINT03_V2_UNQUALIFIED_CLOSURE" and
-                response.get("indexSha256") == digest and response.get("closureSha256") == closure and
-                isinstance(response.get("rows"), int) and response["rows"] >= 1001
-                if args.scope == "fixture" else
-                response.get("state") == "Candidate" and
-                response.get("code") == "CWINT03_V2_UNQUALIFIED_CLOSURE" and
                 response.get("indexSha256") == digest and response.get("closureSha256") == closure,
                 "Core reader did not return pinned unqualified candidate receipt")
+        if args.scope == "fixture":
+            require(isinstance(response.get("rows"), int) and response["rows"] >= 1001,
+                    "Core reader did not import all 1001+ staged fixture rows")
         receipt["coreReader"] = response
         receipt["negativeCoreMatrix"] = []
         if args.scope == "fixture":
