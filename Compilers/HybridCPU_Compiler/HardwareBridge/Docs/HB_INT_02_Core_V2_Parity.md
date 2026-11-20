@@ -190,3 +190,43 @@ record both pinned fixture digests and the first differing byte and open an
 R2-01 dependency; never edit its Python production code here. Any incompatible
 wire migration requires a separately approved schema version and a Core owner.
 No PR or modification in the private CircuitWeave repository is part of R2-03.
+
+
+### Frozen release-wire contract fixture (after real CRLF correction)
+
+The checked-in `Tests/CscCoreV2Parity/r203_release_wire_driver.py` now pins
+these **raw** expected SHA-256 values from the existing actual Ubuntu
+production-release-stager / compiled C# codec pairing:
+[run 44836465436](https://github.com/yuriyyak23/HybridCPU-Compilers/actions/runs/44836465436),
+job `136633980695`, actual `exit=0` for all positive and refusal checks.
+They are compared as immutable expectations; the driver does **not** derive
+expected values by copying the output it is inspecting. The digest of the
+concatenated JSONL is the existing `ClosureSha256` contract, not a hash of
+the original input byte content.
+
+| Primary source rows | index.json SHA256 | concatenated raw JSONL SHA256 |
+| ---: | --- | --- |
+| 1 | `A8C40E8EAAC55B9DDBD78A56635D6567FDDFA277A7714F80BA02267202CB7131` | `D7021F54A9BD835E933DB7C5D71463B67D135E72462256079CF1A40AD8A9319E` |
+| 64 | `5368902CD828E7CC2CA4F782B2D445624F5CBD608B14345D5ABA998389F4EF20` | `826EDFB86D85322CDB821C6F849BA0F5BD134D24B3DD580FA38835AFC8B0BB4A` |
+| 65 | `2C97DB17A3579BB50A834C4524298DFDAE97EF56C44F24F27FEA749145E792C2` | `2E39298B7F1B063A8ABE814033C1E7F568A67350C5231307CD0B36709BFCD885` |
+| 1001 | `5FF353C3293D50A1774AA62B1C0D35D5BDA20995DFE30E486533F62AC42C28D5` | `27F42F514ABEB3B4B1B28E53515A8099C02D58A7AA8AF6EFEE6E1B2E0118962C` |
+
+Root-selector manifest SHA256 (all four):
+`CF02F40E130BF1F63A105962A2BFEA74BC0628B8CEC721B1C69F82EB26D4D9DD`.
+Rows shown are **primary source counts**; the transport additionally includes
+metadata and, for count 65, an owned-body claim; JSONL descriptor row counts
+and sizes are asserted by the existing codec and release verifier.
+
+On that corrected-CRLF Ubuntu run, compiled synthetic test host DLL SHA256:
+`AB52766D4B080FEF8B2B8CEB3C48C29B630F879E6D06669247AE096447BCA3EB`;
+positive driver log combined SHA256:
+`D3128D52D683BB973825A2DECF828FA8101DD3BDD1937323CC79890B29ED11E3`.
+This is a reviewed **synthetic fixture**, not any actual Golden software
+compiler PE/PDB or independently reviewed Golden closure. A change to one of
+these frozen SHA values must be explicitly reviewed as a deliberate fixture
+transition, not auto-updated or silently relaxed.
+
+The later R2-03 PR head adds explicit hash reporting for the **test**
+PDB and the pinned SDK's Roslyn compiler DLL; these are distinct identities
+from any real executed Golden compiler PE/PDB and have not been substituted
+for such evidence.
