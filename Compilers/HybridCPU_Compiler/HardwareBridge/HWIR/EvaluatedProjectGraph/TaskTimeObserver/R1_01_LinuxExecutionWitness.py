@@ -239,7 +239,13 @@ def verify(trace_dir, *, launch_cwd, launch_argv, compiler, event_argv, expected
         elif kind == "exec":
             if pid not in fs_group:
                 refuse("OS process without parent proof")
-            witnessed_cwd[(pid, stamp)] = group_cwd[fs_group[pid]]
+            current = group_cwd[fs_group[pid]]
+            witnessed_cwd[(pid, stamp)] = current
+            # Linux execve unshares CLONE_FS. Preserve the inherited cwd,
+            # but subsequent chdir in this process must not change siblings.
+            private_group = ("exec", pid, stamp)
+            fs_group[pid] = private_group
+            group_cwd[private_group] = current
 
     csc = []
     for pid, rows in executions.items():
