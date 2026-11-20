@@ -107,11 +107,23 @@ def _parse_trace(trace_dir):
             lines = file.read_text(encoding="utf-8", errors="strict").splitlines()
         except UnicodeError:
             refuse("trace is not UTF-8")
+        pending = None
         for row in lines:
             m = LINE.fullmatch(row)
             if not m:
                 refuse("unparsed syscall row / missing timestamp")
             stamp, payload = m.groups()
+            if payload.endswith(" <unfinished ...>"):
+                if pending is not None:
+                    refuse("nested unfinished strace syscall")
+                pending = payload[:-len(" <unfinished ...>")]
+                continue
+            if payload.startswith("<... "):
+                resumed = re.fullmatch(r"<\.\.\. (\w+) resumed>(.*)", payload)
+                if pending is None or resumed is None or not pending.startswith(resumed.group(1) + "("):
+                    refuse("unmatched resumed strace syscall")
+                payload = pending + resumed.group(2)
+                pending = None
             if payload.startswith("execveat(") or payload.startswith("fchdir("):
                 refuse("execveat/fchdir unsupported without independent fd tracking")
             if payload.startswith("execve(") and not payload.endswith("= 0"):
@@ -148,6 +160,8 @@ def _parse_trace(trace_dir):
                     refuse("signalled/ambiguous process exit")
             if len(all_events) > MAX_EVENTS:
                 refuse("syscall event budget exceeded")
+        if pending is not None:
+            refuse("incomplete syscall at trace EOF")
     return all_events, file_hashes, {int(PID_FILE.fullmatch(x.name).group(1)) for x in files}
 
 
@@ -171,14 +185,15 @@ def verify(trace_dir, *, launch_cwd, launch_argv, compiler, event_argv, expected
     chdirs = {}
     executions = {}
     exits = {}
-    shared_fs = False
+    shared_fs_pids = set()
     for stamp, pid, kind, value in events:
         if kind == "fork":
             child, shared = value
             if child in births or child == pid:
                 refuse("ambiguous duplicated process ancestry")
             births[child] = (pid, stamp)
-            shared_fs |= shared
+            if shared:
+                shared_fs_pids.update((pid, child))
         elif kind == "chdir":
             chdirs.setdefault(pid, []).append((stamp, value))
         elif kind == "exec":
@@ -187,7 +202,7 @@ def verify(trace_dir, *, launch_cwd, launch_argv, compiler, event_argv, expected
             if pid in exits:
                 refuse("duplicate process exits")
             exits[pid] = value
-    if shared_fs and chdirs:
+    if any(pid in shared_fs_pids for pid in chdirs):
         refuse("CLONE_FS shared cwd mutation not representable in bounded parser")
     if any(child not in pids or parent not in pids for child, (parent, _) in births.items()):
         refuse("incomplete fork ancestry")
