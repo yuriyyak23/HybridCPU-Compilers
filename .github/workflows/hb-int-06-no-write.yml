@@ -1,4 +1,4 @@
-name: HB-INT-06 standalone source-no-write contracts (NOT RTL qualification)
+name: HB-INT-06 pinned Core import QA (unqualified software contracts)
 on:
   pull_request:
     paths:
@@ -16,33 +16,43 @@ permissions:
 
 jobs:
   standalone-only:
-    name: Windows .NET 11 Bridge + synthetic mutation + pinned Golden no-write
+    name: Windows .NET 11 Bridge + mutation + pinned Golden no-write
     runs-on: windows-2025
+    timeout-minutes: 35
     steps:
-      - name: Checkout exact Bridge commit
-        uses: actions/checkout@v4
+      - name: Checkout exact Bridge commit without persisted credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           path: bridge
           ref: '${{ github.event.pull_request.head.sha || github.sha }}'
           persist-credentials: false
-      - name: Checkout Golden at pinned immutable SHA (source only)
-        uses: actions/checkout@v4
+          submodules: false
+          lfs: false
+      - name: Checkout pinned Golden (read-only source)
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: yuriyyak23/HybridCPU-v2
           ref: 6946ccab9d888f7dae0a4d8e18480f436138acd9
           path: golden
           persist-credentials: false
-      - name: Install pinned .NET 11 SDK (same SDK as Core global.json)
-        uses: actions/setup-dotnet@v4
+          submodules: false
+          lfs: false
+      - name: No-secret Core gate negative tests (synthetic repo only)
+        shell: pwsh
+        run: |
+          & (Join-Path $env:GITHUB_WORKSPACE 'bridge/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/HbInt06.CoreGate.ps1') -Mode SelfTest
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Install exact .NET SDK
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9
         with:
           dotnet-version: 11.0.100-rc.2.26504.105
-      - name: Exact source hash and real standalone contract tests
+      - name: Bridge contract tests, source audit and bounded mutation tests
         shell: pwsh
         env:
           HB_BRIDGE_SHA: '${{ github.event.pull_request.head.sha || github.sha }}'
         run: |
           $script = Join-Path $env:GITHUB_WORKSPACE 'bridge/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/Run-HbInt06.ps1'
-          $args = @{
+          $arguments = @{
             BridgeRoot = (Join-Path $env:GITHUB_WORKSPACE 'bridge')
             ExpectedBridgeSha = $env:HB_BRIDGE_SHA
             GoldenRoot = (Join-Path $env:GITHUB_WORKSPACE 'golden')
@@ -50,77 +60,145 @@ jobs:
             ExpectedSdkVersion = '11.0.100-rc.2.26504.105'
             OutputRoot = (Join-Path $env:RUNNER_TEMP 'hb-int-06-standalone')
           }
-          & $script @args
+          & $script @arguments
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Upload scope-limited raw receipts even on failure
+      - name: Upload Bridge-only raw receipts for existing standalone diagnostics
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: hb-int-06-standalone-raw
           path: '${{ runner.temp }}/hb-int-06-standalone'
           if-no-files-found: warn
+          retention-days: 3
 
   paired-core-contract:
-    # Scoped Core-owned import tests, not end-to-end Producer->Core admission.
-    # Real cross-repo qualification and Golden/Csc evidence remain Blocked.
+    # The private Core credential is NEVER injected into pull_request jobs.
+    # PR check intentionally fails Blocked; run on trusted master push/dispatch
+    # after owner configures a read-only single-repository Core credential.
     name: Pinned Core importer contract host (NOT source qualification)
     runs-on: windows-2025
+    timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Bridge from immutable event SHA
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           path: bridge
           ref: '${{ github.event.pull_request.head.sha || github.sha }}'
           persist-credentials: false
-      - uses: actions/checkout@v4
+          submodules: false
+          lfs: false
+      - name: No-secret pin and event preflight; fail Blocked, never skip green
+        shell: pwsh
+        env:
+          HB_BRIDGE_SHA: '${{ github.event.pull_request.head.sha || github.sha }}'
+          # No credential is even evaluated on PR runs.
+          HB_CORE_READ_TOKEN: "${{ ((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/master') && secrets.HB_INT_06_CORE_READ_TOKEN || '' }}"
+        run: |
+          $gate = Join-Path $env:GITHUB_WORKSPACE 'bridge/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/HbInt06.CoreGate.ps1'
+          & $gate -Mode Preflight -ExpectedBridgeSha $env:HB_BRIDGE_SHA -ExpectedCoreSha '18caf04768df6abf31f5517dbb489e7fea2e1c7e'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Checkout private Core at exact pinned commit with read-only credential
+        id: core_checkout
+        continue-on-error: true
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: yuriyyak23/CircuitWeave
+          ref: 18caf04768df6abf31f5517dbb489e7fea2e1c7e
+          token: "${{ ((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/master') && secrets.HB_INT_06_CORE_READ_TOKEN || '' }}"
+          path: core
+          fetch-depth: 0
+          persist-credentials: false
+          submodules: false
+          lfs: false
+      - name: Verify private checkout, full history, exact SHA and published Core test project
+        shell: pwsh
+        env:
+          HB_CORE_CHECKOUT_OUTCOME: '${{ steps.core_checkout.outcome }}'
+        run: |
+          $gate = Join-Path $env:GITHUB_WORKSPACE 'bridge/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/HbInt06.CoreGate.ps1'
+          & $gate -Mode Checkout -CheckoutOutcome $env:HB_CORE_CHECKOUT_OUTCOME -CoreRoot (Join-Path $env:GITHUB_WORKSPACE 'core') -ExpectedCoreSha '18caf04768df6abf31f5517dbb489e7fea2e1c7e'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Checkout independent pinned Golden source (no compiler/build in checkout)
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: yuriyyak23/HybridCPU-v2
           ref: 6946ccab9d888f7dae0a4d8e18480f436138acd9
           path: golden
           persist-credentials: false
-      - name: Confirm explicit read-only Core token (fail closed, not a skipped PASS)
-        shell: pwsh
-        env:
-          HB_CORE_READ_TOKEN: ${{ secrets.HB_INT_06_CORE_READ_TOKEN }}
-        run: |
-          if ([string]::IsNullOrWhiteSpace($env:HB_CORE_READ_TOKEN)) {
-            Write-Error 'BLOCKED HB-INT-06: cross-repo Core read token is absent. Configure HB_INT_06_CORE_READ_TOKEN with read-only access; no Core importer test was executed.'
-            exit 2
-          }
-      - uses: actions/checkout@v4
-        with:
-          repository: yuriyyak23/CircuitWeave
-          ref: 21706d19ede6a1ff87230fa2e41071f4f32d72a7
-          token: ${{ secrets.HB_INT_06_CORE_READ_TOKEN }}
-          path: core
-          persist-credentials: false
-      - uses: actions/setup-dotnet@v4
+          submodules: false
+          lfs: false
+      - name: Install exact .NET 11 SDK
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9
         with:
           dotnet-version: 11.0.100-rc.2.26504.105
-      - name: Run actual Core importer smoke only with published pinned test project
+      - name: Execute Bridge v1/v2/Companion and actual pinned Core CW-INT-03 reader contract
         shell: pwsh
         env:
           HB_BRIDGE_SHA: '${{ github.event.pull_request.head.sha || github.sha }}'
-          HB_CORE_PROJECT: 'tests/CircuitWeave.CWINT03.BridgeImport/CircuitWeave.CWINT03.BridgeImport.csproj'
         run: |
           $script = Join-Path $env:GITHUB_WORKSPACE 'bridge/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/Run-HbInt06.ps1'
-          $args = @{
+          $arguments = @{
             BridgeRoot = (Join-Path $env:GITHUB_WORKSPACE 'bridge')
             ExpectedBridgeSha = $env:HB_BRIDGE_SHA
             GoldenRoot = (Join-Path $env:GITHUB_WORKSPACE 'golden')
             ExpectedGoldenSha = '6946ccab9d888f7dae0a4d8e18480f436138acd9'
             CoreRoot = (Join-Path $env:GITHUB_WORKSPACE 'core')
-            ExpectedCoreSha = '21706d19ede6a1ff87230fa2e41071f4f32d72a7'
-            CoreImporterProject = $env:HB_CORE_PROJECT
+            ExpectedCoreSha = '18caf04768df6abf31f5517dbb489e7fea2e1c7e'
+            CoreImporterProject = 'tests/CircuitWeave.CWINT03.BridgeImport/CircuitWeave.CWINT03.BridgeImport.csproj'
+            ExpectedSdkVersion = '11.0.100-rc.2.26504.105'
             OutputRoot = (Join-Path $env:RUNNER_TEMP 'hb-int-06-paired')
             RequirePaired = $true
-            CoreOnly = $true
           }
-          & $script @args
+          # Deliberately NOT CoreOnly: execute both sets; a failed Companion is not masked.
+          & $script @arguments
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Upload paired raw receipts
+      - name: Emit allowlisted no-source/no-secret paired QA summary
         if: always()
-        uses: actions/upload-artifact@v4
+        shell: pwsh
+        run: |
+          $dest = Join-Path $env:RUNNER_TEMP 'hb-int-06-paired-summary'
+          New-Item -Path $dest -ItemType Directory -Force | Out-Null
+          $receipt = Join-Path $env:RUNNER_TEMP 'hb-int-06-paired/hb-int-06-qa-receipt.json'
+          if (Test-Path -LiteralPath $receipt -PathType Leaf) {
+            $r = Get-Content -LiteralPath $receipt -Raw | ConvertFrom-Json
+            $commands = @($r.Commands | ForEach-Object {
+              [ordered]@{
+                Name = $_.Name; Status = $_.Status; ExitCode = $_.ExitCode
+                Arguments = @($_.Arguments)
+                ExecutableSha256 = $_.ExecutableSha256
+                StdoutSha256 = $_.StdoutSha256; StderrSha256 = $_.StderrSha256
+              }
+            })
+            $safe = [ordered]@{
+              Schema = 'hb-int-06-ci-public-summary/v1'
+              Scope = 'Unqualified software-only contract tests; NOT Golden/RTL qualification'
+              BridgeHead = $r.BridgeHead; CoreHead = $r.CoreHead; GoldenHead = $r.GoldenHead
+              SdkVersion = $r.ExpectedSdkVersion
+              GoldenBeforeTreeSha256 = $r.GoldenBefore.TreeSha256
+              GoldenAfterTreeSha256 = $r.GoldenAfter.TreeSha256
+              GoldenSourceUnchanged = $r.SourceUnchanged
+              CoreBeforeTreeSha256 = $r.CoreBefore.TreeSha256
+              CoreAfterTreeSha256 = $r.CoreAfter.TreeSha256
+              CoreSourceUnchanged = $r.CoreSourceUnchanged
+              Matrix = $r.Matrix; Commands = $commands
+              Error = $r.Error
+            }
+          } else {
+            $safe = [ordered]@{
+              Schema = 'hb-int-06-ci-public-summary/v1'; Status = 'Blocked'
+              CorePin = '18caf04768df6abf31f5517dbb489e7fea2e1c7e'
+              Reason = 'No paired receipt: credential/event, checkout or SDK step blocked; see job conclusions'
+              Commands = @()
+            }
+          }
+          $file = Join-Path $dest 'summary.json'
+          $safe | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $file -Encoding utf8NoBOM
+          Write-Host "Allowlisted summary SHA256=$((Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash)"
+      - name: Upload ONLY allowlisted paired summary (never Core checkout or raw logs)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: hb-int-06-paired-raw
-          path: '${{ runner.temp }}/hb-int-06-paired'
-          if-no-files-found: warn
+          name: hb-int-06-paired-summary-no-source
+          path: '${{ runner.temp }}/hb-int-06-paired-summary/summary.json'
+          if-no-files-found: error
+          retention-days: 3
