@@ -155,6 +155,22 @@ class ReplayRefusals(unittest.TestCase):
         receipt = r.run('cancels', [sys.executable, '-c', 'import time;time.sleep(9)'],
                         self.base, logs, .01)
         self.assertEqual(receipt['status'], 'Blocked')
+    def test_final_missing_source_audit_is_blocked_not_false_success(self):
+        result = r.post_inventory(self.base / 'vanished-golden')
+        self.assertEqual(result, {'auditStatus': 'Blocked', 'failureType': 'Blocked'})
+        self.assertNotIn(str(self.base), json.dumps(result))
+
+    def test_staged_tree_audit_detects_mutated_bytes(self):
+        stage = self.base / 'staged'
+        stage.mkdir()
+        data = stage / 'chunk.jsonl'
+        data.write_bytes(b'{"Role":"source"}\\n')
+        initial = r.byte_tree_inventory(stage)
+        data.write_bytes(b'{"Role":"owned-body"}\\n')
+        changed = r.byte_tree_inventory(stage)
+        self.assertEqual(initial['files'], 1)
+        self.assertNotEqual(initial['inventorySha256'], changed['inventorySha256'])
+
     def test_no_output_inside_golden(self):
         self.assertTrue(r.within(self.golden / 'out', self.golden))
         self.assertFalse(r.within(self.base / 'out', self.golden))
