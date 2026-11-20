@@ -63,6 +63,20 @@ Tracked Git file SHA256 inventories, HEAD and porcelain status are compared befo
 
 These negative checks do not claim full independent Golden method provenance or hardware verification. An absent real Core-owned production source must be restored from a reviewed source revision and validated with genuine compiler tests before R0-01 can pass.
 
+## First executed R0-01 CI receipts
+
+At head `119aad1e5f8fc40e598b91ad61d78e015737eb92`, [R0-01 Windows run 44836199095](https://github.com/yuriyyak23/HybridCPU-Compilers/actions/runs/44836199095) produced a real uploaded [allowlisted receipt](https://github.com/yuriyyak23/HybridCPU-Compilers/actions/runs/44836199095/artifacts/14677974017):
+
+* Effective .NET SDK: `11.0.100-rc.2.26504.105`. Dotnet executable SHA256: `0a1b7ca731245de1f267a9c3c4d1ef8705e0821923fcdd6e0d61c31132f51240`; SDK Roslyn `csc.dll` SHA256: `03a90c0454a9320dc853796f40fb113f5d6bbbb4b0b0eee6ae012551dd056255`.
+* Actual evaluated Compile items: Core **294**, Cil **47**, Roslyn **5**, Companion **11**, for both Debug and Release.
+* Debug restore exit **0** (stdout SHA256 `12b6ba7fe1ad320ead6fa6f25aef6b470472a98af84183ca3a7f13ea843be767`), build exit **1** (stdout SHA256 `d2c69d1c7b494c0323b4bb43951d529ac2defbeb4fc3ea358d2d2f485b61956a`).
+* Release restore exit **0** (stdout SHA256 `0c333aa2c6bd97479fd9f7fe1bba74763bab1c88696f17fab80474872ea8b474`), build exit **1** (stdout SHA256 `6f934438b5bdfa5bd79b890a68db34ead0fce6f0b149f2a1c59974439f22d815`).
+* All four command stderr SHA256 were `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` (empty). The five guarded negative probes were Rejected.
+* Full tracked source SHA inventory: **2082 files**, before/after identical SHA256 `6c2444c6768e008307c6fdc36bd2efb7bdca93337276c663b5a96acf9bf805e2`; `NoSourceWrite=Passed`.
+* Actual real Companion PE/PDB and type reflection tests: **NotRun**, because both real builds failed. Qualification remains **Blocked**.
+
+These are facts for the stated SHA only, not a substitute for a later successful current-head CI run. The later runner hardening also checks evaluated output paths under TEMP.
+
 ## Acceptance and status semantics
 
 `Passed` requires clean **Debug AND Release** production Companion PE outputs, real PE/type contract tests, identical tracked source SHA256 inventory and a valid immutable receipt uploaded by successful GitHub CI at the reviewed head commit.
