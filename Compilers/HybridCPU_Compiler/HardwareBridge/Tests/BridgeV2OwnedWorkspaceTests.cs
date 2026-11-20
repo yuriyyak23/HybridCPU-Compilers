@@ -48,7 +48,7 @@ internal static class BridgeV2OwnedWorkspaceTests
             File.WriteAllText(sourcePath, sourceText, new UTF8Encoding(false));
             byte[] current = File.ReadAllBytes(sourcePath);
             string initialSha = Convert.ToHexString(SHA256.HashData(current));
-            byte[] metadata = Enumerable.Range(0, 4096).Select(i => (byte)i).ToArray();
+            byte[] metadata = Enumerable.Range(0, 192 * 1024).Select(i => (byte)i).ToArray();
             var inputs = new[] {
                 new BridgeV2Input("source/Fixture.cs", "source", current),
                 new BridgeV2Input("references/metadata.bin", "metadata-only", metadata)
@@ -196,6 +196,35 @@ internal static class BridgeV2OwnedWorkspaceTests
                     BridgeV2OwnedWorkspacePublisher.AfterStageWriteForTests = null;
                     RemoveSyntheticOutput(failed);
                 }
+            }
+
+            // Deterministic cancellation in the middle of a multi-block file copy,
+            // before the publisher has built a full staged byte set.
+            using (var duringCopy = new CancellationTokenSource())
+            {
+                int copied = 0;
+                var rootsBefore = Directory.GetDirectories(Path.GetTempPath(),
+                    "hb-int-v2-*").ToHashSet(StringComparer.OrdinalIgnoreCase);
+                try
+                {
+                    BridgeV2OwnedWorkspacePublisher.AfterCopyBlockForTests =
+                        (relative, bytesWritten) => {
+                            if (relative == "references/metadata.bin" && bytesWritten == 64 * 1024)
+                            {
+                                copied++;
+                                duringCopy.Cancel();
+                            }
+                        };
+                    Refuse(BridgeV2Refusal.Cancelled, () =>
+                        BridgeV2OwnedWorkspacePublisher.Publish(index, inputs, roots,
+                            live, golden, duringCopy.Token));
+                    Check(copied == 1, "copy interruption did not occur at the 64KiB boundary");
+                    var rootsAfter = Directory.GetDirectories(Path.GetTempPath(),
+                        "hb-int-v2-*").ToHashSet(StringComparer.OrdinalIgnoreCase);
+                    Check(rootsAfter.SetEquals(rootsBefore),
+                        "partially copied owned TEMP output was not cleaned");
+                }
+                finally { BridgeV2OwnedWorkspacePublisher.AfterCopyBlockForTests = null; }
             }
 
             // No untracked path may be reported to Core. Unowned files must not be
@@ -372,6 +401,7 @@ internal static class BridgeV2OwnedWorkspaceTests
         {
             BridgeV2OwnedWorkspacePublisher.AfterSourcePreflightForTests = null;
             BridgeV2OwnedWorkspacePublisher.AfterStageWriteForTests = null;
+            BridgeV2OwnedWorkspacePublisher.AfterCopyBlockForTests = null;
             RemoveSyntheticOutput(published);
             if (Directory.Exists(golden))
                 Directory.Delete(golden, true);
