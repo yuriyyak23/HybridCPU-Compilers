@@ -1,6 +1,6 @@
 #requires -Version 7.3
 # HB-INT-06: no-secret Core read-access preflight and immutable checkout guard.
-# Does not parse Core sources or grant qualification; all failed gates exit 2 (Blocked).
+# Does not grant qualification. Preflight/checkout Blocked=2, downstream Failed=1.
 [CmdletBinding()]
 param(
     [ValidateSet('Preflight','Checkout','Downstream','SelfTest')][string]$Mode = 'Preflight',
@@ -120,7 +120,7 @@ function Assert-HbCoreCheckout([string]$Root, [string]$Sha, [string]$Project) {
         throw 'Core checkout must be an independent Git root'
     }
     $origin = Invoke-HbCoreGit $rootPath @('remote','get-url','origin')
-    if ($origin -cne 'https://github.com/yuriyyak23/CircuitWeave.git') {
+    if ($origin -cnotin @('https://github.com/yuriyyak23/CircuitWeave.git','https://github.com/yuriyyak23/CircuitWeave')) {
         throw 'WrongCoreRepositoryOrigin'
     }
     $actualSha = Invoke-HbCoreGit $rootPath @('rev-parse','HEAD')
