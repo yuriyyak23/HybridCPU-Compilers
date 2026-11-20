@@ -129,15 +129,16 @@ def command_files(argv, cwd):
     output_options = ("/out:", "/pdb:", "/refout:", "/doc:", "/errorlog:")
     scalar_prefixes = ("/langversion:", "/define:", "/nullable:", "/target:",
                        "/debug:", "/platform:", "/warn:", "/nowarn:", "/warnaserror:",
+                       "/warnaserror+:", "/warnaserror-:",
                        "/features:", "/pathmap:", "/usings:", "/moduleassemblyname:",
                        "/main:", "/baseaddress:", "/filealign:", "/preferreduilang:",
                        "/instrument:", "/checksumalgorithm:", "/errorendlocation:")
-    scalar_flags = {"/noconfig", "/fullpaths", "/utf8output", "/nostdlib", "/nostdlib+",
+    scalar_flags = {"/errorreport:prompt", "/noconfig", "/fullpaths", "/utf8output", "/nostdlib", "/nostdlib+",
                     "/nostdlib-", "/checked", "/checked+", "/checked-", "/unsafe",
                     "/unsafe+", "/unsafe-", "/optimize", "/optimize+", "/optimize-",
                     "/deterministic", "/deterministic+", "/deterministic-", "/parallel+",
                     "/parallel-", "/publicsign+", "/publicsign-", "/warnaserror+",
-                    "/warnaserror-", "/debug", "/highentropyva+", "/highentropyva-"}
+                    "/warnaserror-", "/debug", "/debug+", "/highentropyva+", "/highentropyva-"}
     sources = []
     artifacts = []
     generator_dir = None
