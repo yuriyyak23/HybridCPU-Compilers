@@ -244,7 +244,7 @@ internal static class BridgeV2OwnedWorkspaceTests
                     failed = path;
                     File.Delete(Path.Combine(path, index.Chunks[0].Path));
                 };
-                Refuse(BridgeV2Refusal.MissingInput, () =>
+                Refuse(BridgeV2Refusal.InvalidPin, () =>
                     BridgeV2OwnedWorkspacePublisher.Publish(index, inputs, roots, live, golden));
                 Check(failed is not null && !Directory.Exists(failed),
                     "missing staged chunk not cleaned");
