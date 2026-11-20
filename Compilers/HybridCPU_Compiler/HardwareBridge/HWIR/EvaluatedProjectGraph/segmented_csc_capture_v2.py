@@ -350,7 +350,9 @@ def build_inputs(graph_path, observation_path, golden_root):
                         actual.add(str(path))
                         if len(actual) > 5000:
                             fail("excessive generator-emitted source inventory")
-            declared = {str(safe_path(s["path"])) for s in generated}
+            # Compare declared names with the complete directory inventory before
+            # opening any named file so deletion preserves the dedicated reason.
+            declared = {str(Path(s["path"])) for s in generated}
             if (len(declared) != len(generated)
                     or len({path_key(p) for p in declared}) != len(declared)
                     or actual != declared):
