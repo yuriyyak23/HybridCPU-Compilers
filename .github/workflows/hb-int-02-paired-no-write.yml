@@ -58,3 +58,27 @@ jobs:
           name: hb02-paired-synthetic-log
           path: '${{ runner.temp }}/hb02-paired-synthetic.log'
           if-no-files-found: error
+
+  windows-synthetic:
+    name: Windows Python 3.12 synthetic closure/no-write (no Golden)
+    runs-on: windows-2025
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Windows interpreter and bounded synthetic regression
+        shell: pwsh
+        run: |
+          & py -3.12 --version
+          $log = Join-Path $env:RUNNER_TEMP 'hb02-windows-synthetic.log'
+          & py -3.12 -m unittest -v Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/test_segmented_csc_capture_v2.py Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/test_paired_csc_no_write.py *> $log
+          $exitCode = $LASTEXITCODE
+          Get-Content $log
+          $hash = (Get-FileHash -LiteralPath $log -Algorithm SHA256).Hash.ToLowerInvariant()
+          Write-Host "HB02_SYNTHETIC_WINDOWS_EXIT=$exitCode"
+          Write-Host "HB02_SYNTHETIC_WINDOWS_COMBINED_LOG_SHA256=$hash"
+          Write-Host 'R1_01_TRUE_EXECUTION=Blocked'
+          Write-Host 'GOLDEN_CAPTURE=NotRun'
+          Write-Host 'CORE_INDEPENDENT_VERIFIER=NotRun'
+          exit $exitCode
