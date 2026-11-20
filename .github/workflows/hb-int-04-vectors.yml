@@ -5,6 +5,8 @@ on:
     branches: [master]
     paths:
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/GoldenOracle/GoldenBoundVectorsV1.cs'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/GoldenOracle/R301ScalarSessionV2.cs'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/GoldenOracle/r301-scalar-session-v2.md'
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/GoldenBoundVectors*'
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/GoldenOracle/bound-vectors-v1.md'
       - '.github/workflows/hb-int-04-vectors.yml'
@@ -38,3 +40,11 @@ jobs:
           set -euo pipefail
           dotnet run --project Compilers/HybridCPU_Compiler/HardwareBridge/Tests/GoldenBoundVectors.ContractTests.csproj -c Release 2>&1 | tee "$RUNNER_TEMP/hb-int-04-bound-vectors.log"
           sha256sum "$RUNNER_TEMP/hb-int-04-bound-vectors.log"
+
+      - name: R3-01 execute actual compiled fixture delegate and refuse mutations
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet run --project Compilers/HybridCPU_Compiler/HardwareBridge/Tests/GoldenBoundVectorsR301.ContractTests.csproj -c Release 2>&1 | tee "$RUNNER_TEMP/hb-r301-scalar-host.log"
+          sha256sum "$RUNNER_TEMP/hb-r301-scalar-host.log"
+          echo 'Golden actual: NotRun; stateful CPU/RAM/retire: Blocked; Core authority: Blocked'
