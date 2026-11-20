@@ -20,6 +20,13 @@ if ($work.StartsWith($repo.TrimEnd($sep) + $sep, $comparison) -or
 [IO.Directory]::CreateDirectory($work) | Out-Null
 $receiptPath = Join-Path $work 'r0-01-qualification.json'
 if ([IO.File]::Exists($receiptPath)) { throw 'Refuse to overwrite existing immutable receipt.' }
+# A temporary global.json is the actual SDK resolver pin; a repo-root global.json is absent.
+# It deliberately lives outside the checkout and is never uploaded.
+$localSdkSelection = [ordered]@{
+    sdk = [ordered]@{ version = $ExpectedSdk; rollForward = 'disable'; allowPrerelease = $true }
+}
+[IO.File]::WriteAllText((Join-Path $work 'global.json'),
+    ($localSdkSelection | ConvertTo-Json -Depth 4 -Compress), [Text.Encoding]::UTF8)
 $stages = [Collections.Generic.List[object]]::new()
 $builds = [Collections.Generic.List[object]]::new()
 $negativeTests = [Collections.Generic.List[object]]::new()
@@ -75,7 +82,7 @@ function Reject([string]$name, [scriptblock]$probe) {
 function InvokeCaptured([string]$name, [string]$exe, [string[]]$argv, [int]$timeoutSec = 600) {
     $psi = [Diagnostics.ProcessStartInfo]::new()
     $psi.FileName = $exe
-    $psi.WorkingDirectory = $repo
+    $psi.WorkingDirectory = $work
     $psi.UseShellExecute = $false
     $psi.RedirectStandardOutput = $true
     $psi.RedirectStandardError = $true
