@@ -167,7 +167,7 @@ def compare(source_bytes, legacy_hwir_bytes, core_hwir_bytes, legacy_observation
     ensure(isinstance(expected, dict) and isinstance(expected.get('path'), str) and
            expected['path'] and not expected['path'].startswith('/') and
            all(x not in ('', '.', '..') for x in expected['path'].split('/')) and
-           not any(c in expected['path'] for c in ('\\\\', '\\x00', ':')),
+           not any(c in expected['path'] for c in ('\\', '\x00', ':')),
            'INVALID_SOURCE_PATH')
     ensure(HEX40.fullmatch(expected['commit']) and HEX64.fullmatch(expected['sha256']) and
            expected['path'] and expected['method'], 'INVALID_SOURCE_IDENTITY')
