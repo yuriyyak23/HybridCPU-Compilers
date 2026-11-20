@@ -120,6 +120,67 @@ internal static class R203WireMatrix
         }
     }
 
+    // This is a strict test-host contract reader, not a Bridge-owned Core importer.
+    // Production BridgeSegmentIndexV2.ValidateAgainstActualBytes also requires the
+    // complete canonical index/JSONL bytes to equal its own regeneration.
+    internal static void CheckMapContract(JsonElement map)
+    {
+        ExactFields(map, "Schema", "Disposition", "Hb02ClosureRootSha256",
+            "RootManifestSha256", "CoreClosureSha256", "Rows");
+        if (map.GetProperty("Rows").ValueKind != JsonValueKind.Array)
+            throw new InvalidOperationException("R2-03 mapping Rows is not array");
+        foreach (JsonElement row in map.GetProperty("Rows").EnumerateArray())
+        {
+            ExactFields(row, "NodeId", "Kind", "SourceRole", "LogicalPath",
+                "Path", "Sha256", "Bytes");
+            string role = row.GetProperty("SourceRole").GetString() ??
+                throw new InvalidOperationException("R2-03 null original ownership");
+            if (role is not ("primary" or "owned-body" or "metadata-only") ||
+                !BridgeSegmentIndexV2.IsSha(row.GetProperty("Sha256").GetString()) ||
+                row.GetProperty("Bytes").GetInt64() < 0)
+                throw new InvalidOperationException("R2-03 invalid mapping role/digest/size");
+        }
+        if (!BridgeSegmentIndexV2.IsSha(map.GetProperty("CoreClosureSha256").GetString()))
+            throw new InvalidOperationException("R2-03 wrong uppercase closure SHA");
+    }
+
+    internal static void CheckRootsContract(JsonElement root)
+    {
+        ExactFields(root, "Schema", "Roots");
+        if (root.GetProperty("Roots").ValueKind != JsonValueKind.Array)
+            throw new InvalidOperationException("R2-03 roots must be array");
+        foreach (JsonElement selector in root.GetProperty("Roots").EnumerateArray())
+            ExactFields(selector, "TypeName", "MethodName", "MetadataToken",
+                "TypeArguments", "MethodArguments");
+    }
+
+    private static void ExactFields(JsonElement value, params string[] expected)
+    {
+        if (value.ValueKind != JsonValueKind.Object)
+            throw new InvalidOperationException("R2-03 expected JSON object");
+        string[] actual = value.EnumerateObject().Select(x => x.Name).ToArray();
+        if (actual.Length != expected.Length ||
+            actual.Distinct(StringComparer.Ordinal).Count() != actual.Length ||
+            actual.Except(expected, StringComparer.Ordinal).Any() ||
+            expected.Except(actual, StringComparer.Ordinal).Any())
+            throw new InvalidOperationException("R2-03 unknown/missing/duplicate JSON property");
+    }
+
+    internal static void AssertSameBytes(string label, byte[] staged, byte[] canonical)
+    {
+        int limit = Math.Min(staged.Length, canonical.Length);
+        int i = 0;
+        while (i < limit && staged[i] == canonical[i]) i++;
+        if (i != staged.Length || i != canonical.Length)
+        {
+            string actual = i < staged.Length ? staged[i].ToString("X2") : "EOF";
+            string expected = i < canonical.Length ? canonical[i].ToString("X2") : "EOF";
+            throw new InvalidOperationException("R2-03 first mismatch " + label +
+                " at byte " + i + " staged=0x" + actual + " canonical=0x" + expected +
+                " stagedLength=" + staged.Length + " canonicalLength=" + canonical.Length);
+        }
+    }
+
     private static void ExpectRefused(Action action, string label)
     {
         try { action(); }
