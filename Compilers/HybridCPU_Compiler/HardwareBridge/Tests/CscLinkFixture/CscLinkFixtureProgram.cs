@@ -273,7 +273,8 @@ internal static class Program
         BridgeSourceSnapshotV1 ReCapture(string assembly, IReadOnlyList<BridgeRootSelectorV1> roots) =>
             BridgeSourceSnapshotV1.Capture(
                 new BridgeSourceRequestV1(assembly, "CSharp", new[] {
-                    new BridgeSourceTextV1("src/Fixture.cs", Encoding.UTF8.GetString(originalSource))
+                    new BridgeSourceTextV1("src/Fixture.cs", Encoding.UTF8.GetString(originalSource)),
+                    new BridgeSourceTextV1("src/Helper.cs", Encoding.UTF8.GetString(e.Sources[1].Bytes))
                 }, new ReadOnlyMemory<byte>[] { e.References[0].Bytes }, roots,
                     Array.Empty<int>(), new[] { 0 }),
                 "fixture-only-admission", "fixture-only-compiler", e.SdkVersion);
@@ -296,9 +297,34 @@ internal static class Program
             BridgeExecutedCscLinkV1.Write(snapshot, facts with {
                 Methods = new[] { original, original }
             }, e));
+        Refuse(BridgeCscLinkRefusal.WrongMethodToken, () =>
+            BridgeExecutedCscLinkV1.Write(snapshot, facts with {
+                Methods = new[] { original with {
+                    CanonicalSignature = "System.Void(System.Int32)" }, facts.Methods[1] }
+            }, e));
+        Refuse(BridgeCscLinkRefusal.UnsupportedFacts, () =>
+            BridgeExecutedCscLinkV1.Write(snapshot, facts with {
+                Methods = new[] { original with { AssemblyIdentity = "Foreign" },
+                    facts.Methods[1] }
+            }, e));
+        Refuse(BridgeCscLinkRefusal.StaleMethodGraph, () =>
+            BridgeExecutedCscLinkV1.Write(snapshot, facts with {
+                Edges = Array.Empty<BridgeEdgeFactV1>()
+            }, e));
+        Refuse(BridgeCscLinkRefusal.StaleMethodGraph, () =>
+            BridgeExecutedCscLinkV1.Write(snapshot, facts with {
+                Methods = new[] { original with { DirectCallees = Array.Empty<string>() },
+                    facts.Methods[1] }
+            }, e));
         Refuse(BridgeCscLinkRefusal.WrongSourceMap, () =>
             BridgeExecutedCscLinkV1.Write(snapshot, facts with {
-                SourceMaps = new[] { facts.SourceMaps[0] with { Line = 99999 } }
+                SourceMaps = new[] { facts.SourceMaps[0] with { Line = 99999 },
+                    facts.SourceMaps[1] }
+            }, e));
+        Refuse(BridgeCscLinkRefusal.WrongSourceMap, () =>
+            BridgeExecutedCscLinkV1.Write(snapshot, facts with {
+                SourceMaps = new[] { facts.SourceMaps[0], facts.SourceMaps[0],
+                    facts.SourceMaps[1] }
             }, e));
         Refuse(BridgeCscLinkRefusal.UnsupportedFacts, () =>
             BridgeExecutedCscLinkV1.Write(snapshot, facts with { Status = "Verified" }, e));
@@ -333,9 +359,18 @@ internal static class Program
         Refuse(BridgeCscLinkRefusal.WrongPePdb, () =>
             BridgeExecutedCscLinkV1.Write(snapshot, facts,
                 e with { PeImage = rebuilt.Pe, PdbImage = rebuilt.Pdb }));
+        BridgeCompilerFactsV1 mixedPairFacts = facts with {
+            PdbSha256 = Hash(rebuilt.Pdb),
+            SourceMaps = facts.SourceMaps.Select(row => row with {
+                PdbSha256 = Hash(rebuilt.Pdb)
+            }).ToArray()
+        };
+        Refuse(BridgeCscLinkRefusal.WrongPePdb, () =>
+            BridgeExecutedCscLinkV1.Write(snapshot, mixedPairFacts,
+                e with { PdbImage = rebuilt.Pdb }));
         Check(File.ReadAllBytes(e.Sources[0].CscPath).SequenceEqual(originalSource),
             "original fixture source unexpectedly changed");
-        Console.WriteLine("PASS: actual Csc -> PE/PDB -> MethodDef/IL/PDB maps + stale re-emission mutations");
+        Console.WriteLine("PASS: actual Csc -> 2 owned methods + local IL edge -> PE/PDB maps + strict mutations");
         Console.WriteLine("NOTRUN: actual Golden executed Csc observer, real Companion facts, Core independent signoff");
         return 0;
     }
