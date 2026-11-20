@@ -167,6 +167,16 @@ public static class BridgeV2OwnedWorkspacePublisher
             return new(output, Path.Combine(output, IndexFileName),
                 BridgeSegmentIndexV2.Hash(index), canonical.ClosureSha256);
         }
+        catch (UnauthorizedAccessException)
+        {
+            CleanupOwned(output, occupied, expectedDirs);
+            Refuse(BridgeV2Refusal.InvalidPin, "Unreadable staged workspace.");
+        }
+        catch (IOException)
+        {
+            CleanupOwned(output, occupied, expectedDirs);
+            Refuse(BridgeV2Refusal.InvalidPin, "Staged workspace I/O failure.");
+        }
         catch
         {
             CleanupOwned(output, occupied, expectedDirs);
