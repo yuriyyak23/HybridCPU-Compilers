@@ -13,6 +13,12 @@ on:
       - '.github/workflows/hb-r0-tasktime-csc-observer.yml'
   workflow_dispatch:
 
+# One bounded execution run per feature branch, even when both push and PR
+# events fire; superseded runs are not evidence for the current head.
+concurrency:
+  group: hb-r1-01-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
