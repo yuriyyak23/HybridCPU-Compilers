@@ -247,6 +247,13 @@ internal static class Program
                 BridgeExecutedCscLinkV1.Write(snapshot, facts,
                     e with { ArgvJsonUtf8 = JsonSerializer.SerializeToUtf8Bytes(
                         result.Args.Where(a => !a.StartsWith("/pdb:", StringComparison.Ordinal)).ToArray()) }));
+            Refuse(BridgeCscLinkRefusal.WrongArguments, () =>
+                BridgeExecutedCscLinkV1.Write(snapshot, facts,
+                    e with { ArgvJsonUtf8 = JsonSerializer.SerializeToUtf8Bytes(
+                        result.Args.Append("@unobserved.rsp").ToArray()) }));
+            Refuse(BridgeCscLinkRefusal.WrongArguments, () =>
+                BridgeExecutedCscLinkV1.Write(snapshot, facts,
+                    e with { OutputPdbPath = e.OutputPePath }));
             Refuse(BridgeCscLinkRefusal.WrongPePdb, () =>
                 BridgeExecutedCscLinkV1.Write(snapshot, facts,
                     e with { PeImage = result.Pe[..^1] }));
@@ -326,6 +333,11 @@ internal static class Program
                 SourceMaps = new[] { facts.SourceMaps[0], facts.SourceMaps[0],
                     facts.SourceMaps[1] }
             }, e));
+        Refuse(BridgeCscLinkRefusal.WrongSourceMap, () =>
+            BridgeExecutedCscLinkV1.Write(snapshot, facts with {
+                SourceMaps = new[] { facts.SourceMaps[0] with {
+                    Checksum = new string('0', 64) }, facts.SourceMaps[1] }
+            }, e));
         Refuse(BridgeCscLinkRefusal.UnsupportedFacts, () =>
             BridgeExecutedCscLinkV1.Write(snapshot, facts with { Status = "Verified" }, e));
         Refuse(BridgeCscLinkRefusal.InvalidPin, () =>
@@ -345,6 +357,11 @@ internal static class Program
             BridgeExecutedCscLinkV1.ReadAndValidate(Encoding.UTF8.GetBytes(
                 json.Replace(",\"Payload\":", ", \"Payload\":", StringComparison.Ordinal)),
                 snapshot, facts, e, e.SdkVersion));
+        Refuse(BridgeCscLinkRefusal.UnsupportedSchema, () =>
+            BridgeExecutedCscLinkV1.ReadAndValidate(Encoding.UTF8.GetBytes(
+                json.Replace(BridgeExecutedCscLinkV1.SchemaId,
+                    "hybridcpu.hardwarebridge.executed-csc-link/v2",
+                    StringComparison.Ordinal)), snapshot, facts, e, e.SdkVersion));
 
         // The *second* PE/PDB are emitted by another actual Csc invocation.
         string replacementDir = Path.Combine(Path.GetDirectoryName(sourcesDir)!, "replacement");
