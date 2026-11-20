@@ -4,6 +4,7 @@ on:
     paths:
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/paired_csc_no_write.py'
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/test_paired_csc_no_write.py'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/test_segmented_csc_capture_v2.py'
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/segmented_csc_capture_v2.py'
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/Docs/HB_INT_02_Paired_No_Write.md'
       - '.github/workflows/hb-int-02-paired-no-write.yml'
@@ -45,6 +46,9 @@ jobs:
           sha256sum "$logfile"
           echo "R1_01_EXECUTED_CSC=Blocked (not provided/attested in this job)"
           echo "GOLDEN_CLEAN_DIRTY=NotRun (no authorized separate snapshots)"
+          echo "R1_02_EXTERNAL_EVENT=NotRun (no real approved R1-01 witness)"
+          echo "R1_02_CORE_IMPORT=NotRun (Core-owned authority)"
+          echo "R1_02_PRODUCTION=Blocked (no approved Golden snapshots)"
           exit "$raw_exit"
       - name: Upload ONLY synthetic test log, never source/chunk/receipt workspaces
         if: always()
