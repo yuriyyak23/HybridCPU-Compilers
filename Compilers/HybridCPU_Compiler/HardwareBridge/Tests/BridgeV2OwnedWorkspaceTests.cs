@@ -17,6 +17,25 @@ internal static class BridgeV2OwnedWorkspaceTests
         throw new InvalidOperationException("Expected typed workspace refusal " + code);
     }
 
+    private static void RemoveSyntheticOutput(string? root)
+    {
+        if (root is null || !Directory.Exists(root)) return;
+        // Test-only cleanup of paths created in a synthetic isolated temp fixture.
+        if (!OperatingSystem.IsWindows())
+        {
+            File.SetUnixFileMode(root, UnixFileMode.UserRead | UnixFileMode.UserWrite |
+                UnixFileMode.UserExecute);
+            foreach (string dir in Directory.EnumerateDirectories(root, "*",
+                SearchOption.AllDirectories).OrderBy(x => x.Length))
+                File.SetUnixFileMode(dir, UnixFileMode.UserRead | UnixFileMode.UserWrite |
+                    UnixFileMode.UserExecute);
+        }
+        foreach (string file in Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories))
+            if ((File.GetAttributes(file) & FileAttributes.ReparsePoint) == 0)
+                File.SetAttributes(file, FileAttributes.Normal);
+        Directory.Delete(root, recursive: true);
+    }
+
     public static void Run()
     {
         // Files under a synthetic Golden tree: never the real Golden repository.
@@ -62,6 +81,16 @@ internal static class BridgeV2OwnedWorkspaceTests
                     .SequenceEqual(entry.Bytes.ToArray()), "source/reference bytes changed");
             Check(Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(sourcePath))) ==
                 initialSha, "test Golden source was modified");
+            Check((File.GetAttributes(staged.IndexPath) & FileAttributes.ReadOnly) != 0,
+                "published index not marked read-only");
+            if (!OperatingSystem.IsWindows())
+                Check((File.GetUnixFileMode(staged.Root) & UnixFileMode.UserWrite) == 0,
+                    "published root should be write-restricted on Unix");
+            BridgeV2PublishedWorkspace second = BridgeV2OwnedWorkspacePublisher.Publish(
+                index, inputs, roots, live, golden);
+            Check(second.Root != staged.Root && second.IndexSha256 == staged.IndexSha256,
+                "reentrant publish must allocate independent identical byte transport");
+            RemoveSyntheticOutput(second.Root);
 
             // Source changed between capture and publish: must refuse.
             File.WriteAllText(sourcePath, sourceText + " ", new UTF8Encoding(false));
@@ -113,14 +142,191 @@ internal static class BridgeV2OwnedWorkspaceTests
             else
                 Console.WriteLine("NOTRUN: symlink creation test requires non-Windows host permissions.");
 
+            // Actual on-disk mutations strictly between the first source rehash
+            // and the output rehash, not merely mutation of in-memory DTOs.
+            string? failed = null;
+            try
+            {
+                BridgeV2OwnedWorkspacePublisher.AfterSourcePreflightForTests = () =>
+                    File.AppendAllText(sourcePath, " // changed after pin");
+                Refuse(BridgeV2Refusal.StaleSource, () =>
+                    BridgeV2OwnedWorkspacePublisher.Publish(index, inputs, roots, live, golden));
+            }
+            finally
+            {
+                BridgeV2OwnedWorkspacePublisher.AfterSourcePreflightForTests = null;
+                File.WriteAllBytes(sourcePath, current);
+            }
+
+            try
+            {
+                BridgeV2OwnedWorkspacePublisher.AfterStageWriteForTests = path => {
+                    failed = path;
+                    File.AppendAllText(sourcePath, " // changed during staging");
+                };
+                Refuse(BridgeV2Refusal.StaleSource, () =>
+                    BridgeV2OwnedWorkspacePublisher.Publish(index, inputs, roots, live, golden));
+                Check(failed is not null && !Directory.Exists(failed),
+                    "source mutation failure must clean only owned temp");
+            }
+            finally
+            {
+                BridgeV2OwnedWorkspacePublisher.AfterStageWriteForTests = null;
+                File.WriteAllBytes(sourcePath, current);
+                RemoveSyntheticOutput(failed);
+            }
+
+            using (var midCancel = new CancellationTokenSource())
+            {
+                failed = null;
+                try
+                {
+                    BridgeV2OwnedWorkspacePublisher.AfterStageWriteForTests = path => {
+                        failed = path;
+                        midCancel.Cancel();
+                    };
+                    Refuse(BridgeV2Refusal.Cancelled, () =>
+                        BridgeV2OwnedWorkspacePublisher.Publish(index, inputs, roots,
+                            live, golden, midCancel.Token));
+                    Check(failed is not null && !Directory.Exists(failed),
+                        "interrupted publication left owned partial temp");
+                }
+                finally
+                {
+                    BridgeV2OwnedWorkspacePublisher.AfterStageWriteForTests = null;
+                    RemoveSyntheticOutput(failed);
+                }
+            }
+
+            // No untracked path may be reported to Core. Unowned files must not be
+            // recursively deleted by producer cleanup: test removes it explicitly.
+            failed = null;
+            try
+            {
+                BridgeV2OwnedWorkspacePublisher.AfterStageWriteForTests = path => {
+                    failed = path;
+                    File.WriteAllText(Path.Combine(path, "untracked.txt"), "unowned");
+                };
+                Refuse(BridgeV2Refusal.InvalidPin, () =>
+                    BridgeV2OwnedWorkspacePublisher.Publish(index, inputs, roots, live, golden));
+                Check(failed is not null &&
+                    File.Exists(Path.Combine(failed, "untracked.txt")),
+                    "cleanup must preserve unknown injected file");
+            }
+            finally
+            {
+                BridgeV2OwnedWorkspacePublisher.AfterStageWriteForTests = null;
+                RemoveSyntheticOutput(failed);
+            }
+
+            failed = null;
+            try
+            {
+                BridgeV2OwnedWorkspacePublisher.AfterStageWriteForTests = path => {
+                    failed = path;
+                    File.AppendAllText(Path.Combine(path, "source", "Fixture.cs"), "// mutated");
+                };
+                Refuse(BridgeV2Refusal.StaleSource, () =>
+                    BridgeV2OwnedWorkspacePublisher.Publish(index, inputs, roots, live, golden));
+                Check(failed is not null && !Directory.Exists(failed),
+                    "altered staged source not cleaned");
+            }
+            finally
+            {
+                BridgeV2OwnedWorkspacePublisher.AfterStageWriteForTests = null;
+                RemoveSyntheticOutput(failed);
+            }
+
+            failed = null;
+            try
+            {
+                BridgeV2OwnedWorkspacePublisher.AfterStageWriteForTests = path => {
+                    failed = path;
+                    File.Delete(Path.Combine(path, index.Chunks[0].Path));
+                };
+                Refuse(BridgeV2Refusal.MissingInput, () =>
+                    BridgeV2OwnedWorkspacePublisher.Publish(index, inputs, roots, live, golden));
+                Check(failed is not null && !Directory.Exists(failed),
+                    "missing staged chunk not cleaned");
+            }
+            finally
+            {
+                BridgeV2OwnedWorkspacePublisher.AfterStageWriteForTests = null;
+                RemoveSyntheticOutput(failed);
+            }
+
+            // Index must be canonical: duplicate JSON, invented claims and changed SHA.
+            byte[] duplicateJson = Encoding.UTF8.GetBytes(
+                Encoding.UTF8.GetString(index.IndexUtf8).Replace(
+                    "{\\\"Schema\\\":", "{\\\"Schema\\\":\\\"duplicate\\\",\\\"Schema\\\":"));
+            Refuse(BridgeV2Refusal.InvalidPin, () =>
+                BridgeV2OwnedWorkspacePublisher.Publish(
+                    index with { IndexUtf8 = duplicateJson }, inputs, roots, live, golden));
+            byte[] forged = Encoding.UTF8.GetBytes(
+                Encoding.UTF8.GetString(index.IndexUtf8).Replace(
+                    "{\\\"Schema\\\":", "{\\\"Status\\\":\\\"Verified\\\",\\\"Schema\\\":"));
+            Refuse(BridgeV2Refusal.InvalidPin, () =>
+                BridgeV2OwnedWorkspacePublisher.Publish(
+                    index with { IndexUtf8 = forged }, inputs, roots, live, golden));
+            Refuse(BridgeV2Refusal.InvalidPin, () =>
+                BridgeV2OwnedWorkspacePublisher.Publish(
+                    index with { Inputs = new[] { index.Inputs[0] with { Sha256 = new string('0', 64) }, index.Inputs[1] } },
+                    inputs, roots, live, golden));
+            Refuse(BridgeV2Refusal.InvalidPin, () =>
+                BridgeV2OwnedWorkspacePublisher.Publish(index,
+                    new[] { inputs[0] with { Role = "metadata-only" }, inputs[1] },
+                    roots, live, golden));
+            Refuse(BridgeV2Refusal.InvalidPin, () =>
+                BridgeV2OwnedWorkspacePublisher.Publish(index,
+                    new[] { inputs[0] with { Path = "../escape" }, inputs[1] },
+                    roots, live, golden));
+            Refuse(BridgeV2Refusal.InvalidPin, () =>
+                BridgeV2OwnedWorkspacePublisher.Publish(index, inputs,
+                    new[] { new BridgeRootSelectorV1("", "F", null,
+                        Array.Empty<string>(), Array.Empty<string>()) }, live, golden));
+            Refuse(BridgeV2Refusal.InvalidPin, () =>
+                BridgeV2OwnedWorkspacePublisher.Publish(index, inputs,
+                    new[] { roots[0], roots[0] }, live, golden));
+
+            var conflictInputs = new[] {
+                new BridgeV2Input("references", "source", current), inputs[1]
+            };
+            var conflictTransport = BridgeSegmentIndexV2.Write(roots, conflictInputs);
+            Refuse(BridgeV2Refusal.InvalidRole, () =>
+                BridgeV2OwnedWorkspacePublisher.Publish(conflictTransport, conflictInputs,
+                    roots, new[] { live[0] with { Path = "references" } }, golden));
+            // A swapped file symlink is refused even when its target has identical bytes.
+            if (!OperatingSystem.IsWindows())
+            {
+                string external = Path.Combine(golden, "identical.cs");
+                File.WriteAllBytes(external, current);
+                try
+                {
+                    BridgeV2OwnedWorkspacePublisher.AfterSourcePreflightForTests = () => {
+                        File.Delete(sourcePath);
+                        File.CreateSymbolicLink(sourcePath, external);
+                    };
+                    Refuse(BridgeV2Refusal.InvalidRole, () =>
+                        BridgeV2OwnedWorkspacePublisher.Publish(index, inputs, roots, live, golden));
+                }
+                finally
+                {
+                    BridgeV2OwnedWorkspacePublisher.AfterSourcePreflightForTests = null;
+                    if (File.Exists(sourcePath)) File.Delete(sourcePath);
+                    File.WriteAllBytes(sourcePath, current);
+                    File.Delete(external);
+                }
+            }
+
             Check(Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(sourcePath))) ==
                 initialSha, "source bytes after negative cases differed");
             Console.WriteLine("PASS: HB-INT-02/03/06 owned v2 workspace byte publisher (synthetic Golden fixture only).");
         }
         finally
         {
-            if (published is not null && Directory.Exists(published))
-                Directory.Delete(published, true);
+            BridgeV2OwnedWorkspacePublisher.AfterSourcePreflightForTests = null;
+            BridgeV2OwnedWorkspacePublisher.AfterStageWriteForTests = null;
+            RemoveSyntheticOutput(published);
             if (Directory.Exists(golden))
                 Directory.Delete(golden, true);
         }
