@@ -132,7 +132,7 @@ operand lengths are decoded from the **actual PE IL**, with call offsets,
 callee MethodDef tokens and Companion direct-callee identities checked against
 the bounded edges. Unknown method facts, missing local edges, duplicated edges,
 unsupported IL and stale method graphs are refused. Foreign MemberRef/MethodSpec
-calls are **not** promoted to owned-body edges by this check.
+calls are **refused**, rather than silently omitted from the owned-body closure.
 
 The updated isolated toy compiles **two separate C# source files in a single
 primary PE module** (`Fixture.Add` calling `Helper.Sum`), checks both physical
@@ -177,3 +177,19 @@ No success of a toy or mutation fixture changes these statuses. Native hashes,
 exact SDK, Csc argv SHA, exit, stdout/stderr SHA and durations are printed by
 the fixture CI; the GitHub Actions workflow does not upload private sources or
 raw Golden artifacts.
+
+### Verified first CI execution
+
+Draft PR [#32](https://github.com/yuriyyak23/HybridCPU-Compilers/pull/32)
+started the approved toy CI on
+[run 44836355887](https://github.com/yuriyyak23/HybridCPU-Compilers/actions/runs/44836355887).
+Its first observed run used SDK `11.0.100-rc.2.26504.105`, with
+`dotnet restore` exit=0, `dotnet build --no-restore` exit=0 and two actual
+isolated `dotnet csc.dll` processes exit=0. The first actual compiler image
+SHA-256 was `35E65EDC893C6902260FBFEBFF39EB3C2D6B34F3E80D364B2CF9B2F180FA588A`.
+The first PE and PDB SHA-256 were
+`6F6D957586AF73C0AC4A5E071213058E4B0E00825A00A471330BF9AB2389D730`
+and `1D1499A16D707393A5FC6B3B994A408A3A8D84DDC292E557023B395E6EF6B540`.
+This first run captured only the two-source toy: **no Golden or Core checkout**.
+Subsequent CI runs must be evaluated by their own head SHA and job results,
+not by the earlier run's success.
