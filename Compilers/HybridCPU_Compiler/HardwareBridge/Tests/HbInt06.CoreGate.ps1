@@ -63,17 +63,72 @@ function Write-R002Receipt([string]$Stage, [string]$State, [string]$Reason,
         Schema = 'hybridcpu.hardwarebridge.r0-02-core-gate/v1'
         Stage = $Stage; State = $State; Reason = $Reason
         ReviewedCoreSha = $script:R002ReviewedCoreSha
-        RequestedCoreSha = $(if ($RequestedSha -cmatch '^[0-9a-f]{40}
-    if ([string]::IsNullOrWhiteSpace($Credential)) {
-        throw 'HB_INT_06_CORE_READ_TOKEN is unavailable (no token or untrusted event); Core importer NotRun'
+        RequestedCoreSha = $(if ($RequestedSha -cmatch '^[0-9a-f]{40}$') { $RequestedSha } else { 'Invalid' })
+        EventClass = $(if ($env:GITHUB_EVENT_NAME -cin @('push','workflow_dispatch','pull_request')) { $env:GITHUB_EVENT_NAME } else { 'Unknown' })
+        CoreImporter = $(if ($Stage -eq 'Downstream' -and $State -eq 'Passed') { 'PassedUnqualifiedContractOnly' } elseif ($Stage -eq 'Downstream') { 'Failed' } else { 'NotRun' })
+        HardwareQualification = 'NotRun'
+        DurationMs = $script:R002Clock.ElapsedMilliseconds
+        CommandChain = @(
+            [ordered]@{ Name='Preflight'; State=$(if ($Stage -eq 'Preflight') { $State } else { 'NotRun' }) },
+            [ordered]@{ Name='Checkout'; State=$(if ($Stage -eq 'Checkout') { $State } else { 'NotRun' }) },
+            [ordered]@{ Name='CoreReader'; State=$(if ($Stage -eq 'Downstream') { $State } else { 'NotRun' }); ExitCode=$(if ($Stage -eq 'Downstream') { $ExitCode } else { $null }) }
+        )
+        GitInspections = @($script:R002GitCommands.ToArray())
     }
-    if ($Credential.Length -lt 12 -or $Credential.Length -gt 4096) {
-        throw 'MalformedCoreReadCredential'
+    $json = $receipt | ConvertTo-Json -Depth 10
+    $path = Join-Path $dir ($Stage.ToLowerInvariant() + '.json')
+    $bytes = [Text.Encoding]::UTF8.GetBytes($json)
+    $stream = [IO.File]::Open($path, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
+    try { $stream.Write($bytes, 0, $bytes.Length) }
+    finally { $stream.Dispose() }
+    Write-Host "R0-02 $Stage=$State reason=$Reason receiptSHA256=$(Get-R002Sha256 $json)"
+}
+function Assert-R002PriorReceipt([string]$Stage) {
+    $path = Join-Path (Get-R002ReceiptDirectory) ($Stage.ToLowerInvariant() + '.json')
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw 'PriorGateNotRun' }
+    $r = Get-Content -LiteralPath $path -Raw | ConvertFrom-Json
+    if ($r.Schema -cne 'hybridcpu.hardwarebridge.r0-02-core-gate/v1' -or
+        $r.Stage -cne $Stage -or $r.State -cne 'Passed' -or
+        $r.ReviewedCoreSha -cne $script:R002ReviewedCoreSha) {
+        throw 'PriorGateNotPassed'
     }
-    foreach ($character in $Credential.ToCharArray()) {
-        if ([int]$character -lt 33 -or [int]$character -gt 126) {
-            throw 'MalformedCoreReadCredential'
+}
+function Assert-R002UniqueJson([System.Text.Json.JsonElement]$Element) {
+    if ($Element.ValueKind -eq [System.Text.Json.JsonValueKind]::Object) {
+        $seen = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+        foreach ($property in $Element.EnumerateObject()) {
+            if (-not $seen.Add($property.Name)) { throw 'DuplicatePairedReceiptField' }
+            Assert-R002UniqueJson $property.Value
         }
+    } elseif ($Element.ValueKind -eq [System.Text.Json.JsonValueKind]::Array) {
+        foreach ($value in $Element.EnumerateArray()) { Assert-R002UniqueJson $value }
+    }
+}
+function Assert-R002PairedReceipt([string]$Path, [string]$CoreSha) {
+    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) { throw 'PairedReceiptMissing' }
+    $item = Get-Item -LiteralPath $Path -Force
+    if (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -or $item.Length -gt 4194304) {
+        throw 'UnsafePairedReceipt'
+    }
+    $json = [IO.File]::ReadAllText($item.FullName)
+    $doc = [System.Text.Json.JsonDocument]::Parse($json)
+    try {
+        Assert-R002UniqueJson $doc.RootElement
+        $r = $json | ConvertFrom-Json
+        if ($r.Schema -cne 'hybridcpu.hardwarebridge.qa-receipt/v1' -or
+            $r.CoreHead -cne $CoreSha -or
+            $r.Matrix.StrictCoreImporter -cne 'Passed' -or
+            $r.Matrix.CompanionBuild -cne 'Passed' -or
+            $r.CoreSourceUnchanged -ne $true -or $r.SourceUnchanged -ne $true) {
+            throw 'PairedReceiptNotPassed'
+        }
+    } finally { $doc.Dispose() }
+}
+function Assert-HbCoreCredential([string]$Credential) {
+    if ([string]::IsNullOrWhiteSpace($Credential)) { throw 'MissingCoreReadCredential' }
+    if ($Credential.Length -lt 12 -or $Credential.Length -gt 4096) { throw 'MalformedCoreReadCredential' }
+    foreach ($character in $Credential.ToCharArray()) {
+        if ([int]$character -lt 33 -or [int]$character -gt 126) { throw 'MalformedCoreReadCredential' }
     }
 }
 function Assert-HbCoreCheckoutOutcome([string]$Outcome) {
