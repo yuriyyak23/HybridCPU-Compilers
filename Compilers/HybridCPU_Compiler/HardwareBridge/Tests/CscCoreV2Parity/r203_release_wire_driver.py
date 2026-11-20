@@ -16,6 +16,21 @@ HERE = Path(__file__).resolve().parent
 RELEASE = HERE.parents[1] / "HWIR" / "EvaluatedProjectGraph" / "stage_core_v2.py"
 EMITTER = HERE / "emit_reviewed_stage_fixture.py"
 CASES = (1, 64, 65, 1001)
+# Independently reviewed immutable synthetic release-wire SHA256 pins from
+# Windows/Linux .NET/Python byte-parity run 44836465436, after the Unicode CRLF
+# fixture correction. Changing these requires explicit new fixture review.
+# Do NOT discover expected pins from the bytes under validation.
+FROZEN_ROOT_SHA = "CF02F40E130BF1F63A105962A2BFEA74BC0628B8CEC721B1C69F82EB26D4D9DD"
+FROZEN_WIRE = {
+    1: ("A8C40E8EAAC55B9DDBD78A56635D6567FDDFA277A7714F80BA02267202CB7131",
+        "D7021F54A9BD835E933DB7C5D71463B67D135E72462256079CF1A40AD8A9319E"),
+    64: ("5368902CD828E7CC2CA4F782B2D445624F5CBD608B14345D5ABA998389F4EF20",
+         "826EDFB86D85322CDB821C6F849BA0F5BD134D24B3DD580FA38835AFC8B0BB4A"),
+    65: ("2C97DB17A3579BB50A834C4524298DFDAE97EF56C44F24F27FEA749145E792C2",
+         "2E39298B7F1B063A8ABE814033C1E7F568A67350C5231307CD0B36709BFCD885"),
+    1001: ("5FF353C3293D50A1774AA62B1C0D35D5BDA20995DFE30E486533F62AC42C28D5",
+           "27F42F514ABEB3B4B1B28E53515A8099C02D58A7AA8AF6EFEE6E1B2E0118962C"),
+}
 
 
 def sha(data):
@@ -121,8 +136,18 @@ def main():
             idx = (out / "bridge-index.json").read_bytes()
             descriptors = (out / "bridge-index").glob("chunk-*.jsonl")
             joined = b"".join(p.read_bytes() for p in sorted(descriptors))
+            index_sha = sha(idx)
+            closure_sha = sha(joined)
+            actual_root_sha = sha((out / "roots-manifest.json").read_bytes())
+            if (index_sha, closure_sha) != FROZEN_WIRE[count] or (
+                    actual_root_sha != FROZEN_ROOT_SHA):
+                raise RuntimeError(
+                    "reviewed R2-03 frozen v2 wire pin mismatch: count=%d "
+                    "index=%s expected=%s closure=%s expected=%s roots=%s expected=%s" %
+                    (count, index_sha, FROZEN_WIRE[count][0], closure_sha,
+                     FROZEN_WIRE[count][1], actual_root_sha, FROZEN_ROOT_SHA))
             print("R203_PARITY rows=%d indexSHA=%s concatenatedJSONLSHA=%s rootsSHA=%s" %
-                  (count, sha(idx), sha(joined), sha((out / "roots-manifest.json").read_bytes())),
+                  (count, index_sha, closure_sha, actual_root_sha),
                   flush=True)
             if inventory(out) != before:
                 raise RuntimeError("read-only .NET parity check modified staged fixture")
