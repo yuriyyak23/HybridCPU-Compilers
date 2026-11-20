@@ -201,7 +201,7 @@ def verify(trace_dir, *, launch_cwd, launch_argv, compiler, event_argv, expected
         elif kind == "exit":
             if pid in exits:
                 refuse("duplicate process exits")
-            exits[pid] = value
+            exits[pid] = (stamp, value)
     if any(pid in shared_fs_pids for pid in chdirs):
         refuse("CLONE_FS shared cwd mutation not representable in bounded parser")
     if any(child not in pids or parent not in pids for child, (parent, _) in births.items()):
@@ -241,7 +241,7 @@ def verify(trace_dir, *, launch_cwd, launch_argv, compiler, event_argv, expected
         for stamp, (exe, argv) in rows:
             if os.path.abspath(exe) != compiler_path:
                 continue
-            if pid not in exits or exits[pid] != 0:
+            if pid not in exits or exits[pid][1] != 0:
                 refuse("actual Csc process failed or has no successful exit")
             if any(x.startswith("@") for x in argv):
                 refuse("response-file bytes were not captured at open/read time")
@@ -249,7 +249,8 @@ def verify(trace_dir, *, launch_cwd, launch_argv, compiler, event_argv, expected
                 refuse("unexpected execve argv[0] for Csc")
             actual_cwd = cwd_at(pid, stamp)
             csc.append({"pid": pid, "time": stamp, "executable": exe,
-                        "argv": argv, "cwd": actual_cwd, "exitCode": exits[pid]})
+                        "argv": argv, "cwd": actual_cwd,
+                        "exitTime": exits[pid][0], "exitCode": exits[pid][1]})
     if len(csc) != len(event_argv):
         refuse("actual Csc process count != live MSBuild Csc task count")
     matched = {}
