@@ -37,6 +37,16 @@ def snapshot(root):
     return digest.hexdigest()
 
 
+def inventory(root):
+    rows = {}
+    for p in sorted(root.rglob("*")):
+        if p.is_symlink():
+            raise RuntimeError("linked fixture input forbidden: " + str(p))
+        if p.is_file():
+            rows[p.relative_to(root).as_posix()] = sha(p)
+    return rows
+
+
 def command(label, args, cwd, env, receipts, *, trace_prefix=None, strace_executable=None):
     out = receipts / (label + ".stdout.log")
     err = receipts / (label + ".stderr.log")
@@ -76,6 +86,7 @@ def run():
     if not original.is_dir():
         raise RuntimeError("approved two-project fixture absent")
     source_before = snapshot(original)
+    source_manifest_before = inventory(original)
     # The repo is immutable; all dotnet restore/build and generator output are in TEMP.
     with tempfile.TemporaryDirectory(prefix="hb-csc-tasktime-") as directory:
         temp = Path(directory)
@@ -83,6 +94,10 @@ def run():
         if receipts.exists() or receipts.is_symlink():
             raise RuntimeError("receipts output must be new")
         receipts.mkdir(parents=True)
+        (receipts / "R1_01_toy_source_before.json").write_text(
+            json.dumps({"schema": "hybridcpu.hardwarebridge.toy-no-write-inventory/v1",
+                        "aggregateSha256": source_before,
+                        "files": source_manifest_before}, sort_keys=True))
         baseline = temp / "baseline"
         isolated = temp / "isolated"
         shutil.copytree(original, baseline, symlinks=False)
@@ -273,10 +288,23 @@ def run():
             finally:
                 output_file.write_bytes(output_bytes)
             r1.verify_output_pins(output_pins)
-            if snapshot(original) != source_before or snapshot(baseline) != source_before:
-                raise RuntimeError("fixture original/baseline mutated")
-            print("isolated-fixture-source-no-write SHA256=" + source_before)
+            # Final inventory is also checked in the cleanup block on failure.
+            print("toy transport/OS-mutation gates completed")
         finally:
+            source_after = snapshot(original)
+            baseline_after = snapshot(baseline)
+            after_manifest = inventory(original)
+            (receipts / "R1_01_toy_source_after.json").write_text(
+                json.dumps({"schema": "hybridcpu.hardwarebridge.toy-no-write-inventory/v1",
+                            "aggregateSha256": source_after,
+                            "files": after_manifest}, sort_keys=True))
+            print("toy-original-before SHA256=" + source_before +
+                  " after SHA256=" + source_after +
+                  " baselineAfter SHA256=" + baseline_after)
+            if (source_after != source_before or baseline_after != source_before
+                    or after_manifest != source_manifest_before
+                    or inventory(baseline) != source_manifest_before):
+                raise RuntimeError("toy original/baseline source no-write inventory drift")
             graph.unlink(missing_ok=True)
             obs.unlink(missing_ok=True)
             companion_path.unlink(missing_ok=True)
