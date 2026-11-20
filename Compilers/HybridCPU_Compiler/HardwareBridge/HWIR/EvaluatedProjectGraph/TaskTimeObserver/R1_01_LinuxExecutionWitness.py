@@ -116,13 +116,14 @@ def _parse_trace(trace_dir):
             if payload.endswith(" <unfinished ...>"):
                 if pending is not None:
                     refuse("nested unfinished strace syscall")
-                pending = payload[:-len(" <unfinished ...>")]
+                pending = (stamp, payload[:-len(" <unfinished ...>")])
                 continue
             if payload.startswith("<... "):
                 resumed = re.fullmatch(r"<\.\.\. (\w+) resumed>(.*)", payload)
-                if pending is None or resumed is None or not pending.startswith(resumed.group(1) + "("):
+                if pending is None or resumed is None or not pending[1].startswith(resumed.group(1) + "("):
                     refuse("unmatched resumed strace syscall")
-                payload = pending + resumed.group(2)
+                stamp, partial = pending
+                payload = partial + resumed.group(2)
                 pending = None
             if payload.startswith("execveat(") or payload.startswith("fchdir("):
                 refuse("execveat/fchdir unsupported without independent fd tracking")
@@ -182,29 +183,21 @@ def verify(trace_dir, *, launch_cwd, launch_argv, compiler, event_argv, expected
     if not isinstance(event_argv, dict) or not event_argv or len(event_argv) > 32:
         refuse("task-event vector missing")
     births = {}
-    chdirs = {}
     executions = {}
     exits = {}
-    shared_fs_pids = set()
     for stamp, pid, kind, value in events:
         if kind == "fork":
             child, shared = value
             if child in births or child == pid:
                 refuse("ambiguous duplicated process ancestry")
-            births[child] = (pid, stamp)
-            if shared:
-                shared_fs_pids.update((pid, child))
-        elif kind == "chdir":
-            chdirs.setdefault(pid, []).append((stamp, value))
+            births[child] = (pid, stamp, shared)
         elif kind == "exec":
             executions.setdefault(pid, []).append((stamp, value))
         elif kind == "exit":
             if pid in exits:
                 refuse("duplicate process exits")
             exits[pid] = (stamp, value)
-    if any(pid in shared_fs_pids for pid in chdirs):
-        refuse("CLONE_FS shared cwd mutation not representable in bounded parser")
-    if any(child not in pids or parent not in pids for child, (parent, _) in births.items()):
+    if any(child not in pids or parent not in pids for child, (parent, _, _) in births.items()):
         refuse("incomplete fork ancestry")
     roots = pids - births.keys()
     if len(roots) != 1:
@@ -217,24 +210,36 @@ def verify(trace_dir, *, launch_cwd, launch_argv, compiler, event_argv, expected
     if str(clean_path(executions[root][0][1][0])) != str(clean_path(launch_argv[0])):
         refuse("launcher executable differs from pinned path")
 
-    def cwd_at(pid, timestamp, stack=()):
-        if pid in stack or len(stack) > MAX_TRACE_FILES:
-            refuse("cyclic/unbounded process graph")
-        if pid == root:
-            current = root_cwd
-        elif pid in births:
-            parent, born = births[pid]
-            if timestamp < born:
-                refuse("OS child activity before observable fork")
-            current = cwd_at(parent, born, (*stack, pid))
-        else:
-            refuse("OS process without parent proof")
-        for at, dest in sorted(chdirs.get(pid, [])):
-            if at > timestamp:
-                break
-            candidate = Path(dest) if os.path.isabs(dest) else Path(current) / dest
-            current = str(clean_path(candidate, directory=True))
-        return current
+    # CLONE_FS aliases the same kernel fs_struct for parent and child. Replay
+    # the ordered syscalls in groups; a normal fork copies its cwd at that time.
+    fs_group = {root: root}
+    group_cwd = {root: root_cwd}
+    witnessed_cwd = {}
+    csc_times = {stamp for rows in executions.values()
+                 for stamp, (exe, _) in rows if os.path.abspath(exe) == compiler_path}
+    if any(kind == "chdir" and stamp in csc_times for stamp, _, kind, _ in events):
+        refuse("concurrent chdir and Csc execve with ambiguous timestamp order")
+    priority = {"fork": 0, "chdir": 1, "exec": 2, "exit": 3}
+    for stamp, pid, kind, value in sorted(events, key=lambda item: (item[0], priority[item[2]], item[1])):
+        if kind == "fork":
+            child, shared = value
+            if pid not in fs_group or child in fs_group:
+                refuse("OS child activity before observable fork / duplicate PID")
+            if shared:
+                fs_group[child] = fs_group[pid]
+            else:
+                fs_group[child] = child
+                group_cwd[child] = group_cwd[fs_group[pid]]
+        elif kind == "chdir":
+            if pid not in fs_group:
+                refuse("unowned chdir process")
+            group = fs_group[pid]
+            candidate = Path(value) if os.path.isabs(value) else Path(group_cwd[group]) / value
+            group_cwd[group] = str(clean_path(candidate, directory=True))
+        elif kind == "exec":
+            if pid not in fs_group:
+                refuse("OS process without parent proof")
+            witnessed_cwd[(pid, stamp)] = group_cwd[fs_group[pid]]
 
     csc = []
     for pid, rows in executions.items():
@@ -247,7 +252,9 @@ def verify(trace_dir, *, launch_cwd, launch_argv, compiler, event_argv, expected
                 refuse("response-file bytes were not captured at open/read time")
             if argv[0] != exe:
                 refuse("unexpected execve argv[0] for Csc")
-            actual_cwd = cwd_at(pid, stamp)
+            actual_cwd = witnessed_cwd.get((pid, stamp))
+            if actual_cwd is None:
+                refuse("missing Csc cwd in bounded ordered syscall replay")
             csc.append({"pid": pid, "time": stamp, "executable": exe,
                         "argv": argv, "cwd": actual_cwd,
                         "exitTime": exits[pid][0], "exitCode": exits[pid][1]})
