@@ -69,6 +69,19 @@ class TaskTimeObserverMutationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "duplicate"):
             o.read_events(str(self.log))
 
+    def test_os_exec_exit_must_fit_real_task_window(self):
+        from datetime import datetime, timezone
+        event = self.events["events"][0]
+        base = datetime(2026, 11, 20, tzinfo=timezone.utc).timestamp()
+        o.check_execution_window(event, {"time": str(base + 0.1),
+                                         "exitTime": str(base + 0.8)})
+        with self.assertRaisesRegex(ValueError, "outside actual MSBuild"):
+            o.check_execution_window(event, {"time": str(base + 60),
+                                             "exitTime": str(base + 61)})
+        with self.assertRaisesRegex(ValueError, "outside actual MSBuild"):
+            o.check_execution_window(event, {"time": str(base + 0.8),
+                                             "exitTime": str(base + 0.1)})
+
     def test_response_file_is_blocked_without_task_time_bytes(self):
         with self.assertRaisesRegex(ValueError, "response"):
             o.exact_argv("dotnet exec " + str(self.tool) + " @args.rsp", self.tool)
