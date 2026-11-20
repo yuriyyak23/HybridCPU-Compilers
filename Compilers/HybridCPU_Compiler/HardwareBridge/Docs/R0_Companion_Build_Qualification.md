@@ -1,0 +1,70 @@
+# R0-01 — Companion production build qualification
+
+## Scope and trust boundary
+
+Owner: R0-01 only. The **real** build dependency chain is
+`HardwareBridge.Companion.csproj -> HybridCPU.Compiler.Roslyn.csproj -> HybridCPU.Compiler.Cil.csproj -> HybridCPU.Compiler.Core.csproj`.
+The Bridge project has no CircuitWeave project reference. No Golden or CircuitWeave checkout is performed in this CI lane. A successful process, synthetic test or matching digest **does not qualify** Golden facts, source identity, HWIR/RTL or execution authority.
+
+This package changes only its owned test, standalone R0-01 runner, workflow and qualification documentation. It does not modify shared HB-INT-06 workflows, Golden source, Core consumer or external roadmaps.
+
+## Baseline evidence and current dependency
+
+* Reviewed original audit head: `8d3453dcc02bfb63710727f4f602edd9bc31efad`; re-read master before this package: `9befee4f3971b4945c553cf3162ed84af94134e4`.
+* [HB-INT-06 Windows build job](https://github.com/yuriyyak23/HybridCPU-Compilers/actions/runs/44740086741/job/136301263920) (2026-11-20) recorded **companion-restore Passed exit=0**, **companion-build Failed exit=1** (stdout SHA256 `5AFEBCB2B9561FA38F3E9301FAE30109EBDCCFB7D14C703F7BC6AB57E0B48C2E`).
+* Error examples: `CompilerProductionProviderContracts.cs(3,34) CS0234` unknown `HybridCPU.Compiler.Core.IR.Artifacts`; `CompilerProductionLoweringGate.cs(101,12) CS0246` `CompilerEmissionPackage`; `CompilerRuntimeBridge.cs(56,43) CS0246` `CompilerSidebandEnvelope`; plus `DescriptorEnvelope`, `TypedSlotFactsEnvelope`, `CompilerEvidenceEnvelope`, `SidebandRequirement`, `DescriptorAbiStatus`.
+* The current master GitHub tree has `Core/IR` but **no** tracked `Core/IR/Artifacts/**`. Its file/directory commit-path history lookup returns no tracked files for that path. Searches reveal many consumers but no verified declarations of the required missing types. Do **not** invent blank types, trim the dependent graph or silently exclude the production code. This is an unresolved real production-source dependency, not proof that a `Compile Include` is the remedy.
+* `Core/HybridCPU.Compiler.Core.csproj` has default SDK compile items and `Compile Remove` for `obj` and `$(BaseIntermediateOutputPath)`; `Cil` project references Core, `Roslyn` references Cil, and Companion references Roslyn. The new runner records the actual evaluated Compile/ProjectReference items in CI to distinguish this source-state diagnosis from an evaluated MSBuild exclusion.
+* There is **no root global.json** in HybridCPU-Compilers. The Windows lane deliberately pins the historic separately reviewed **Core-compatible** SDK `11.0.100-rc.2.26504.105`; the toy observer's `11.0.100` is a distinct toolchain and must not be conflated with it. The lane verifies installed SDK, dotnet binary SHA256 and SDK Roslyn `csc.dll` SHA256 at runtime.
+
+## Reproducible execution
+
+The only CI entry point is `.github/workflows/hb-r0-companion-qualification.yml` on Windows 2025 for this package's paths. Checkout is an exact event commit with credentials removed. The script is:
+`Compilers/HybridCPU_Compiler/HardwareBridge/Tests/R0_01_Companion_Qualification.ps1`.
+
+With a matching SDK and clean checkout, execute on Windows PowerShell:
+
+```powershell
+$sha = (git rev-parse HEAD).Trim()
+$temp = Join-Path $env:TEMP 'hb-r0-01-owned'
+& ./Compilers/HybridCPU_Compiler/HardwareBridge/Tests/R0_01_Companion_Qualification.ps1 `
+    -ExpectedSha $sha -ExpectedSdk '11.0.100-rc.2.26504.105' -OutputRoot $temp
+```
+
+The CI runner additionally requires `OutputRoot` inside `RUNNER_TEMP` (set `$env:RUNNER_TEMP` to a reviewed external isolated TEMP directory for manual runs). Its real commands are the equivalent of:
+
+```powershell
+dotnet --info
+dotnet msbuild <CORE.csproj> -getItem:Compile -getItem:ProjectReference -getProperty:TargetFramework,BaseIntermediateOutputPath,OutputPath,DefineConstants,ArtifactsPath -p:UseArtifactsOutput=true -p:ArtifactsPath=<TEMP/artifacts-Debug> -p:Configuration=Debug
+dotnet restore <COMPANION.csproj> -p:UseArtifactsOutput=true -p:ArtifactsPath=<TEMP/artifacts-Debug> -p:RestorePackagesPath=<TEMP/packages>
+dotnet build <COMPANION.csproj> --no-restore -c Debug -p:UseArtifactsOutput=true -p:ArtifactsPath=<TEMP/artifacts-Debug> -p:RestorePackagesPath=<TEMP/packages>
+# The same project graph is independently restored and built in Release with a different TEMP root.
+# After a successful Companion build, build and execute the existing real HardwareBridge.SelfTests project.
+```
+
+The `HardwareBridge/Directory.Build.props` respects `ArtifactsPath`; `UseArtifactsOutput=true` propagates SDK artifact isolation across referenced production projects. The runner forbids an output root under the checkout, validates the evaluated graph before restore, and checks the real `HardwareBridge.Companion.dll` path and SHA. The compiled real-assembly test also opens PE metadata for the five Core-owned types, plus Cil/Roslyn/Companion, rejecting empty, synthetic, wrong-assembly and missing type definitions. **The test cannot run if a dependency fails to compile.**
+
+Tracked Git file SHA256 inventories, HEAD and porcelain status are compared before and after the attempt; a changed/missing source produces `NoSourceWrite=Failed`. Receipts are created once in runner TEMP, not committed. Only the compact allowlisted `r0-01-qualification.json` is uploaded; stdout/stderr logs, compiled DLLs, PDBs, source and cache stay in runner TEMP. Each executed command has exit code, elapsed milliseconds and stdout/stderr SHA256. Skipped stages are `NotRun`, never `Passed`.
+
+## Negative / mutation matrix
+
+| Test | Expected result | Owner |
+|---|---|---|
+| Wrong .NET SDK or wrong HEAD SHA | Refuse before build | R0-01 |
+| Modified tracked source or dirty checkout | Refuse / NoSourceWrite Failed | R0-01 |
+| Output outside RUNNER_TEMP | Refuse | R0-01 |
+| Missing Core/Cil/Roslyn ProjectReference edge | Refuse | R0-01 |
+| Stale/generated Compile item in obj/bin/.artifacts | Refuse | R0-01 |
+| Production Core-owned type absent | Real Csc compilation fails, never stubbed | External upstream source dependency |
+| Missing actual DLL, invalid PE, public type mismatch | Reject, no synthetic PASS | R0-01 |
+| NuGet restore fails or a build exits nonzero | Failed/Blocked with command receipt | R0-01 |
+| Changed DefineConstants | Record exact effective evaluated graph; baseline must not be reused to qualify a changed variant | R0-01 |
+| Actual Golden source-no-write | NotRun: no Golden checkout in this scoped lane | Requires separate approval |
+
+These negative checks do not claim full independent Golden method provenance or hardware verification. An absent real Core-owned production source must be restored from a reviewed source revision and validated with genuine compiler tests before R0-01 can pass.
+
+## Acceptance and status semantics
+
+`Passed` requires clean **Debug AND Release** production Companion PE outputs, real PE/type contract tests, identical tracked source SHA256 inventory and a valid immutable receipt uploaded by successful GitHub CI at the reviewed head commit.
+
+Until that evidence exists, the qualification is **Blocked** (with actual `Build=Failed` recorded for failures). The upstream missing tracked `Core/IR/Artifacts` production code is the current blocker; do not interpret restore success or historical fixture-only successes as completion. A Core private read token missing in a separate HB-INT-06 job is **outside this R0-01 scope**. Do not merge this Draft PR solely because the receipt has been published.
