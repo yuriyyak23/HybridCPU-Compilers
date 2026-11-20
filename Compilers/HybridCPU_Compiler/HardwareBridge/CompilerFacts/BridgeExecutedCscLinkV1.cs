@@ -158,7 +158,9 @@ public static class BridgeExecutedCscLinkV1
             !IsSha(facts.SourceInputDigest) || !IsSha(facts.PeSha256) ||
             !IsSha(facts.PdbSha256) || facts.Methods is null || facts.RootIdentities is null ||
             facts.SourceMaps is null || facts.SourceMaps.Count > 131072 ||
+            facts.SourceMaps.Any(row => row is null) ||
             facts.Methods.Count is < 1 or > 256 ||
+            facts.Methods.Any(method => method is null) ||
             facts.RootIdentities.Count != snapshot.Roots.Count)
             throw Refuse(BridgeCscLinkRefusal.UnsupportedFacts,
                 "Only exact primary-module Candidate software facts are eligible.");
@@ -169,9 +171,12 @@ public static class BridgeExecutedCscLinkV1
         if (string.IsNullOrWhiteSpace(e.SdkVersion) || e.SdkVersion.Length > 128 ||
             e.SdkVersion.Any(char.IsControl) ||
             string.IsNullOrWhiteSpace(e.CompilerPath) ||
-            !Path.IsPathFullyQualified(e.CompilerPath) ||
-            !Path.IsPathFullyQualified(e.OutputPePath) ||
-            !Path.IsPathFullyQualified(e.OutputPdbPath) ||
+            !ExactCscPath(e.CompilerPath) ||
+            !ExactCscPath(e.OutputPePath) ||
+            !ExactCscPath(e.OutputPdbPath) ||
+            string.Equals(e.CompilerPath, e.OutputPePath, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(e.CompilerPath, e.OutputPdbPath, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(e.OutputPePath, e.OutputPdbPath, StringComparison.OrdinalIgnoreCase) ||
             e.CompilerPath.Length > 1024 || e.OutputPePath.Length > 1024 ||
             e.OutputPdbPath.Length > 1024)
             throw Refuse(BridgeCscLinkRefusal.WrongArguments, "Compiler or output path is not exact.");
@@ -217,7 +222,11 @@ public static class BridgeExecutedCscLinkV1
             snapshot.References.Count != e.References.Count)
             throw Refuse(BridgeCscLinkRefusal.StaleSource, "Csc input inventory count differs.");
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var seenPhysical = new HashSet<string>(StringComparer.Ordinal);
+        var seenPhysical = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        if (e.Sources.Any(item => item is null) ||
+            e.References.Any(item => item is null))
+            throw Refuse(BridgeCscLinkRefusal.StaleSource,
+                "Null executed Csc source or reference inventory entry.");
         foreach (BridgeCscCapturedInputV1 item in e.Sources.OrderBy(s => s.VirtualPath, StringComparer.Ordinal))
         {
             ct.ThrowIfCancellationRequested();
@@ -262,6 +271,11 @@ public static class BridgeExecutedCscLinkV1
             args.Any(a => a.StartsWith('@')))
             throw Refuse(BridgeCscLinkRefusal.WrongArguments,
                 "Uncaptured references or response-file indirection.");
+        if (seenPhysical.Contains(e.CompilerPath) ||
+            seenPhysical.Contains(e.OutputPePath) ||
+            seenPhysical.Contains(e.OutputPdbPath))
+            throw Refuse(BridgeCscLinkRefusal.WrongArguments,
+                "Compiler, input, and output paths must never alias.");
         Pin("output-pe", "executed-csc-output-assertion", "PrimaryModule", e.OutputPePath, e.PeImage);
         Pin("output-portable-pdb", "executed-csc-output-assertion", "SourceMapCheck",
             e.OutputPdbPath, e.PdbImage);
@@ -296,6 +310,8 @@ public static class BridgeExecutedCscLinkV1
 
             // Duplicate PDB paths, forged hashes and uncaptured #line documents are
             // refused even when no Companion map happens to mention them.
+            if (pdb.Documents.Count is < 1 or > 128)
+                throw Refuse(BridgeCscLinkRefusal.Oversized, "PDB document budget exceeded.");
             var pdbPaths = new HashSet<string>(StringComparer.Ordinal);
             foreach (DocumentHandle documentHandle in pdb.Documents)
             {
@@ -355,11 +371,13 @@ public static class BridgeExecutedCscLinkV1
                 byte[]? il = pe.GetMethodBody(method.RelativeVirtualAddress).GetILBytes();
                 if (il is null || il.Length == 0)
                     throw Refuse(BridgeCscLinkRefusal.WrongMethodToken, "Empty IL body.");
+                if (il.Length > 1_048_576)
+                    throw Refuse(BridgeCscLinkRefusal.Oversized, "Method IL budget exceeded.");
                 ilCalls.Add(fact.StableIdentity, ParseIlCalls(il));
 
                 BridgeMapRowV1[] rows = facts.SourceMaps.Where(r =>
                     r.MethodIdentity == fact.StableIdentity).ToArray();
-                if (rows.Length is < 1 or > 131072 ||
+                if (rows.Length is < 1 or > 2048 ||
                     rows.Select(row => (row.IlOffset, row.IrIndex, row.Document))
                         .Distinct().Count() != rows.Length)
                     throw Refuse(BridgeCscLinkRefusal.WrongSourceMap,
@@ -369,6 +387,8 @@ public static class BridgeExecutedCscLinkV1
                 var points = debug.GetSequencePoints().Where(p => !p.IsHidden).ToArray();
                 if (points.Length == 0)
                     throw Refuse(BridgeCscLinkRefusal.WrongSourceMap, "No visible PDB sequence points.");
+                if (points.Length > 2048)
+                    throw Refuse(BridgeCscLinkRefusal.Oversized, "Method PDB point budget exceeded.");
                 foreach (BridgeMapRowV1 row in rows)
                 {
                     ct.ThrowIfCancellationRequested();
@@ -423,10 +443,11 @@ public static class BridgeExecutedCscLinkV1
                 var expected = new List<(int Offset, int Token, string Callee)>();
                 foreach (var call in ilCalls[fact.StableIdentity])
                 {
-                    // A MemberRef/MethodSpec is foreign or not independently resolved.
-                    // Do not present it as an owned-body MethodDef edge.
+                    // v1 has no independently resolved body for MemberRef or
+                    // MethodSpec: refuse instead of silently dropping the call.
                     if ((call.Token >> 24) != 0x06)
-                        continue;
+                        throw Refuse(BridgeCscLinkRefusal.StaleMethodGraph,
+                            "Foreign or generic IL call needs separate Core qualification.");
                     if (!factsByToken.TryGetValue(call.Token, out BridgeMethodFactV1? callee))
                         throw Refuse(BridgeCscLinkRefusal.StaleMethodGraph,
                             "Observed local MethodDef call has no owned-body fact.");
