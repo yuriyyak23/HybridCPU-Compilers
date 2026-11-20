@@ -1,38 +1,37 @@
 #!/usr/bin/env python3
-"""Fail if any opt-in legacy projection was omitted or changed after catalog capture."""
-import hashlib
-import json
+"""R3-03: baseline pinning checks; never a passing HWIR semantic equivalence test."""
+import importlib.util
 from pathlib import Path
-import re
 import unittest
 
 HWIR = Path(__file__).resolve().parents[1]
-INDEX = HWIR / 'Migration' / 'projection-inventory.v1.json'
+SCRIPT = HWIR / 'Migration' / 'r3_03_inventory_gate.py'
+spec = importlib.util.spec_from_file_location('r3_03_inventory_gate', SCRIPT)
+gate = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(gate)
 
 
 class ProjectionInventoryRegression(unittest.TestCase):
-    def test_all_bridge_projection_blobs_are_exactly_captured(self):
-        report = json.loads(INDEX.read_text('utf8'))
-        self.assertEqual('hybridcpu.hardwarebridge.hb-int-05.projection-inventory/v1', report['schema'])
-        self.assertEqual('report-only-incomplete', report['status'])
-        self.assertRegex(report['sourceHead'], r'^[0-9a-f]{40}$')
-        found = sorted(path for path in HWIR.glob('BridgeHwir*.cs') if path.is_file())
-        entries = report['entries']
-        self.assertEqual(len(found), report['entriesCount'])
-        self.assertEqual([p.name for p in found], [e['file'] for e in entries])
-        for path, entry in zip(found, entries):
-            with self.subTest(file=path.name):
-                before = path.stat()
-                data = path.read_bytes()
-                after = path.stat()
-                self.assertEqual((before.st_size, before.st_mtime_ns), (after.st_size, after.st_mtime_ns))
-                self.assertEqual(len(data), entry['bridgeCodeBytes'])
-                git_blob = b'blob ' + str(len(data)).encode('ascii') + b'\x00' + data
-                self.assertEqual(hashlib.sha1(git_blob).hexdigest(), entry['bridgeCodeGitBlobSha1'])
-                self.assertEqual('NotEstablished', entry['nativeReceiptAgainstCurrentSource'])
-                self.assertEqual('Blocked:CW-INT-06', entry['genericCoreParity'])
-                self.assertEqual('Blocked:CW-INT-13', entry['statefulCoreParity'])
-                self.assertIsNone(entry['goldenVectorCoverage'])
+    def test_all_60_current_blobs_and_historical_git_are_pinned(self):
+        report = gate.audit(HWIR, require_history=True)
+        self.assertEqual((60, 20), (report['files'], report['reviewedDeltas']))
+        self.assertTrue(report['historicalGitVerified'])
+        self.assertEqual(('Blocked', 'Blocked', 'NotRun'),
+                         (report['status'], report['semanticEquivalence'], report['native']))
+
+    def test_git_blob_encoding_is_not_plain_sha_or_file_size(self):
+        data = b'line1\nline2\n'
+        self.assertNotEqual(__import__('hashlib').sha1(data).hexdigest(), gate.git_blob(data))
+        self.assertNotEqual(gate.git_blob(data), gate.git_blob(data + b'\r\n'))
+
+    def test_no_verified_or_rtl_promotion_in_reviewed_matrix(self):
+        inventory = gate.strict_json(HWIR / 'Migration' / 'r3_03_projection-review-inventory.v2.json')
+        for item in inventory['entries']:
+            with self.subTest(file=item['file']):
+                self.assertIsNone(item['exactGoldenSourceIdentity'])
+                self.assertEqual('Blocked', item['semanticEquivalence'])
+                self.assertEqual('NotRun', item['nativeReceipt'])
+                self.assertEqual('Blocked', item['processorAcceptance'])
 
 
 if __name__ == '__main__':

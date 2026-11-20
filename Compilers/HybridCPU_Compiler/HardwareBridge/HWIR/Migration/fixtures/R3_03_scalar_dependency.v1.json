@@ -1,0 +1,44 @@
+{
+  "schema": "hybridcpu.hardwarebridge.r3-03.slice-dependency/v1",
+  "slice": "scalar",
+  "selectedMethod": "YAKSys_Hybrid_CPU.Core.ScalarAluOps.AddWord",
+  "source": {
+    "repository": "Golden HybridCPU-v2 (external; no write)",
+    "commit": "6946ccab9d888f7dae0a4d8e18480f436138acd9",
+    "path": "HybridCPU_ISE/CloseToHSL/Core/Execution/Scalar/ALU/ScalarAluOps.cs",
+    "historicalGitBlobSha1": "c375dd8f9388fb09bf0cb8c4c09a06f3a25403bc",
+    "currentSourceSha256": null,
+    "approvedCurrentSourceBytes": null
+  },
+  "legacy": {
+    "projection": "BridgeHwirAddWordCompiler.cs",
+    "actualCanonicalHwirSha256": null,
+    "actualOrderedObservationSha256": null
+  },
+  "independentCore": {
+    "owner": "CW-INT-06",
+    "rule": "source-owned generic typed add-word + 32-bit wrap/sign extension; no bespoke GoldenAddWordCandidateCompiler",
+    "actualGenericHwirSha256": null,
+    "actualIndependentObservationSha256": null
+  },
+  "evidence": {
+    "orderedIndependentVectorCount": null,
+    "typedWidthsAndSignedness": null,
+    "overflow": null,
+    "clockResetEnable": null,
+    "memoryOrdering": null,
+    "independentRawOutputsSha256": null,
+    "native": "NotRun",
+    "independentRtlAcceptance": "Blocked"
+  },
+  "riskExclusions": [
+    "No inferred Processor top",
+    "No hidden Rank4 slot",
+    "No assumed HardPinned lane6",
+    "No lost reset or stall",
+    "No stale native receipts"
+  ],
+  "status": "Blocked:MissingCurrentGoldenSourceShaAndIndependentCoreGenericHWIR",
+  "acceptance": "NotPass",
+  "note": "Historical Golden blob and commit are provenance references from migration notes, not an approved current SHA-256 source closure or executable Core lowering. This fixture must never be reused as real Core evidence."
+}

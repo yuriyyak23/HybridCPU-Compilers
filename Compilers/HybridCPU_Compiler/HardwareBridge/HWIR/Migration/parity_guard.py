@@ -77,6 +77,9 @@ def top(design, source, slice_name):
     contract = m.get('contract')
     ensure(isinstance(contract, dict) and contract.get('kind') in ('Combinational', 'Clocked'), 'UNKNOWN_CONTRACT')
     ensure(slice_name == 'scheduler' or contract['kind'] == 'Combinational', 'UNDECLARED_CLOCK')
+    # A user-supplied module named Processor is not a qualified hardware top.
+    ensure(not re.search(r'processor|rank4|hardpinned|lane6', str(design.get('topModule')), re.I),
+           'BLOCKED_INFERRED_PROCESSOR_OR_LANE')
     ensure(isinstance(m.get('ports'), list) and m['ports'], 'MISSING_PORTS')
     ensure(m['ports'] == contract.get('ports'), 'PORT_CONTRACT_DIVERGENCE')
     # Producer-supplied origin is diagnostic, not a cryptographic signature. Bind
@@ -92,8 +95,9 @@ def top(design, source, slice_name):
 def typed_contract(module):
     contract = module['contract']
     timing = contract.get('timing')
-    ensure(isinstance(timing, dict) and isinstance(timing.get('latencyCycles'), int) and
-           isinstance(timing.get('initiationInterval'), int), 'MISSING_TIMING')
+    ensure(isinstance(timing, dict) and type(timing.get('latencyCycles')) is int and
+           timing['latencyCycles'] >= 0 and type(timing.get('initiationInterval')) is int and
+           timing['initiationInterval'] > 0, 'MISSING_TIMING')
     ports = {}
     for p in module['ports']:
         ensure(isinstance(p, dict) and isinstance(p.get('name'), str), 'INVALID_PORT')
@@ -132,7 +136,8 @@ def check_vectors(observation, expected_producer, source, artifact_sha, ports):
                        len(word) <= 1235 and int(word) < (1 << ports[name]['type']['width']),
                        'VECTOR_WIDTH_OR_SIGN')
         by_id[v['id']] = v
-    return by_id
+    # Preserve raw vector order: matching sets in a different cycle order are not parity.
+    return list(by_id.values())
 
 
 def inspect_native(raw, legacy_hwir_sha):
@@ -149,17 +154,27 @@ def inspect_native(raw, legacy_hwir_sha):
     ensure(all(HEX64.fullmatch(tools.get(x, '')) for x in
                ('circtExecutableSha256', 'iverilogExecutableSha256', 'vvpExecutableSha256')),
            'UNPINNED_NATIVE_TOOLS')
-    return 'historical-candidate-receipt-linked; no native execution by this gate'
+    # Even a structurally linked historical receipt is NOT current native execution.
+    return 'NotRun'
 
 
 def compare(source_bytes, legacy_hwir_bytes, core_hwir_bytes, legacy_observation_bytes,
             core_observation_bytes, expected, slice_name, native_receipt_bytes=None):
     ensure(slice_name in ('scalar', 'scheduler', 'csr'), 'UNKNOWN_SLICE')
+    # Until CW-INT-13 supplies a qualified stateful generic Core candidate, a
+    # sampled scheduler/CSR projection must not erase reset, stall or retire cycles.
+    ensure(slice_name == 'scalar', 'BLOCKED_CW_INT_13_STATEFUL_CLOSURE')
+    ensure(isinstance(expected, dict) and isinstance(expected.get('path'), str) and
+           expected['path'] and not expected['path'].startswith('/') and
+           all(x not in ('', '.', '..') for x in expected['path'].split('/')) and
+           not any(c in expected['path'] for c in ('\\', '\x00', ':')),
+           'INVALID_SOURCE_PATH')
     ensure(HEX40.fullmatch(expected['commit']) and HEX64.fullmatch(expected['sha256']) and
            expected['path'] and expected['method'], 'INVALID_SOURCE_IDENTITY')
     ensure(sha(source_bytes) == expected['sha256'], 'SOURCE_BYTES_MISMATCH')
     ensure('rank' not in expected['method'].lower(), 'BLOCKED_RANK4')
     ensure('lane' not in expected['method'].lower(), 'BLOCKED_HARDPINNED_LANE6')
+    ensure('processor' not in expected['method'].lower(), 'BLOCKED_INFERRED_PROCESSOR_OR_LANE')
     legacy = top(parse_json(legacy_hwir_bytes), expected, slice_name)
     core = top(parse_json(core_hwir_bytes), expected, slice_name)
     left = typed_contract(legacy)
@@ -171,12 +186,15 @@ def compare(source_bytes, legacy_hwir_bytes, core_hwir_bytes, legacy_observation
                          sha(core_hwir_bytes), right['ports'])
     ensure(lvec == rvec, 'VECTOR_MISMATCH')
     # Neither row counts nor a matching checksum proves independent execution.
+    # This checksum is diagnostic, not an external independent Golden pin.
+    vectors_digest = sha(json.dumps(lvec, sort_keys=True, separators=(',', ':')).encode('utf-8'))
     native_status = 'NotRun'
     if native_receipt_bytes is not None:
         native_status = inspect_native(native_receipt_bytes, sha(legacy_hwir_bytes))
     return {'schema': 'hybridcpu.hardwarebridge.hb-int-05.parity-report/v1',
             'status': 'ReportOnly', 'comparison': 'matching', 'slice': slice_name,
-            'vectorsCompared': len(lvec), 'sourceSha256': sha(source_bytes),
+            'vectorsCompared': len(lvec), 'orderedVectorsSha256': vectors_digest,
+            'sourceSha256': sha(source_bytes),
             'legacyHwirSha256': sha(legacy_hwir_bytes), 'coreHwirSha256': sha(core_hwir_bytes),
             'native': native_status, 'independentRtlAcceptance': 'Blocked',
             'coreGenericLoweringProvenance': 'Unqualified', 'processor': 'INCOMPLETE'}

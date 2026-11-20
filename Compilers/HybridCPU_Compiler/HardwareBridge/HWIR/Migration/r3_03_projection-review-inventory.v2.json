@@ -1,0 +1,1400 @@
+{
+  "schema": "hybridcpu.hardwarebridge.r3-03.projection-review-inventory/v2",
+  "status": "Blocked:IndependentCoreSourceDerivedLoweringMissing",
+  "repo": "yuriyyak23/HybridCPU-Compilers",
+  "historicalInventory": "projection-inventory.v1.json",
+  "historicalHead": "94f59223b36659c9162620224f91349ac79fb896",
+  "auditedHead": "9befee4f3971b4945c553cf3162ed84af94134e4",
+  "sourceDiff": "https://github.com/yuriyyak23/HybridCPU-Compilers/compare/94f59223b36659c9162620224f91349ac79fb896...9befee4f3971b4945c553cf3162ed84af94134e4",
+  "auditScope": "Git blob identity/size, declaration-typing-only patch inspection; NOT Golden semantic or Core parity",
+  "entriesCount": 60,
+  "changedSourceFiles": 20,
+  "notes": [
+    "v1 is an immutable historical inventory. v2 records exact head Git blob identities, never silently rewrites historical pins.",
+    "20 changed source files have been inspected in Git compare; their patch changes local declaration typing. This is not an independent equivalence proof.",
+    "No actual Golden vectors, verified Csc, Core generic source-derived HWIR, or native ToolBridge receipt is present.",
+    "Do not infer Processor top, fourth Rank slot, lane6 ownership or cross-cycle semantics from these projection filenames."
+  ],
+  "entries": [
+    {
+      "file": "BridgeHwirAddWordCompiler.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "de302d2c47daa2bffb93230862268a8dcc654513",
+        "bytes": 6620
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "de302d2c47daa2bffb93230862268a8dcc654513",
+        "bytes": 6620
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": "Core GoldenAddWordCandidateCompiler: Golden Git blob c375dd8f9388fb09bf0cb8c4c09a06f3a25403bc, commit 6946ccab9d888f7dae0a4d8e18480f436138acd9",
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 independent generic source-derived lowering",
+      "knownSemanticGap": "CW-INT-06 exact Golden ScalarAluOps method/closure, typed 32-bit wrap and sign extension",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirAdmissionDecision.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "01254ea87694d95812eadbdd162e7194e183d5f7",
+        "bytes": 21408
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "01254ea87694d95812eadbdd162e7194e183d5f7",
+        "bytes": 21408
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 Rank4 tail / HardPinned lane6 and stateful ownership",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirAssistAttemptChain.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "ab9c7a01b96b7a60cd79b9708aeb0ed307793788",
+        "bytes": 21665
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "ab9c7a01b96b7a60cd79b9708aeb0ed307793788",
+        "bytes": 21665
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 Rank4 tail / HardPinned lane6 and stateful ownership",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirAssistCandidateAttempt.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "d7ed7910901551f46acb6f9b3714412afe968454",
+        "bytes": 19861
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "d7ed7910901551f46acb6f9b3714412afe968454",
+        "bytes": 19861
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 Rank4 tail / HardPinned lane6 and stateful ownership",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirAssistQuota.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "d94d0ed925ca905964de08465247b1afa2933a74",
+        "bytes": 71564
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "d94d0ed925ca905964de08465247b1afa2933a74",
+        "bytes": 71564
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 Rank4 tail / HardPinned lane6 and stateful ownership",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirAssistRankedCandidateChain.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "21e5bcdf6194bc1e234e0837ebff4c35e451acbc",
+        "bytes": 22618
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "21e5bcdf6194bc1e234e0837ebff4c35e451acbc",
+        "bytes": 22618
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 Rank4 tail / HardPinned lane6 and stateful ownership",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirBankPressure.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "65975969b3274719a62822b628a1e2d2777cfaf1",
+        "bytes": 11431
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "65975969b3274719a62822b628a1e2d2777cfaf1",
+        "bytes": 11431
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "Exact Golden member/independent typed Core rule not mapped",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirCandidateCollection.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "2be9e767c926831ce574522f3c8cd33abc1a449e",
+        "bytes": 11983
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "fc06af2f1b86fbeefe007435568fae72f4d6295e",
+        "bytes": 11986
+      },
+      "deltaDisposition": "source-delta-inspected-declaration-typing-only-not-semantic-proof",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "Exact Golden member/independent typed Core rule not mapped",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirClassAdmission.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "bc6f4ef9cde5088468794b7e875419a8c1d7859f",
+        "bytes": 9585
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "b5437cca6f2de1440acacc69dc54c2d29f0c6250",
+        "bytes": 9591
+      },
+      "deltaDisposition": "source-delta-inspected-declaration-typing-only-not-semantic-proof",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 Rank4 tail / HardPinned lane6 and stateful ownership",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirClassCapacity.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "26f7aa86c508d80227d9260d7d77ae8ee6b6bc75",
+        "bytes": 9453
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "29731a9dda2d04e9e2bcb2216c2105e7a19c9dee",
+        "bytes": 9460
+      },
+      "deltaDisposition": "source-delta-inspected-declaration-typing-only-not-semantic-proof",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "Exact Golden member/independent typed Core rule not mapped",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirCoarseMemoryConflict.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "4b0dbbbf8a3210d3f7c6b702b591904f03870015",
+        "bytes": 6394
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "4b0dbbbf8a3210d3f7c6b702b591904f03870015",
+        "bytes": 6394
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 memory ordering, acknowledgement and cycle state",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirConsumedDecodedBundleSlotMask.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "49a5ae1d43c1ecf57574709263c9621f142046d5",
+        "bytes": 14951
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "49a5ae1d43c1ecf57574709263c9621f142046d5",
+        "bytes": 14951
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 Rank4 tail / HardPinned lane6 and stateful ownership",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirCsrAccess.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "ec838214c63cbcaa2c9093f2f9624535b6f1dd7c",
+        "bytes": 8145
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "ec838214c63cbcaa2c9093f2f9624535b6f1dd7c",
+        "bytes": 8145
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": "See per-run captured source pins; not independently rechecked in HB-INT-05",
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 CSR storage, retire, trap and temporal ordering",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirCsrClearRetirePath.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "4982133880c0cf08cf8c1ea5684c239ac9887def",
+        "bytes": 21335
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "4982133880c0cf08cf8c1ea5684c239ac9887def",
+        "bytes": 21335
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 CSR storage, retire, trap and temporal ordering",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirCsrStorageEvent.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "970f69a62257e7827a862472a1cc3750d3bb6bb9",
+        "bytes": 21506
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "b44f6af0baf240affa495c1ed17673f38c6bc960",
+        "bytes": 21512
+      },
+      "deltaDisposition": "source-delta-inspected-declaration-typing-only-not-semantic-proof",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 CSR storage, retire, trap and temporal ordering",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirExplicitScalarLoadLogicalEvent.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "00a01d2646f799e3a0db4f73d047eb2eb6edd13d",
+        "bytes": 16476
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "20212cae0f22e70841f7601bfec70f8a655debb3",
+        "bytes": 16602
+      },
+      "deltaDisposition": "source-delta-inspected-declaration-typing-only-not-semantic-proof",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 memory ordering, acknowledgement and cycle state",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirFairnessUpdate.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "01352702ac7595ed954bb20ecae767662e93c059",
+        "bytes": 14318
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "c44f96f6827041043623671e67f03d3d1252c01b",
+        "bytes": 14327
+      },
+      "deltaDisposition": "source-delta-inspected-declaration-typing-only-not-semantic-proof",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 sequential clock/reset/enable/stall, rank4 tail and scheduler lifecycle",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirFaultWinnerPayloadMux.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "bc60b6d81dd424271bd08b01043fc0b497986adc",
+        "bytes": 30771
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "bc60b6d81dd424271bd08b01043fc0b497986adc",
+        "bytes": 30771
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "Exact Golden member/independent typed Core rule not mapped",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirIssuePacketCreateAllocation.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "d86fbb356e0ccf629e0be079cf553e6fe8d003af",
+        "bytes": 29324
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "d86fbb356e0ccf629e0be079cf553e6fe8d003af",
+        "bytes": 29324
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 Rank4 tail / HardPinned lane6 and stateful ownership",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirIssuePacketLaneResolution.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "1e2cfc441635df22dfa2f4f61112501ec7fecb70",
+        "bytes": 19888
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "b10a9f61c68ec8251041af89a0316131f2a75bb1",
+        "bytes": 19893
+      },
+      "deltaDisposition": "source-delta-inspected-declaration-typing-only-not-semantic-proof",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 Rank4 tail / HardPinned lane6 and stateful ownership",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirIssuePacketMaterializationComposition.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "de6ff9d3ace66f0024d8cab2989472a6f22e9e09",
+        "bytes": 9526
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "de6ff9d3ace66f0024d8cab2989472a6f22e9e09",
+        "bytes": 9526
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 Rank4 tail / HardPinned lane6 and stateful ownership",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirIssuePacketMaterializationEligibility.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "147a1ab3ac95519b1460c3249e1fae928956750d",
+        "bytes": 7384
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "147a1ab3ac95519b1460c3249e1fae928956750d",
+        "bytes": 7384
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 Rank4 tail / HardPinned lane6 and stateful ownership",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirIssuePacketNonScalarPhysicalLaneMask.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "672573ce7ca669851ed135d88e6f8c7cf58ff29b",
+        "bytes": 19518
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "672573ce7ca669851ed135d88e6f8c7cf58ff29b",
+        "bytes": 19518
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 Rank4 tail / HardPinned lane6 and stateful ownership",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirLaneChooser.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "0bbfb5df23c8307651cd81ed3e6e86bf925f3ec9",
+        "bytes": 5748
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "0bbfb5df23c8307651cd81ed3e6e86bf925f3ec9",
+        "bytes": 5748
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 Rank4 tail / HardPinned lane6 and stateful ownership",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirLaneMaterialization.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "b93220988bbef140d6a03010f760b947cea6c4df",
+        "bytes": 11154
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "cc2bd818890289e2db4220fa9fce05fc37e054af",
+        "bytes": 11160
+      },
+      "deltaDisposition": "source-delta-inspected-declaration-typing-only-not-semantic-proof",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 Rank4 tail / HardPinned lane6 and stateful ownership",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirLegacyDeferredStorePrevalidation.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "84cf83a156e55b1e6fd88adef571a1e2486ee11d",
+        "bytes": 12791
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "84cf83a156e55b1e6fd88adef571a1e2486ee11d",
+        "bytes": 12791
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 memory ordering, acknowledgement and cycle state",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirModelInventory.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "bb4555fc5a87734ed18a954df03d5653739d6556",
+        "bytes": 6158
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "6a867037ce66447385e9999e6e193aadd2b90d8c",
+        "bytes": 6175
+      },
+      "deltaDisposition": "source-delta-inspected-declaration-typing-only-not-semantic-proof",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "Exact Golden member/independent typed Core rule not mapped",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirOpcodeLookup.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "077711413bf8fed0db312d54d423c420bc475b32",
+        "bytes": 15925
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "d8172921a5d452d5721b5265cd19db3aab92ef64",
+        "bytes": 15928
+      },
+      "deltaDisposition": "source-delta-inspected-declaration-typing-only-not-semantic-proof",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "Exact Golden member/independent typed Core rule not mapped",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirOrderedAdmission.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "f90e8f2068795e3f89f8829694c6049f4f6cb1fe",
+        "bytes": 6565
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "e175d3062b4051e756fb2f90e5a107361247c3ef",
+        "bytes": 6578
+      },
+      "deltaDisposition": "source-delta-inspected-declaration-typing-only-not-semantic-proof",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 Rank4 tail / HardPinned lane6 and stateful ownership",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirPacketOwnerPartialGrant.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "b50729514bc0557803347a14a8439af228211fa7",
+        "bytes": 13695
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "b50729514bc0557803347a14a8439af228211fa7",
+        "bytes": 13695
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 Rank4 tail / HardPinned lane6 and stateful ownership",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirPageFaultDeliveryComposition.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "5837e4a0c142b4ed5f96742f800cb99e97acc1bb",
+        "bytes": 6394
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "5837e4a0c142b4ed5f96742f800cb99e97acc1bb",
+        "bytes": 6394
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "Exact Golden member/independent typed Core rule not mapped",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirPageFaultDeliveryProjection.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "9c587fd0db5565862724005756927b0dcba0028e",
+        "bytes": 16005
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "9c587fd0db5565862724005756927b0dcba0028e",
+        "bytes": 16005
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "Exact Golden member/independent typed Core rule not mapped",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirPipelineMemoryLogicalEvent.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "61230c6a85d105b860a7d14e8bd4a6e0c53fca68",
+        "bytes": 11448
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "61230c6a85d105b860a7d14e8bd4a6e0c53fca68",
+        "bytes": 11448
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 memory ordering, acknowledgement and cycle state",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirPowerControlCsr.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "7c9a70c0278229ed5dcb93ddd18e9adad1c9aa48",
+        "bytes": 7943
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "7c9a70c0278229ed5dcb93ddd18e9adad1c9aa48",
+        "bytes": 7943
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 CSR storage, retire, trap and temporal ordering",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirPressureOrder.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "cb0f65cebb8d0e9b7856456802b137f3172e68ec",
+        "bytes": 8345
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "22f1338bfb1119105a85112ba11a08cc5b8e6dfe",
+        "bytes": 8349
+      },
+      "deltaDisposition": "source-delta-inspected-declaration-typing-only-not-semantic-proof",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "Exact Golden member/independent typed Core rule not mapped",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirProjectedMemoryState.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "f3acee833bedd479283f23711b60ceae2d079de8",
+        "bytes": 35763
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "f3acee833bedd479283f23711b60ceae2d079de8",
+        "bytes": 35763
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 memory ordering, acknowledgement and cycle state",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirRawSlot.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "3bbfab3c7290a3eba9110953efde1711baa16153",
+        "bytes": 27849
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "3eca31aec7ff520147bff9ca3b4877680a915f2b",
+        "bytes": 27903
+      },
+      "deltaDisposition": "source-delta-inspected-declaration-typing-only-not-semantic-proof",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 Rank4 tail / HardPinned lane6 and stateful ownership",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirSchedulerCounterCall.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "aca9d6e5cf2258b52b2cd2f9a700b4fe9054c594",
+        "bytes": 9158
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "578942a8b620f235240fbe3225cf5059ba5dff16",
+        "bytes": 9164
+      },
+      "deltaDisposition": "source-delta-inspected-declaration-typing-only-not-semantic-proof",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 sequential clock/reset/enable/stall, rank4 tail and scheduler lifecycle",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirSchedulerCycleCounter.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "6ff555522129a612c01a6db2c9b8add211dfd53e",
+        "bytes": 8113
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "6ff555522129a612c01a6db2c9b8add211dfd53e",
+        "bytes": 8113
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": "SchedulerSha256 c7e675d76bb4eed9ecccb0b20c13c973895cce556e93c21457d966add731d8bf; MethodSha256 4ecfa34a01d71033b9d6c0b3f2ce752cb50ff8d6004b3a2ba3d6f1c5710e340d",
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 sequential clock/reset/enable/stall, rank4 tail and scheduler lifecycle",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirSchedulerTdmPhase.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "32062cf5e9a6b7dbda17ae5619e858827f27ec66",
+        "bytes": 18433
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "32062cf5e9a6b7dbda17ae5619e858827f27ec66",
+        "bytes": 18433
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 sequential clock/reset/enable/stall, rank4 tail and scheduler lifecycle",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirSelectedStoreRevalidation.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "2d8c274c1180c9b7acacd41f97d693e0d22ec6f2",
+        "bytes": 22555
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "2d8c274c1180c9b7acacd41f97d693e0d22ec6f2",
+        "bytes": 22555
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 memory ordering, acknowledgement and cycle state",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirSharedScalarReadLogicalEvent.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "77a19ec0628c49690cd8598707ecc9e4f5bb5e42",
+        "bytes": 18073
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "25970cfb6e9acf20e2cffcdcc1362eacfcb764e4",
+        "bytes": 18202
+      },
+      "deltaDisposition": "source-delta-inspected-declaration-typing-only-not-semantic-proof",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "Exact Golden member/independent typed Core rule not mapped",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirSingleLaneStoreAdmission.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "e30fdffca4c42259e9b2c0e4255242d27dac4eb3",
+        "bytes": 7822
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "e30fdffca4c42259e9b2c0e4255242d27dac4eb3",
+        "bytes": 7822
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 memory ordering, acknowledgement and cycle state",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirSlotClassMask.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "9607c66603df925fd4fb913861b81fb58c6dc87b",
+        "bytes": 6066
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "c6d481ee50c5e17567e3752eaa5c9c2988926af1",
+        "bytes": 6069
+      },
+      "deltaDisposition": "source-delta-inspected-declaration-typing-only-not-semantic-proof",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 Rank4 tail / HardPinned lane6 and stateful ownership",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirSmtAssistRankReachability.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "bbc928c936e83c17c021d8ed34b909d8bad51862",
+        "bytes": 9737
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "bbc928c936e83c17c021d8ed34b909d8bad51862",
+        "bytes": 9737
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 Rank4 tail / HardPinned lane6 and stateful ownership",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirSmtCertificatePredicate.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "45891915061e4919eecf2165efe8b9cc7cf3e508",
+        "bytes": 12365
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "45891915061e4919eecf2165efe8b9cc7cf3e508",
+        "bytes": 12365
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "Exact Golden member/independent typed Core rule not mapped",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirSmtDuplicateRetry.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "f46d6cb87a33bb38fd4773cc22ef70d3ce985dfd",
+        "bytes": 9676
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "f46d6cb87a33bb38fd4773cc22ef70d3ce985dfd",
+        "bytes": 9676
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "Exact Golden member/independent typed Core rule not mapped",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirSmtLegalityGuardPlane.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "7e26d700ed1314e78f2e93a55a88325acaa38c0d",
+        "bytes": 11841
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "7e26d700ed1314e78f2e93a55a88325acaa38c0d",
+        "bytes": 11841
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "Exact Golden member/independent typed Core rule not mapped",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirSmtOuterGate.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "681d6050557304227aeda123eff9007ec27bc4d7",
+        "bytes": 31367
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "5b0cabfe7a950ca3f02f796abe49383efe3927e5",
+        "bytes": 31370
+      },
+      "deltaDisposition": "source-delta-inspected-declaration-typing-only-not-semantic-proof",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "Exact Golden member/independent typed Core rule not mapped",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirSmtRanking.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "cd954608687bd5eeecda4a99b56890d08ac9d4b2",
+        "bytes": 22770
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "2a1d661f0077cbdfae48ec856963ad29ffbbd45e",
+        "bytes": 22774
+      },
+      "deltaDisposition": "source-delta-inspected-declaration-typing-only-not-semantic-proof",
+      "sourceWitness": "AssistConsumerSha256 8515039c3d770382fd448439d2453c01bd42397f3b525b413d411161bf8035a8",
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 sequential clock/reset/enable/stall, rank4 tail and scheduler lifecycle",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirStageAwareFaultWinner.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "51c63a527d33bf70ee305a672c34d114f7195ef4",
+        "bytes": 12656
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "51c63a527d33bf70ee305a672c34d114f7195ef4",
+        "bytes": 12656
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "Exact Golden member/independent typed Core rule not mapped",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirStageFlowCycleCsr.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "b8d9eca90d294205a06f74d47a9fa301f53ec406",
+        "bytes": 12943
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "b8d9eca90d294205a06f74d47a9fa301f53ec406",
+        "bytes": 12943
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 CSR storage, retire, trap and temporal ordering",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirTrapEntryProjection.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "cce4f13cf1bcecc39049d91b97ef997aed078945",
+        "bytes": 35105
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "cce4f13cf1bcecc39049d91b97ef997aed078945",
+        "bytes": 35105
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "Exact Golden member/independent typed Core rule not mapped",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirTwoCandidateAdmission.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "cdbade33001a41832932cb991dc29e9eb129f081",
+        "bytes": 40057
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "dca7d3df6c7740177f3ec9ace45c21999f9f6803",
+        "bytes": 40076
+      },
+      "deltaDisposition": "source-delta-inspected-declaration-typing-only-not-semantic-proof",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 Rank4 tail / HardPinned lane6 and stateful ownership",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirTypedSlotFacts.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "93f1cd181b840de31b5ae6dab0c024a3616ae3f4",
+        "bytes": 20697
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "0b7630b0afa0973ec6a896d65cb67bf401c2efff",
+        "bytes": 20700
+      },
+      "deltaDisposition": "source-delta-inspected-declaration-typing-only-not-semantic-proof",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 Rank4 tail / HardPinned lane6 and stateful ownership",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirVectorPodCsr.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "7899a40a191e8fade33d34d93978e87723b66ffd",
+        "bytes": 19320
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "7899a40a191e8fade33d34d93978e87723b66ffd",
+        "bytes": 19320
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 CSR storage, retire, trap and temporal ordering",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirVectorRetireCounterClear.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "a75043d5d50e251b62f02b837883c39484d809ee",
+        "bytes": 11319
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "a75043d5d50e251b62f02b837883c39484d809ee",
+        "bytes": 11319
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "Exact Golden member/independent typed Core rule not mapped",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirVectorSegmentReadAdmission.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "415a70bf5a2a8ab06e2097b8813253c9db24419d",
+        "bytes": 21740
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "415a70bf5a2a8ab06e2097b8813253c9db24419d",
+        "bytes": 21740
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "CW-INT-13 Rank4 tail / HardPinned lane6 and stateful ownership",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirVmxValidationCurrent.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "706d4a51b04e282754a79dd22fa7f0a60436ddaf",
+        "bytes": 6767
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "706d4a51b04e282754a79dd22fa7f0a60436ddaf",
+        "bytes": 6767
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "Exact Golden member/independent typed Core rule not mapped",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    },
+    {
+      "file": "BridgeHwirWordDispatch.cs",
+      "historical": {
+        "commit": "94f59223b36659c9162620224f91349ac79fb896",
+        "gitBlobSha1": "693af8037f1b0d8a43282aa867baa44b11382339",
+        "bytes": 68443
+      },
+      "reviewedHead": {
+        "commit": "9befee4f3971b4945c553cf3162ed84af94134e4",
+        "gitBlobSha1": "693af8037f1b0d8a43282aa867baa44b11382339",
+        "bytes": 68443
+      },
+      "deltaDisposition": "unchanged",
+      "sourceWitness": null,
+      "exactGoldenSourceIdentity": null,
+      "targetCoreRule": "CW-INT-06 exact typed lowering; CW-INT-13 if stateful",
+      "knownSemanticGap": "Exact Golden member/independent typed Core rule not mapped",
+      "nativeReceipt": "NotRun",
+      "sourceAdmission": "Blocked:IndependentCoreVerificationMissing",
+      "independentEvidence": "Blocked:CW-INT-06/CW-INT-13",
+      "semanticEquivalence": "Blocked",
+      "processorAcceptance": "Blocked"
+    }
+  ]
+}
