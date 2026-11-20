@@ -27,7 +27,8 @@ def require(test, reason):
 
 def strict_json(path):
     p = Path(path)
-    require(not p.is_symlink() and p.is_file() and p.stat().st_size <= MAX_JSON_BYTES,
+    require(not any(part.is_symlink() for part in (p, *p.parents)) and
+            p.is_file() and p.stat().st_size <= MAX_JSON_BYTES,
             'INDEX_MISSING_OR_OVERSIZE')
     def pairs(items):
         result = {}
@@ -47,7 +48,8 @@ def git_blob(data):
 
 
 def captured_bytes(path):
-    require(not path.is_symlink() and path.is_file(), 'SOURCE_MISSING_OR_SYMLINK')
+    require(not any(part.is_symlink() for part in (path, *path.parents)) and path.is_file(),
+            'SOURCE_MISSING_OR_SYMLINK')
     before = path.stat()
     require(0 < before.st_size <= MAX_SOURCE_BYTES, 'SOURCE_SIZE_BUDGET')
     with path.open('rb') as stream:
@@ -73,6 +75,8 @@ def git_show(root, commit, relative):
 
 def audit(hwir, require_history=False):
     hwir = Path(hwir).absolute()
+    require(not any(part.is_symlink() for part in (hwir, *hwir.parents)),
+            'SOURCE_ROOT_SYMLINK')
     directory = hwir / 'Migration'
     old = strict_json(directory / 'projection-inventory.v1.json')
     new = strict_json(directory / 'r3_03_projection-review-inventory.v2.json')
