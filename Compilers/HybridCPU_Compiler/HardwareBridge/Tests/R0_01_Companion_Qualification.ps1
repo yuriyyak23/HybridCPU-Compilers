@@ -157,6 +157,18 @@ function CheckGraph([string]$project, [string]$config, [string]$artifact) {
           '-getProperty:TargetFramework,BaseIntermediateOutputPath,OutputPath,DefineConstants,ArtifactsPath') + $common) 180
     RequireSuccess $response
     $graph = $response.Stdout | ConvertFrom-Json
+    # The SDK's evaluated intermediate and binary paths must be outside the source checkout.
+    # Project references can have their own Directory.Build.props; inspect each independently.
+    foreach ($propertyName in @('BaseIntermediateOutputPath', 'OutputPath')) {
+        $evaluatedPath = [string]$graph.Properties.$propertyName
+        if ([string]::IsNullOrWhiteSpace($evaluatedPath)) {
+            throw 'Required MSBuild output property is empty.'
+        }
+        if (-not [IO.Path]::IsPathFullyQualified($evaluatedPath)) {
+            $evaluatedPath = Join-Path (Split-Path $project -Parent) $evaluatedPath
+        }
+        RequireWithin $evaluatedPath $artifact | Out-Null
+    }
     $items = @($graph.Items.Compile)
     if ($items.Count -lt 1 -or $items.Count -gt 20000) { throw 'Unbounded or empty evaluated Compile graph.' }
     foreach ($item in $items) {
@@ -166,7 +178,12 @@ function CheckGraph([string]$project, [string]$config, [string]$artifact) {
         }
     }
     $refs = @($graph.Items.ProjectReference | ForEach-Object { ([string]$_.Identity).Replace('\', '/') })
-    return [pscustomobject]@{ Count = $items.Count; References = $refs; ItemSha256 = HashText $response.Stdout }
+    return [pscustomobject]@{
+        Count = $items.Count
+        References = $refs
+        ItemSha256 = HashText $response.Stdout
+        DefineConstantsSha256 = HashText ([string]$graph.Properties.DefineConstants)
+    }
 }
 try {
     $env:DOTNET_CLI_HOME = Join-Path $work 'cli-home'
@@ -231,7 +248,7 @@ try {
         RequireReference $cilGraph.References '../Core/HybridCPU.Compiler.Core.csproj'
         RequireReference $roslynGraph.References '../Cil/HybridCPU.Compiler.Cil.csproj'
         RequireReference $companionGraph.References '../Roslyn/HybridCPU.Compiler.Roslyn.csproj'
-        $report.Graph += [ordered]@{ Configuration = $config; CoreItems = $coreGraph.Count; CilItems = $cilGraph.Count; RoslynItems = $roslynGraph.Count; CompanionItems = $companionGraph.Count; CoreItemSha256 = $coreGraph.ItemSha256; CompanionItemSha256 = $companionGraph.ItemSha256; GraphValid = $true }
+        $report.Graph += [ordered]@{ Configuration = $config; CoreItems = $coreGraph.Count; CilItems = $cilGraph.Count; RoslynItems = $roslynGraph.Count; CompanionItems = $companionGraph.Count; CoreItemSha256 = $coreGraph.ItemSha256; CompanionItemSha256 = $companionGraph.ItemSha256; CoreDefinesSha256 = $coreGraph.DefineConstantsSha256; CompanionDefinesSha256 = $companionGraph.DefineConstantsSha256; GraphValid = $true }
         $restore = InvokeCaptured ('restore-' + $config) $dotnet (@('restore', $companion, '-v:q') + $properties) 600
         $mode.Restore = if ($restore.Exit -eq 0) { 'Passed' } else { 'Failed' }
         if ($restore.Exit -ne 0) { continue }
