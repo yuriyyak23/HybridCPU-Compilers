@@ -29,6 +29,32 @@ internal static class R203WireMatrix
                     " closureSHA=" + transport.ClosureSha256);
             }
 
+            // The Python release subset emits numeric ASCII wire paths/roots,
+            // but C# v2 still has an explicit Unicode wire escaping contract.
+            var unicodePath = new[]
+            {
+                new BridgeV2Input("src/über.cs", "source", Encoding.UTF8.GetBytes("// Unicode\n"))
+            };
+            BridgeV2Transport unicodeWire = BridgeSegmentIndexV2.Write(new[] { Root }, unicodePath);
+            CheckCanonical(unicodeWire, unicodePath);
+            string jsonlUnicode = Encoding.UTF8.GetString(unicodeWire.Chunks[0].Bytes);
+            if (jsonlUnicode.Contains('ü') ||
+                !jsonlUnicode.Contains("\\u00FC", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("Unicode wire path was not canonical JSON escaped");
+
+            // Legacy transport accepts six exact roles; the release Python stager
+            // intentionally maps reference/compiler material to metadata-only.
+            var roles = new[]
+            {
+                new BridgeV2Input("src/A.cs", "source", new byte[] { 65 }),
+                new BridgeV2Input("owned/A.cs", "owned-body", new byte[] { 66 }),
+                new BridgeV2Input("meta/A.bin", "metadata-only", new byte[] { 67 }),
+                new BridgeV2Input("unselected/A.bin", "unselected", new byte[] { 68 }),
+                new BridgeV2Input("compiler/pe.bin", "compiler-pe", new byte[] { 69 }),
+                new BridgeV2Input("compiler/pdb.bin", "compiler-pdb", new byte[] { 70 })
+            };
+            CheckCanonical(BridgeSegmentIndexV2.Write(new[] { Root }, roles), roles);
+
             var baseline = new[] { new BridgeV2Input("src/A.cs", "source",
                 Encoding.UTF8.GetBytes("class A {}\n")) };
             BridgeV2Transport good = BridgeSegmentIndexV2.Write(new[] { Root }, baseline);
