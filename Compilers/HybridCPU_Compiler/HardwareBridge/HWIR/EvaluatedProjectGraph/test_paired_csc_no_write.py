@@ -199,11 +199,21 @@ class PairTests(unittest.TestCase):
 
     def test_external_witness_structural_gate_synthetic_only(self):
         project = self.clean.observation["projects"][0]
+        # These local bytes intentionally do NOT represent a real Csc event.
+        event_file = self.clean.tmp / "synthetic-event.json"
+        event_file.write_bytes(b'{"synthetic":true,"executedCsc":false}\\n')
+        stdout = self.clean.tmp / "synthetic-stdout.bin"
+        stderr = self.clean.tmp / "synthetic-stderr.bin"
+        stdout.write_bytes(b"")
+        stderr.write_bytes(b"")
         event = {"nodeId": project["nodeId"], "argvSha256": project["argvSha256"],
                  "compilerSha256": project["compiler"]["sha256"],
                  "workingDirectory": project["workingDirectory"],
-                 "eventSha256": "1" * 64, "stdoutSha256": hb.sha(b""),
-                 "stderrSha256": hb.sha(b""), "exitCode": 0,
+                 "eventSha256": hb.hash_file(event_file)[0],
+                 "stdoutSha256": hb.hash_file(stdout)[0],
+                 "stderrSha256": hb.hash_file(stderr)[0],
+                 "eventFile": str(event_file), "stdoutFile": str(stdout),
+                 "stderrFile": str(stderr), "exitCode": 0,
                  "eventSource": "R1-01"}
         record = {"schema": paired.WITNESS_SCHEMA,
                   "graphSha256": hb.hash_file(self.clean.graph_path)[0],
@@ -224,6 +234,11 @@ class PairTests(unittest.TestCase):
             paired.check_external_witness(witness, write(), self.clean.graph_path,
                                           self.clean.observation_path)
         event["argvSha256"] = project["argvSha256"]
+        event_file.write_bytes(b"tampered synthetic event")
+        with self.assertRaisesRegex(ValueError, "event bytes differ"):
+            paired.check_external_witness(witness, write(), self.clean.graph_path,
+                                          self.clean.observation_path)
+        event_file.write_bytes(b'{"synthetic":true,"executedCsc":false}\\n')
         record["events"].append(dict(event))
         with self.assertRaisesRegex(ValueError, "duplicate"):
             paired.check_external_witness(witness, write(), self.clean.graph_path,
