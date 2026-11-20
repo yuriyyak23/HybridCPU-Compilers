@@ -8,6 +8,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import stat
@@ -19,6 +20,8 @@ import segmented_csc_capture_v2 as hb
 
 SCHEMA = "hybridcpu.hardwarebridge.paired-csc-capture-receipt/v1"
 CORE_MAX_ROWS = 8192
+CORE_MAX_BYTES = 512 * 1024 * 1024
+WITNESS_SCHEMA = "hybridcpu.hardwarebridge.r1-02-external-task-crosswalk/v1"
 INVENTORY_MAX_FILES = hb.MAX_FILES
 
 
@@ -96,6 +99,57 @@ def require_unchanged(path, first, expected_commit):
         reject("source drift / Git status changed across capture or receipt publication")
 
 
+def check_external_witness(path, reviewed_sha, graph, observation):
+    # Structural crosswalk only. It cannot authenticate a process event or
+    # promote observed/owned-body bytes into independent Core qualification.
+    if not isinstance(reviewed_sha, str) or not re.fullmatch(r"[0-9a-f]{64}", reviewed_sha):
+        reject("missing exact reviewed R1-01 witness SHA")
+    if path is None:
+        reject("missing external R1-01 witness file")
+    raw = hb.read_bounded(path, hb.MAX_OBSERVATION)
+    if hb.sha(raw) != reviewed_sha:
+        reject("external R1-01 witness byte digest differs from reviewed pin")
+    witness = hb.strict_json(raw)
+    if not isinstance(witness, dict) or set(witness) != {
+            "schema", "graphSha256", "observationSha256", "events"
+    } or witness["schema"] != WITNESS_SCHEMA:
+        reject("unknown external witness schema/fields")
+    if (witness["graphSha256"] != hb.hash_file(graph)[0]
+            or witness["observationSha256"] != hb.hash_file(observation)[0]):
+        reject("external witness graph/observation identity mismatch")
+    obs = hb.load(observation, hb.MAX_OBSERVATION)
+    events = witness["events"]
+    if not isinstance(events, list) or not 1 <= len(events) <= 100:
+        reject("missing/oversized R1-01 event mapping")
+    index = {}
+    for event in events:
+        if not isinstance(event, dict) or set(event) != {
+                "nodeId", "argvSha256", "compilerSha256", "workingDirectory",
+                "eventSha256", "stdoutSha256", "stderrSha256", "exitCode", "eventSource"
+        }:
+            reject("invalid external event contract")
+        if (event["eventSource"] != "R1-01" or type(event["exitCode"]) is not int
+                or event["exitCode"] != 0 or any(not isinstance(event[k], str)
+                or not re.fullmatch(r"[0-9a-f]{64}", event[k])
+                for k in ("eventSha256", "stdoutSha256", "stderrSha256"))):
+            reject("invalid R1-01 recorded event or nonzero exit")
+        node = event["nodeId"]
+        if not isinstance(node, str) or node in index:
+            reject("duplicate/invalid R1-01 event mapping")
+        index[node] = event
+    projects = obs.get("projects")
+    if not isinstance(projects, list) or set(index) != {
+            project["nodeId"] for project in projects} or len(index) != len(projects):
+        reject("R1-01 event coverage differs from observed project graph")
+    for project in projects:
+        event = index[project["nodeId"]]
+        if (event["argvSha256"] != project["argvSha256"]
+                or event["compilerSha256"] != project["compiler"]["sha256"]
+                or event["workingDirectory"] != project["workingDirectory"]):
+            reject("R1-01 event/argv/executable/CWD crosswalk mismatch")
+    return reviewed_sha
+
+
 def capture_one(graph, observation, snapshot, out):
     root = hb.capture(graph, observation, snapshot, str(out))
     if hb.verify(str(out)) != root:
@@ -104,6 +158,8 @@ def capture_one(graph, observation, snapshot, out):
     rows = index["entries"]
     if len(rows) > CORE_MAX_ROWS:
         reject("Core transition exceeds 8192 entries; no truncation")
+    if sum(x["bytes"] for x in rows) > CORE_MAX_BYTES:
+        reject("Core transition exceeds 512 MiB; no truncation")
     raw_chunks = [part["sha256"] for row in rows for part in row["chunks"]]
     # The original per-chunk hashes are retained in the LOCAL receipt; the CI
     # should publish only a digest/aggregate count, never original paths/bytes.
@@ -117,7 +173,10 @@ def capture_one(graph, observation, snapshot, out):
 def pair(*, clean_root, dirty_root, clean_graph, dirty_graph,
          clean_observation, dirty_observation, clean_output, dirty_output,
          receipt_output, clean_commit=None, dirty_commit=None,
-         require_git=False, after_clean=None, after_publish=None):
+         require_git=False, require_witness=False,
+         clean_witness=None, dirty_witness=None,
+         clean_witness_sha256=None, dirty_witness_sha256=None,
+         after_clean=None, after_publish=None):
     clean = hb.safe_path(os.path.abspath(clean_root), file=False)
     dirty = hb.safe_path(os.path.abspath(dirty_root), file=False)
     if clean == dirty or hb.inside(clean, dirty) or hb.inside(dirty, clean):
@@ -131,6 +190,13 @@ def pair(*, clean_root, dirty_root, clean_graph, dirty_graph,
     before = [source_inventory(str(clean), clean_commit), source_inventory(str(dirty), dirty_commit)]
     if require_git and any(x["gitCommit"] is None or x["gitStatusSha256"] is None for x in before):
         reject("real capture requires readable, exact Git HEAD and status")
+    if require_git and before[0]["gitStatusSha256"] != hb.sha(b""):
+        reject("pinned clean snapshot has tracked/untracked changes")
+    if require_git and before[1]["gitStatusSha256"] == hb.sha(b""):
+        reject("dirty snapshot lacks an independently visible Git overlay")
+    if require_witness:
+        check_external_witness(clean_witness, clean_witness_sha256, clean_graph, clean_observation)
+        check_external_witness(dirty_witness, dirty_witness_sha256, dirty_graph, dirty_observation)
     if before[0]["inventorySha256"] == before[1]["inventorySha256"]:
         reject("clean and dirty byte inventories identical; overlay not established")
     try:
@@ -174,8 +240,12 @@ def main():
         parser.add_argument("--" + name, required=True)
     parser.add_argument("--clean-commit", required=True)
     parser.add_argument("--dirty-commit", required=True)
+    for name in ("clean-witness", "dirty-witness",
+                 "clean-witness-sha256", "dirty-witness-sha256"):
+        parser.add_argument("--" + name, required=True)
     args = vars(parser.parse_args())
-    pair(**{key.replace("-", "_"): value for key, value in args.items()}, require_git=True)
+    pair(**{key.replace("-", "_"): value for key, value in args.items()},
+         require_git=True, require_witness=True)
 
 
 if __name__ == "__main__":
