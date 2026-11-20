@@ -1,3 +1,4 @@
+
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
@@ -5,14 +6,22 @@ using Microsoft.CodeAnalysis.Text;
 namespace ObserverFixture;
 
 [Generator]
-public sealed class AnswerGenerator : ISourceGenerator
+public sealed class AnswerGenerator : IIncrementalGenerator
 {
-    public void Initialize(GeneratorInitializationContext context) { }
-
-    public void Execute(GeneratorExecutionContext context)
+    public void Initialize(
+        IncrementalGeneratorInitializationContext context)
     {
-        context.AddSource("GeneratedAnswer.g.cs", SourceText.From(
-            "namespace ObserverFixture; public static class GeneratedAnswer { public const int Value = 42; }",
-            Encoding.UTF8));
+        context.RegisterPostInitializationOutput(
+            static postInitializationContext =>
+            {
+                const string source =
+                    "namespace ObserverFixture; " +
+                    "public static class GeneratedAnswer " +
+                    "{ public const int Value = 42; }";
+
+                postInitializationContext.AddSource(
+                    "GeneratedAnswer.g.cs",
+                    SourceText.From(source, Encoding.UTF8));
+            });
     }
 }
