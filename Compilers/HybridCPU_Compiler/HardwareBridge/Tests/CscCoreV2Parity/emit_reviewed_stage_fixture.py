@@ -28,7 +28,7 @@ def main():
         primary = fixture.observation["projects"][0]
         # Exact raw Unicode and CRLF are source bytes, not JSONL framing.
         # This fixture never runs a compiler or touches the real Golden checkout.
-        unicode_source = "// Ω 漢 🚀\\r\\nclass A {}\\r\\n".encode("utf-8")
+        unicode_source = "// Ω 漢 🚀\r\nclass A {}\r\n".encode("utf-8")
         fixture.original.write_bytes(unicode_source)
         fixture.source.write_bytes(unicode_source)
         primary["sources"][0]["sha256"] = c.sha(unicode_source)
