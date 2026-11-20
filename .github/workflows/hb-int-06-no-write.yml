@@ -159,8 +159,14 @@ jobs:
           }
           # Deliberately NOT CoreOnly: execute both sets; a failed Companion is not masked.
           # Parent owns compiler results and source inventory. Never override its failure.
-          & $script @arguments
+          # Capture private Core/Golden diagnostic streams only to ephemeral runner TEMP.
+          # Never print them or upload the raw console file in a public artifact.
+          $privateConsole = Join-Path $env:RUNNER_TEMP 'hb-int-06-paired-console.raw.txt'
+          $pairedClock = [Diagnostics.Stopwatch]::StartNew()
+          & $script @arguments *> $privateConsole
           $runExit = $LASTEXITCODE
+          $privateConsoleHash = (Get-FileHash -LiteralPath $privateConsole -Algorithm SHA256).Hash
+          Write-Host "Paired parent exit=$runExit durationMs=$($pairedClock.ElapsedMilliseconds) combinedConsoleSHA256=$privateConsoleHash (contents withheld)"
           $gate = Join-Path $env:GITHUB_WORKSPACE 'bridge/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/HbInt06.CoreGate.ps1'
           & $gate -Mode Downstream -ExpectedCoreSha 'b5c44685197a40df99a4d48891120b12475c6ca5' -DownstreamExitCode $runExit -PairedReceiptPath (Join-Path $env:RUNNER_TEMP 'hb-int-06-paired/hb-int-06-qa-receipt.json')
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
