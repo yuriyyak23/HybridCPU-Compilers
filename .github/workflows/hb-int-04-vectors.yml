@@ -5,6 +5,8 @@ on:
     branches: [master]
     paths:
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/GoldenOracle/GoldenBoundVectorsV1.cs'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/GoldenOracle/R301ScalarSessionV2.cs'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/GoldenOracle/r301-scalar-session-v2.md'
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/GoldenBoundVectors*'
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/GoldenOracle/bound-vectors-v1.md'
       - '.github/workflows/hb-int-04-vectors.yml'
@@ -38,3 +40,19 @@ jobs:
           set -euo pipefail
           dotnet run --project Compilers/HybridCPU_Compiler/HardwareBridge/Tests/GoldenBoundVectors.ContractTests.csproj -c Release 2>&1 | tee "$RUNNER_TEMP/hb-int-04-bound-vectors.log"
           sha256sum "$RUNNER_TEMP/hb-int-04-bound-vectors.log"
+
+      - name: R3-01 execute actual compiled fixture delegate and refuse mutations
+        shell: bash
+        run: |
+          set -euo pipefail
+          begin=$(date +%s)
+          set +e
+          dotnet run --project Compilers/HybridCPU_Compiler/HardwareBridge/Tests/GoldenBoundVectorsR301.ContractTests.csproj -c Release >"$RUNNER_TEMP/hb-r301-stdout.log" 2>"$RUNNER_TEMP/hb-r301-stderr.log"
+          rc=$?
+          set -e
+          cat "$RUNNER_TEMP/hb-r301-stdout.log"
+          if test -s "$RUNNER_TEMP/hb-r301-stderr.log"; then cat "$RUNNER_TEMP/hb-r301-stderr.log" >&2; fi
+          echo "R3-01 exit=$rc elapsed_seconds=$(($(date +%s)-begin))"
+          sha256sum "$RUNNER_TEMP/hb-r301-stdout.log" "$RUNNER_TEMP/hb-r301-stderr.log"
+          echo 'Golden actual: NotRun; stateful CPU/RAM/retire: Blocked; Core authority: Blocked'
+          exit "$rc"

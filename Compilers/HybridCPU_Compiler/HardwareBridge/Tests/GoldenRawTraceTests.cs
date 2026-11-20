@@ -30,8 +30,12 @@ internal static class GoldenRawTraceTests
         var request = new BridgeSourceRequestV1("TraceFixture", "CSharp15",
             new[] { new BridgeSourceTextV1("golden/Fixture.cs", text) },
             new ReadOnlyMemory<byte>[] { new byte[] { 1, 2, 3, 4 } },
-            new[] { new BridgeRootSelectorV1("Fixture", "Step", null,
-                Array.Empty<string>(), Array.Empty<string>()) },
+            new[] {
+                new BridgeRootSelectorV1("Fixture", "Step", null,
+                    Array.Empty<string>(), Array.Empty<string>()),
+                new BridgeRootSelectorV1("Fixture", "OtherRoot", null,
+                    Array.Empty<string>(), Array.Empty<string>())
+            },
             Array.Empty<int>(), Array.Empty<int>());
         BridgeSourceSnapshotV1 source = BridgeSourceSnapshotV1.Capture(
             request, "test-only-source-policy", "fixture-sdk", "fixture-roslyn");
@@ -66,10 +70,10 @@ internal static class GoldenRawTraceTests
             IReadOnlyList<GoldenTraceStepV1>? rows = null,
             IReadOnlyList<GoldenTraceCellV1>? state = null,
             string scope = GoldenRawTraceV1.RawScope,
-            string clockDomain = "host.step") =>
+            string clockDomain = "host.step", int root = 0) =>
             GoldenRawTraceCodecV1.Capture(source,
                 new ReadOnlyMemory<byte>[] { sourceBytes }, compiledFixture,
-                0, clockDomain, 2, 4, state ?? initial, rows ?? steps, scope);
+                root, clockDomain, 2, 4, state ?? initial, rows ?? steps, scope);
 
         GoldenRawTraceV1 observed = Make();
         Require(observed.Schema == GoldenRawTraceV1.SchemaId &&
@@ -86,6 +90,36 @@ internal static class GoldenRawTraceTests
         Require(roundtrip.ReplayIdentity == observed.ReplayIdentity &&
                 roundtrip.OriginalDocuments[0].Sha256 == source.Documents[0].Sha256,
             "Source-bound replay identity changed.");
+
+        // v1 wire remains stable; new overload binds a ROOT independently of the trace.
+        Require(GoldenRawTraceCodecV1.ReadAndValidate(
+            encoded, source, assemblyHash, 0).RootIndex == 0,
+            "New independently root-bound read.");
+        byte[] switchedRoot = Make(root: 1).ToJsonUtf8();
+        Throws<ArgumentException>(() => GoldenRawTraceCodecV1.ReadAndValidate(
+            switchedRoot, source, assemblyHash, 0),
+            "Self-consistent trace on a different root must fail independent root.");
+        Throws<ArgumentException>(() => GoldenRawTraceCodecV1.ReadAndValidate(
+            encoded, source, assemblyHash, 1), "Wrong independently expected root.");
+        Throws<ArgumentException>(() => GoldenRawTraceCodecV1.ReadAndValidate(
+            encoded, source, assemblyHash, -1), "Negative expected root.");
+        Require(Make(new[] { first with { Index = 3 }, second }).Status == "Blocked",
+            "Non-contiguous logical step ordinals must block.");
+        Require(Make(new[] { first with { LogicalClock = -1 }, second }).Status == "Blocked",
+            "Negative host clock must block.");
+        Require(Make(new[] { first with { After = new[] {
+            new GoldenTraceCellV1("pc", new(16, true, 0)) } }, second }).Status == "Blocked",
+            "Changed before/after cell width must block.");
+        Require(Make(new[] { first, second with { Before = initial } }).Status == "Blocked",
+            "Changed next Before cell must block.");
+        Require(Make(new[] { first with { Events = new[] {
+            effects0[0] with { Value = new GoldenWordV1(32, true, 42) }, effects0[1]
+        } }, second }).Status == "Blocked",
+            "Mutated effect under unchanged event digest must block.");
+        Require(Make(new[] { first with { Inputs = new[] {
+            new GoldenTraceCellV1("operand", new GoldenWordV1(7, true, 2))
+        } }, second }).Status == "Blocked",
+            "Illegal trace word width must block.");
 
         Require(Make(state: new[] { new GoldenTraceCellV1("pc", new(32, true, 5)) })
             .Status == "Blocked", "Changed initial state did not block.");
