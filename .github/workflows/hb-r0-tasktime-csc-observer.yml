@@ -1,4 +1,4 @@
-name: HB R0 task-time Csc observation (toy only; NOT Golden/RTL qualification)
+name: HB R1-01 OS-attested Csc toy observation (NOT Golden qualification)
 on:
   pull_request:
     paths:
@@ -7,6 +7,7 @@ on:
   push:
     branches:
       - 'feat/hb-r0-tasktime-csc-observer-*'
+      - 'feat/hb-r1-01-os-csc-witness-*'
     paths:
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/TaskTimeObserver/**'
       - '.github/workflows/hb-r0-tasktime-csc-observer.yml'
@@ -17,7 +18,7 @@ permissions:
 
 jobs:
   approved-linux-toy:
-    name: Linux .NET 11 real two-project Csc + live event logger + v2 negative gates
+    name: Linux .NET 11 real two-project Csc + OS execve/cwd witness + v2 gate
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -42,12 +43,22 @@ jobs:
         working-directory: Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/TaskTimeObserver
         run: |
           set -euo pipefail
-          python -m unittest -v test_task_csc_observation
+          python -m unittest -v test_task_csc_observation test_R1_01_LinuxExecutionWitness
           python ../test_segmented_csc_capture_v2.py -v
+      - name: Require independent Linux ptrace instrument (fail closed, no installation)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v strace; then
+            echo "::error::R1-01 OS witness Blocked: strace unavailable on this runner"
+            exit 2
+          fi
+          strace --version | head -n 1
+          sha256sum "$(readlink -f "$(command -v strace)")"
       - name: Execute real approved toy Csc in new TEMP copy (NO Golden)
         shell: bash
         env:
-          HB_CSC_RECEIPTS_DIR: ${{ runner.temp }}/hb-r0-tasktime-receipts
+          HB_CSC_RECEIPTS_DIR: ${{ runner.temp }}/hb-r1-01-tasktime-receipts
         run: |
           set -euo pipefail
           python Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/TaskTimeObserver/run_fixture.py
@@ -62,8 +73,10 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: hb-r0-task-csc-toy-receipts
+          name: hb-r1-01-task-csc-toy-receipts
           path: ${{ runner.temp }}/hb-r0-tasktime-receipts/
           if-no-files-found: warn
           retention-days: 7
+# A real Linux OS trace + v2 toy capture is still unqualified software evidence.
+# No Windows process witness is implemented; Windows is NotRun/Blocked, not Passed.
 # A passing toy fixture cannot prove Golden, Roslyn root closure, RTL or EDA.
