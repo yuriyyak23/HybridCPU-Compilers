@@ -109,6 +109,8 @@ def inventory(root):
         for d in dirs:
             reject_links(Path(current) / d)
         for name in sorted(files):
+            if name == ".git":
+                continue  # Git worktree metadata is not a source file
             path = reject_links(Path(current) / name)
             require(path.is_file(), "Golden nonregular file")
             rel = path.relative_to(root).as_posix()
