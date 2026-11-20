@@ -26,6 +26,8 @@ jobs:
         run: |
           set -euo pipefail
           export PYTHONDONTWRITEBYTECODE=1
+          git ls-files 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/BridgeHwir*.cs' | LC_ALL=C sort | xargs -r sha256sum > "$RUNNER_TEMP/r3-03-source-before.sha256"
+          sha256sum "$RUNNER_TEMP/r3-03-source-before.sha256"
           python3 --version
           python3 Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/Migration/r3_03_inventory_gate.py --require-history | tee "$RUNNER_TEMP/r3-03-source-inventory.log"
           sha256sum "$RUNNER_TEMP/r3-03-source-inventory.log"
@@ -35,6 +37,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          git ls-files 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/BridgeHwir*.cs' | LC_ALL=C sort | xargs -r sha256sum > "$RUNNER_TEMP/r3-03-source-after.sha256"
+          cmp "$RUNNER_TEMP/r3-03-source-before.sha256" "$RUNNER_TEMP/r3-03-source-after.sha256"
+          sha256sum "$RUNNER_TEMP/r3-03-source-after.sha256"
           git diff --exit-code -- Compilers/HybridCPU_Compiler/HardwareBridge
           test -z "$(git ls-files --others --exclude-standard -- Compilers/HybridCPU_Compiler/HardwareBridge/HWIR)"
           test -z "$(git status --porcelain -- Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/BridgeHwir*.cs)"
