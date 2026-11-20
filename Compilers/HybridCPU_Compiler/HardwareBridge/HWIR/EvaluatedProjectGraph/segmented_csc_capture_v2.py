@@ -47,23 +47,83 @@ def pairs_unique(pairs):
     return result
 
 
+def _file_state(info):
+    return (info.st_dev, info.st_ino, info.st_mode, info.st_size,
+            info.st_mtime_ns, info.st_ctime_ns)
+
+
+def _is_reparse(info):
+    return stat.S_ISLNK(info.st_mode) or bool(
+        getattr(info, "st_file_attributes", 0) &
+        getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0))
+
+
+def path_key(path):
+    return os.path.normcase(os.path.abspath(os.fspath(path))).casefold()
+
+
 def safe_path(path, *, file=True):
-    if not isinstance(path, str) or not os.path.isabs(path) or not path:
+    raw = os.fspath(path) if isinstance(path, (str, os.PathLike)) else None
+    if not isinstance(raw, str) or not raw or not os.path.isabs(raw):
         fail("absolute path required")
-    p = Path(os.path.abspath(path))
+    if "\x00" in raw or os.path.normpath(raw) != raw:
+        fail("noncanonical/traversing absolute path")
+    components = re.split(r"[\\/]" if os.name == "nt" else r"/", raw)
+    if any(part in (".", "..") for part in components):
+        fail("noncanonical/traversing absolute path")
+    if os.name == "nt" and any(p.endswith((" ", ".")) for p in components if p):
+        fail("ambiguous Windows path")
+    p = Path(raw)
     for ancestor in (p, *p.parents):
         try:
-            info = ancestor.lstat()  # reject symlink in every existing ancestor
-        except FileNotFoundError:
+            info = ancestor.lstat()
+        except (FileNotFoundError, NotADirectoryError):
             fail("missing input/chunk: " + str(ancestor))
-        if stat.S_ISLNK(info.st_mode) or getattr(ancestor, "is_junction", lambda: False)():
+        if _is_reparse(info) or getattr(ancestor, "is_junction", lambda: False)():
             fail("symlink/reparse path: " + str(ancestor))
-    info = p.stat()
+    info = p.lstat()
     if (file and not stat.S_ISREG(info.st_mode)) or (not file and not stat.S_ISDIR(info.st_mode)):
         fail("unexpected input type: " + str(p))
-    if file and (info.st_size < 0 or info.st_size > MAX_FILE):
+    if file and not 0 <= info.st_size <= MAX_FILE:
         fail("oversized compiler input: " + str(p))
     return p
+
+
+def stable_open(path):
+    p = safe_path(path)
+    before = p.lstat()
+    flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NOFOLLOW", 0)
+    fd = os.open(p, flags)
+    try:
+        if _file_state(os.fstat(fd)) != _file_state(before):
+            fail("file replaced between check and open")
+        return p, os.fdopen(fd, "rb"), before
+    except BaseException:
+        os.close(fd)
+        raise
+
+
+def ensure_stable(p, stream, before):
+    if (_file_state(os.fstat(stream.fileno())) != _file_state(before) or
+            _file_state(safe_path(p).lstat()) != _file_state(before)):
+        fail("concurrent file mutation/replacement: " + str(p))
+
+
+def read_bounded(path, budget):
+    p, stream, before = stable_open(path)
+    with stream:
+        raw = stream.read(budget + 1)
+        if len(raw) > budget:
+            fail("oversized input during bounded read")
+        ensure_stable(p, stream, before)
+    return raw
+
+
+def strict_json(data):
+    def refuse_constant(token):
+        fail("nonstandard JSON constant: " + token)
+    return json.loads(data, object_pairs_hook=pairs_unique,
+                      parse_constant=refuse_constant)
 
 
 def inside(path, root):
@@ -84,23 +144,21 @@ def logical(value):
 
 
 def load(path, max_size):
-    p = safe_path(path)
-    if p.stat().st_size > max_size:
-        fail("oversized JSON input")
-    return json.loads(p.read_bytes(), object_pairs_hook=pairs_unique)
+    return strict_json(read_bounded(path, max_size))
 
 
 def hash_file(path):
-    p = safe_path(str(path))
-    h = hashlib.sha256()
+    p, stream, before = stable_open(path)
+    digest = hashlib.sha256()
     total = 0
-    with p.open("rb") as stream:
+    with stream:
         while block := stream.read(CHUNK_SIZE):
             total += len(block)
             if total > MAX_FILE:
                 fail("oversized file while reading")
-            h.update(block)
-    return h.hexdigest(), total
+            digest.update(block)
+        ensure_stable(p, stream, before)
+    return digest.hexdigest(), total
 
 
 def pins_file(path, expected):
@@ -171,9 +229,9 @@ def command_files(argv, cwd):
             pass  # byte-independent scalars still retained in full argv digest
         else:
             fail("unsupported/unclassified Csc argument: " + token[:80])
-    if not sources or len(set(sources)) != len(sources):
+    if not sources or len({path_key(x) for x in sources}) != len(sources):
         fail("missing/duplicate Csc source arguments")
-    if len(set(artifacts)) != len(artifacts):
+    if len({(kind, path_key(path)) for kind, path in artifacts}) != len(artifacts):
         fail("duplicate Csc file arguments")
     if any(x[0] == "analyzer" for x in artifacts) and generator_dir is None:
         fail("generator/analyzer output capture missing")
@@ -181,12 +239,12 @@ def command_files(argv, cwd):
 
 
 def build_inputs(graph_path, observation_path, golden_root):
-    graph_bytes = safe_path(graph_path).read_bytes()
-    obs_bytes = safe_path(observation_path).read_bytes()
-    if len(graph_bytes) > 4 * CHUNK_SIZE or len(obs_bytes) > MAX_OBSERVATION:
-        fail("oversized graph/observation")
-    graph = json.loads(graph_bytes, object_pairs_hook=pairs_unique)
-    obs = json.loads(obs_bytes, object_pairs_hook=pairs_unique)
+    graph_bytes = read_bounded(graph_path, 4 * CHUNK_SIZE)
+    obs_bytes = read_bounded(observation_path, MAX_OBSERVATION)
+    graph = strict_json(graph_bytes)
+    obs = strict_json(obs_bytes)
+    if not isinstance(graph, dict) or not isinstance(obs, dict):
+        fail("graph/observation must be JSON objects")
     if graph.get("schema") != GRAPH_SCHEMA or obs.get("schema") != OBS_SCHEMA or obs.get("graphSha256") != sha(graph_bytes):
         fail("graph/Csc observation version or identity mismatch")
     root = safe_path(golden_root, file=False)
@@ -216,6 +274,8 @@ def build_inputs(graph_path, observation_path, golden_root):
             original_path = safe_path(original)
             if not inside(original_path, root) or hash_file(original_path) != (expected, size):
                 fail("Golden original and isolated Csc source bytes differ")
+            if os.path.samefile(original_path, path):
+                fail("Csc source is a hardlink/alias of Golden original, not isolated")
             originals.append((str(original_path), expected, size))
         rows.append({"nodeId": node_id, "kind": kind, "role": role, "logicalPath": logical_path,
                      "path": str(path), "sha256": expected, "bytes": size})
@@ -247,10 +307,16 @@ def build_inputs(graph_path, observation_path, golden_root):
             fail("Csc output path points into Golden tree")
         if len(sources) != len(project["sources"]):
             fail("missing or extra Csc source map")
-        source_map = {str(Path(s["path"])): s for s in project["sources"]}
-        if len(source_map) != len(sources) or set(source_map) != set(sources):
-            fail("Csc source map differs from argv")
-        expected_originals = {str(Path(p)) for p in node["compileFiles"]}
+        source_map = {str(safe_path(s["path"])): s for s in project["sources"]}
+        if (len(source_map) != len(project["sources"])
+                or len({path_key(p) for p in source_map}) != len(source_map)
+                or len({path_key(p) for p in sources}) != len(sources)
+                or set(source_map) != set(sources)):
+            fail("Csc source map differs from argv or contains aliases")
+        expected_originals = {str(safe_path(p)) for p in node["compileFiles"]}
+        if len(expected_originals) != len(node["compileFiles"]) or len(
+                {path_key(p) for p in expected_originals}) != len(expected_originals):
+            fail("duplicate evaluated Compile path")
         seen_originals = set()
         for src in sources:
             s = source_map[src]
@@ -284,16 +350,20 @@ def build_inputs(graph_path, observation_path, golden_root):
                         actual.add(str(path))
                         if len(actual) > 5000:
                             fail("excessive generator-emitted source inventory")
-            declared = {str(Path(s["path"])) for s in generated}
-            if len(declared) != len(generated) or actual != declared:
+            declared = {str(safe_path(s["path"])) for s in generated}
+            if (len(declared) != len(generated)
+                    or len({path_key(p) for p in declared}) != len(declared)
+                    or actual != declared):
                 fail("missing/extra emitted generator source")
         for s in generated:
             add(nid, "generator-source", role, s["logicalPath"], s["path"], s["sha256"])
         file_pins = project["filePins"]
         if not isinstance(file_pins, list) or len(file_pins) != len(artifacts):
             fail("missing Csc reference/analyzer byte pins")
-        pin_map = {(x["kind"], x["path"]): x["sha256"] for x in file_pins}
-        if len(pin_map) != len(artifacts) or set(pin_map) != set(artifacts):
+        pin_map = {(x["kind"], str(safe_path(x["path"]))): x["sha256"] for x in file_pins}
+        if (len(pin_map) != len(file_pins) or len(pin_map) != len(artifacts)
+                or len({(kind, path_key(path)) for kind, path in pin_map}) != len(pin_map)
+                or set(pin_map) != set(artifacts)):
             fail("changed Csc input paths/file pin identities")
         for kind, path in artifacts:
             artifact_hash = pin_map[(kind, path)]
@@ -344,7 +414,8 @@ def capture(graph, observation, golden_root, out_dir, after_copy=None, *, timeou
             check_timeout()
             file_hash = hashlib.sha256()
             parts = []
-            with safe_path(row["path"]).open("rb") as source:
+            source_path, source, original_state = stable_open(row["path"])
+            with source:
                 while block := source.read(CHUNK_SIZE):
                     check_timeout()
                     name = "chunk-%08d.bin" % chunk_no
@@ -353,6 +424,7 @@ def capture(graph, observation, golden_root, out_dir, after_copy=None, *, timeou
                         sink.write(block)
                     parts.append({"name": name, "bytes": len(block), "sha256": sha(block)})
                     file_hash.update(block)
+                ensure_stable(source_path, source, original_state)
             if file_hash.hexdigest() != row["sha256"] or sum(p["bytes"] for p in parts) != row["bytes"]:
                 fail("input mutated while capturing " + row["logicalPath"])
             row["chunks"] = parts
@@ -426,7 +498,7 @@ def verify(out_dir):
             next_chunk += 1
             if part["name"] != name or not 0 < part["bytes"] <= CHUNK_SIZE:
                 fail("missing/reordered/noncanonical chunk")
-            blob = safe_path(str(base / name)).read_bytes()
+            blob = read_bounded(str(base / name), CHUNK_SIZE)
             if len(blob) != part["bytes"] or sha(blob) != part["sha256"]:
                 fail("truncated/changed chunk")
             h.update(blob)
