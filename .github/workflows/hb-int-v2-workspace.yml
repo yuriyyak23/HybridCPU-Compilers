@@ -1,4 +1,4 @@
-name: HB-INT v2 owned byte workspace (unqualified)
+name: R3-02 sealed v2 workspace tests (unqualified)
 on:
   pull_request:
     paths:
@@ -6,13 +6,18 @@ on:
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/BridgeV2OwnedWorkspaceTests.cs'
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/HardwareBridge.V2.ContractTests.csproj'
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/BridgeIndexV2TestHost.cs'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/Docs/HB_INT_V2_Owned_Workspace_Publishing.md'
       - '.github/workflows/hb-int-v2-workspace.yml'
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   isolated-v2-real-disk:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025]
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
@@ -23,11 +28,18 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
+          export TMPDIR="$RUNNER_TEMP" TMP="$RUNNER_TEMP" TEMP="$RUNNER_TEMP"
+          inventory() {
+            (cd "$GITHUB_WORKSPACE" && git ls-files -z | xargs -0 sha256sum | sha256sum | cut -d' ' -f1)
+          }
+          before="$(inventory)"
+          echo "tracked_sha_inventory_before=$before"
           mkdir -p "$RUNNER_TEMP/hb-v2-sdk"
           cd "$RUNNER_TEMP/hb-v2-sdk"
           # Never write global.json or build outputs under the Golden source tree.
           printf '%s\n' '{"sdk":{"version":"11.0.100-rc.2.26504.105","rollForward":"disable","allowPrerelease":true}}' > global.json
           dotnet --info
+          sha256sum "$(command -v dotnet)"
           test "$(dotnet --version)" = '11.0.100-rc.2.26504.105'
           project="$GITHUB_WORKSPACE/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/HardwareBridge.V2.ContractTests.csproj"
           output="$RUNNER_TEMP/hb-v2-artifacts"
@@ -46,4 +58,12 @@ jobs:
           logged contract dotnet run --project "$project" --no-build --no-restore -c Release -p:ArtifactsPath="$output"
           echo 'Compiled source-only test binaries:'
           find "$output" -type f \( -name '*ContractTests*.dll' -o -name '*ContractTests*.pdb' \) -exec sha256sum {} \;
-          git -C "$GITHUB_WORKSPACE" diff --exit-code -- Compilers/HybridCPU_Compiler/HardwareBridge/GoldenOracle Compilers/HybridCPU_Compiler/HardwareBridge/SourceSnapshot
+          after="$(inventory)"
+          echo "tracked_sha_inventory_after=$after"
+          test "$before" = "$after"
+          git -C "$GITHUB_WORKSPACE" diff --exit-code
+          # No silent cleanup of unknown paths. Test code cleans its owned roots.
+          if find "$RUNNER_TEMP" -maxdepth 1 -type d -name 'hb-int-v2-*' | grep -q .; then
+            echo 'ERROR: R3-02 owned TEMP outputs remain' >&2
+            exit 1
+          fi
