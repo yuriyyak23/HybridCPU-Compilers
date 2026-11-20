@@ -186,7 +186,26 @@ internal static class GoldenBoundVectorsR301Tests
         Require(Capture().ToJsonUtf8().SequenceEqual(before),
             "Original receipt independent of mutated caller list");
 
+        // Synthetic fixture receipt only: create atomically in runner-owned TEMP, mark read-only.
+        // No Golden checkout or raw Golden artifact is read/written/uploaded.
+        string receiptPath = Path.Combine(Path.GetTempPath(),
+            "r301-fixture-" + Guid.NewGuid().ToString("N") + ".json");
+        using (var output = new FileStream(
+            receiptPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+        {
+            output.Write(json);
+            output.Flush(flushToDisk: true);
+        }
+        File.SetAttributes(receiptPath, FileAttributes.ReadOnly);
+        byte[] persistedFixture = File.ReadAllBytes(receiptPath);
+        Require(persistedFixture.AsSpan().SequenceEqual(json) &&
+                Hash(persistedFixture) == Hash(json),
+            "Immutable fixture receipt file bytes differ from captured JSON");
+
         Console.WriteLine("R3-01 HostMethod: " + observed.HostMethodId);
+        Console.WriteLine("R3-01 Host module MVID: " + observed.HostModuleVersionId);
+        Console.WriteLine("R3-01 Host method token: " + observed.HostMethodToken);
+        Console.WriteLine("R3-01 Synthetic receipt file SHA256: " + Hash(persistedFixture));
         Console.WriteLine("R3-01 Executed fixture host PE SHA256: " + observed.HostAssemblySha256);
         Console.WriteLine("R3-01 Executed fixture receipt JSON SHA256: " + Hash(json));
         Console.WriteLine("R3-01 Receipt replay SHA256: " + observed.ReplayIdentity);
