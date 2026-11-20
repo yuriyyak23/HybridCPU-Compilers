@@ -139,7 +139,7 @@ original bytes. These tests do **not** prove source qualification.
 ### CI reproduction / immutable checkout
 
 Run the workflow
-[`hb-int-02-csc-dotnet-parity.yml`](../../../..//../.github/workflows/hb-int-02-csc-dotnet-parity.yml)
+[`hb-int-02-csc-dotnet-parity.yml`](https://github.com/yuriyyak23/HybridCPU-Compilers/blob/feat/hb-r2-03-dotnet-python-v2-wire-parity-20261121/.github/workflows/hb-int-02-csc-dotnet-parity.yml)
 on the Draft PR. The R2-03 job matrix uses Ubuntu 24.04 and Windows 2025,
 Python 3.13 and exact SDK `11.0.100-rc.2.26504.105`.
 It creates a temporary `global.json` outside the repository and pins
