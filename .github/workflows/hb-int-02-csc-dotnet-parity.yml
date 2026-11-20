@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CscCoreV2Parity/**'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/SourceSnapshot/BridgeSegmentIndexV2.cs'
       - '.github/workflows/hb-int-02-csc-dotnet-parity.yml'
   workflow_dispatch:
 
@@ -100,5 +101,97 @@ jobs:
           # Three negative executable runs intentionally returned 1. Explicitly
           # mark only the harness as successful after all assertions and hashes.
           exit 0
-
 # Does not qualify Golden execution, current Roslyn source body, RTL/EDA/target.
+
+  r203-release-stager-binary-parity:
+    name: R2-03 production .NET DLL vs Python release stager (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 11.0.100-rc.2.26504.105
+      - name: Compile production codec with exact SDK in OS TEMP and execute release parity
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $false
+          $temp = (& python -c 'import tempfile; print(tempfile.gettempdir())').Trim()
+          if ($LASTEXITCODE -ne 0 -or -not $temp) { throw 'OS TEMP unavailable' }
+          $work = Join-Path $temp ('hb-r203-' + [Guid]::NewGuid().ToString('N'))
+          New-Item -Path $work -ItemType Directory | Out-Null
+          $project = Join-Path $env:GITHUB_WORKSPACE 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CscCoreV2Parity/HardwareBridge.CscCoreV2Parity.csproj'
+          $driver = Join-Path $env:GITHUB_WORKSPACE 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CscCoreV2Parity/r203_release_wire_driver.py'
+          $obj = Join-Path $work 'obj'
+          $bin = Join-Path $work 'bin'
+          $logs = Join-Path $work 'logs'
+          New-Item -Path $logs -ItemType Directory | Out-Null
+          [IO.File]::WriteAllText((Join-Path $work 'global.json'),
+            '{"sdk":{"version":"11.0.100-rc.2.26504.105","rollForward":"disable","allowPrerelease":true}}',
+            [Text.UTF8Encoding]::new($false))
+          $env:DOTNET_CLI_HOME = Join-Path $work 'home'
+          $env:NUGET_PACKAGES = Join-Path $work 'packages'
+          $env:DOTNET_CLI_TELEMETRY_OPTOUT = '1'
+          $env:DOTNET_NOLOGO = '1'
+          $beforeSha = (& git rev-parse HEAD).Trim()
+          $before = (& git status --porcelain=v1 --untracked-files=all) -join [Environment]::NewLine
+          if ($LASTEXITCODE -ne 0 -or $before) { throw 'Checkout must start clean' }
+          Push-Location $work
+          try {
+            $version = (& dotnet --version).Trim()
+            if ($LASTEXITCODE -ne 0 -or $version -cne '11.0.100-rc.2.26504.105') {
+              throw "Expected pinned SDK, received $version"
+            }
+            $props = @("-p:BaseIntermediateOutputPath=$obj/", "-p:MSBuildProjectExtensionsPath=$obj/", "-p:OutputPath=$bin/")
+            $restoreLog = Join-Path $logs 'restore.txt'
+            & dotnet restore $project @props > $restoreLog 2>&1
+            $rc = $LASTEXITCODE
+            Write-Host "dotnet restore SDK=$version exit=$rc stdout/stderr SHA=$((Get-FileHash $restoreLog -Algorithm SHA256).Hash)"
+            if ($rc -ne 0) { Get-Content $restoreLog; throw 'Production codec restore failed' }
+            $buildLog = Join-Path $logs 'build.txt'
+            & dotnet build $project --configuration Release --no-restore @props > $buildLog 2>&1
+            $rc = $LASTEXITCODE
+            Write-Host "dotnet build SDK=$version exit=$rc stdout/stderr SHA=$((Get-FileHash $buildLog -Algorithm SHA256).Hash)"
+            if ($rc -ne 0) { Get-Content $buildLog; throw 'Production codec build failed' }
+            $dll = Join-Path $bin 'HardwareBridge.CscCoreV2Parity.dll'
+            if (-not (Test-Path -LiteralPath $dll -PathType Leaf)) {
+              throw 'Actual compiled production-codec host DLL missing'
+            }
+            Write-Host "Compiled test host DLL SHA=$((Get-FileHash $dll -Algorithm SHA256).Hash)"
+            $limitsLog = Join-Path $logs 'limits.txt'
+            & dotnet $dll --wire-limits > $limitsLog 2>&1
+            $rc = $LASTEXITCODE
+            Write-Host "dotnet --wire-limits exit=$rc stdout/stderr SHA=$((Get-FileHash $limitsLog -Algorithm SHA256).Hash)"
+            if ($rc -ne 0) { Get-Content $limitsLog; throw 'Production codec high-water limits failed' }
+            $parityLog = Join-Path $logs 'release-parity.txt'
+            & python $driver $dll > $parityLog 2>&1
+            $rc = $LASTEXITCODE
+            Write-Host "Python release-stager + compiled DLL parity exit=$rc stdout/stderr SHA=$((Get-FileHash $parityLog -Algorithm SHA256).Hash)"
+            Get-Content -LiteralPath $parityLog -Tail 110
+            if ($rc -ne 0) { throw 'Cross-language binary fixture/negative matrix failed' }
+            Write-Host 'R2-03 fixture-only PASS. Real Golden Csc and Core-owned reader: NotRun.'
+          } finally {
+            Pop-Location
+            $afterSha = (& git rev-parse HEAD).Trim()
+            $after = (& git status --porcelain=v1 --untracked-files=all) -join [Environment]::NewLine
+            Write-Host "Checkout HEAD before=$beforeSha after=$afterSha; porcelain beforeLength=$($before.Length) afterLength=$($after.Length)"
+            if ($beforeSha -ne $afterSha -or $after -ne $before) {
+              throw 'R2-03 violated immutable Git checkout'
+            }
+            if (Test-Path -LiteralPath $work) {
+              Remove-Item -LiteralPath $work -Recurse -Force
+            }
+          }
+          exit 0
+
+# R2-03 synthetic transport-only checks; no Golden source or Core consumer access.
