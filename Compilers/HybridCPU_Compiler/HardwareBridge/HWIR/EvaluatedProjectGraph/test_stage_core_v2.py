@@ -379,5 +379,42 @@ class CoreV2StagingTests(unittest.TestCase):
         self.assertEqual(len(index), fixture["ExpectedIndexBytes"])
         self.assertEqual(len(chunk), fixture["ExpectedChunkBytes"])
 
+
+    def test_r2_two_independent_runs_are_byte_identical(self):
+        first = Path(tempfile.gettempdir()) / ("hb-r2-01-first-" + uuid.uuid4().hex)
+        second = Path(tempfile.gettempdir()) / ("hb-r2-01-second-" + uuid.uuid4().hex)
+        self.addCleanup(lambda: shutil.rmtree(first, ignore_errors=True))
+        self.addCleanup(lambda: shutil.rmtree(second, ignore_errors=True))
+        closure_a = stage.stage(self.bundle, self.pin, self.roots, self.roots_sha, first)
+        closure_b = stage.stage(self.bundle, self.pin, self.roots, self.roots_sha, second)
+        self.assertEqual(closure_a, closure_b)
+        def inventory(directory):
+            return {p.relative_to(directory).as_posix(): (len(p.read_bytes()), c.sha(p.read_bytes()))
+                    for p in directory.rglob("*") if p.is_file()}
+        self.assertEqual(inventory(first), inventory(second))
+        self.assertEqual(stage.verify(first, self.pin, self.roots_sha, self.bundle), closure_a)
+        self.assertEqual(stage.verify(second, self.pin, self.roots_sha, self.bundle), closure_b)
+
+    def test_r2_raw_index_double_property_rejected(self):
+        self.run_stage()
+        path = self.target / "bridge-index.json"
+        raw = path.read_bytes()
+        path.write_bytes(raw.replace(b'"Schema":', b'"Schema":"forged","Schema":', 1))
+        with self.assertRaisesRegex(ValueError, "duplicate JSON property"):
+            stage.verify(self.target, self.pin, self.roots_sha)
+
+    def test_r2_symlinked_publish_destination_refused(self):
+        foreign = Path(tempfile.gettempdir()) / ("hb-r2-01-foreign-" + uuid.uuid4().hex)
+        foreign.mkdir()
+        self.addCleanup(lambda: shutil.rmtree(foreign, ignore_errors=True))
+        try:
+            self.target.symlink_to(foreign, target_is_directory=True)
+        except (OSError, NotImplementedError):
+            self.skipTest("symlink creation requires platform privilege")
+        with self.assertRaisesRegex(ValueError, "new direct TEMP"):
+            self.run_stage()
+        self.assertFalse((foreign / "bridge-index.json").exists())
+        self.target.unlink()
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
