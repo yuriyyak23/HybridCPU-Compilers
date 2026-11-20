@@ -8,7 +8,7 @@ The existing `golden-observation/v1`, `golden-bound-vectors/v1`, and `golden-raw
 
 No new general runner or loader was added. A trusted caller must supply an already-loaded, reviewed **static** `Func<uint,uint,uint>` delegate, exact original source bytes, an externally captured SourceSnapshot, assembly bytes for the already-loaded method, a selected root index, independent ordered vectors, reviewed label and elapsed budget. The v2 method checks:
 
-- Source snapshot consistency, original document bytes SHA/size/order, explicit selected source root type/name/optional metadata token.
+- Source snapshot consistency, original document bytes SHA/size/order, explicit selected source root type/name/optional metadata token. The snapshot's nested lists, original byte buffers, assembly bytes and ordered vector list are defensively copied and revalidated **before any delegate call**; post-entry caller edits cannot replace the executed request.
 - Already-loaded delegate method is static, non-generic, exact `uint(uint,uint)` with root-matching declaring type/method and no instance target.
 - Runtime assembly name matches the source snapshot assembly label; its on-disk file has no reparse/symlink path component and matches the **caller-pinned assembly bytes** SHA. Host assembly is checked before and after observation.
 - Root method metadata token, assembly hash, module MVID and method ID are copied into v2 receipt. Those are runtime *claims*, not PE/PDB independent provenance; the v2 code does not independently link the source graph to the loaded PE.
@@ -26,7 +26,7 @@ The unchanged v1 raw trace codec now also has a **source-compatible optional rea
 
 ## Threat model, negative cases and dependency boundary
 
-The tests reject duplicate vectors; wrong widths or high bits; source bytes/digest drift; changed PE; wrong method/root/token; swapped ordered vector replay; wrong host label; fake PASS/Verified; duplicate/unknown JSON fields; stale receipt hash; mutated post-hoc output with old digest; truncated or noncanonical JSON; cancellation; expired/oversized time budget; illegal step state/effect/clock. Malicious code that can rewrite **all** hashes and externally supplied expectations can still fabricate a self-consistent v2 JSON object. This requires **independent host/source execution attestation** in CW-INT-10; there is no bridge-owned hardware authority.
+The tests include a synchronized concurrent caller-list mutation **after** the approved fixture delegate begins its first call, verifying that frozen inputs remain unchanged. The tests reject duplicate vectors; wrong widths or high bits; source bytes/digest drift; changed PE; wrong method/root/token; swapped ordered vector replay; wrong host label; fake PASS/Verified; duplicate/unknown JSON fields; stale receipt hash; mutated post-hoc output with old digest; truncated or noncanonical JSON; cancellation; expired/oversized time budget; illegal step state/effect/clock. Malicious code that can rewrite **all** hashes and externally supplied expectations can still fabricate a self-consistent v2 JSON object. This requires **independent host/source execution attestation** in CW-INT-10; there is no bridge-owned hardware authority.
 
 **Outstanding external contracts:**
 1. R1-01/R1-02/R1-03 provide actual executed Csc inputs, immutable source closure, method/PE/PDB provenance. This package consumes pins only and does not create a linker or source verifier.
