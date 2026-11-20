@@ -179,6 +179,51 @@ class R303ParityRefusals(unittest.TestCase):
         with self.assertRaisesRegex(parity.Refused, 'STALE_NATIVE_RECEIPT'):
             parity.inspect_native(json.dumps(receipt).encode('utf-8'), 'c'*64)
 
+    def test_missing_real_core_artifact_is_a_cli_refusal(self):
+        import contextlib
+        import hashlib
+        import io
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            source = root / 'source.cs'
+            source.write_bytes(b'// synthetic negative-only input\n')
+            legacy = root / 'legacy.json'
+            legacy.write_bytes(b'{}')
+            args = ['--slice', 'scalar', '--source', str(source),
+                    '--legacy-hwir', str(legacy),
+                    '--core-hwir', str(root / 'missing-real-core.json'),
+                    '--legacy-observations', str(root / 'missing-legacy-vectors.json'),
+                    '--core-observations', str(root / 'missing-core-vectors.json'),
+                    '--source-commit', 'a'*40,
+                    '--source-sha256', hashlib.sha256(source.read_bytes()).hexdigest(),
+                    '--source-path', 'Golden/Scalar.cs', '--source-method', 'AddWord']
+            out, err = io.StringIO(), io.StringIO()
+            with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+                code = parity.main(args)
+            self.assertEqual(2, code)
+            self.assertEqual('', out.getvalue())
+            self.assertEqual('Blocked', json.loads(err.getvalue())['status'])
+            self.assertIn('MISSING_INPUT', err.getvalue())
+
+    def test_vector_count_output_and_hwir_hash_mutation_are_refused(self):
+        # Use existing synthetic v1 format tests ONLY as negative test data.
+        reference = load('r3_03_v1_negative_reference', HWIR / 'Tests' / 'test_parity_guard.py')
+        case = reference.ParityGuardRegression('test_matching_format_is_report_only_not_accepted')
+        case.setUp()
+        changed = copy.deepcopy(case.obs)
+        changed['vectors'].append({'id': 'extra', 'inputs': {'a': '1', 'b': '2'},
+                                   'outputs': {'out': '3'}})
+        with self.assertRaisesRegex(reference.p.Refused, 'VECTOR_MISMATCH'):
+            case.compare(lobs=changed)
+        changed = copy.deepcopy(case.obs)
+        changed['vectors'][0]['outputs']['out'] = '1'
+        with self.assertRaisesRegex(reference.p.Refused, 'VECTOR_MISMATCH'):
+            case.compare(lobs=changed)
+        changed = copy.deepcopy(case.obs)
+        changed['hwirSha256'] = '0'*64
+        with self.assertRaisesRegex(reference.p.Refused, 'STALE_OBSERVATION'):
+            case.compare(lobs=changed)
+
     def test_timing_boolean_injection_is_refused(self):
         module = {'contract': {'kind': 'Combinational',
                                'timing': {'latencyCycles': True, 'initiationInterval': 1}},
