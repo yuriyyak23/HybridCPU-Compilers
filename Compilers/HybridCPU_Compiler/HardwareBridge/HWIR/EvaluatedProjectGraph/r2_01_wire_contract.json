@@ -1,0 +1,41 @@
+{
+  "FixtureSchema": "hybridcpu.hardwarebridge.r2-01-byte-fixture/v1",
+  "Disposition": "synthetic-bytes-only-not-Golden-or-Core-qualification",
+  "CoreSchema": "circuitweave.bridge-source-closure-index/v2",
+  "Roots": [
+    {
+      "TypeName": "Fixture",
+      "MethodName": "Step",
+      "MetadataToken": null,
+      "TypeArguments": [],
+      "MethodArguments": []
+    }
+  ],
+  "Inputs": [
+    {
+      "Path": "inputs/00000.cs",
+      "Role": "source",
+      "Hex": "2f2f2052322d30312064657465726d696e69737469632073796e7468657469630a",
+      "Sha256": "FCA0ECE708CA0C6A4970803AD826C4B3C3B0E8F11128519676CCE2D33A305845",
+      "Bytes": 33
+    },
+    {
+      "Path": "inputs/00001.cs",
+      "Role": "owned-body",
+      "Hex": "636c617373204f776e656446697874757265207b7d0a",
+      "Sha256": "1D7293D85F0D30E8F5E4BBE2C838D611E06E7D72A11423BAF663FCED59951FAC",
+      "Bytes": 22
+    },
+    {
+      "Path": "inputs/00002.bin",
+      "Role": "metadata-only",
+      "Hex": "7265666572656e63652d76310a",
+      "Sha256": "BE7DED186BAA5BD35AE403BB86A2B3DEA6AE3E06582994B21BF2C78576F79E17",
+      "Bytes": 13
+    }
+  ],
+  "ExpectedChunkBytes": 402,
+  "ExpectedChunkSha256": "B3A6938B47BB2F06F4A5E55A9B4126D306C3EE0B53F3E10DF03D1429547E5405",
+  "ExpectedIndexBytes": 402,
+  "ExpectedIndexSha256": "E353017EA5D069499AB2C491A2F82435C0871F2523654516898F01C246B885E4"
+}
