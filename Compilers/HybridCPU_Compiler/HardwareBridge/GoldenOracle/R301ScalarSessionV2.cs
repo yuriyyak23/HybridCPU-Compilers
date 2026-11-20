@@ -52,18 +52,28 @@ public static class R301ScalarSessionCodecV2
         ArgumentNullException.ThrowIfNull(originalDocumentBytes);
         ArgumentNullException.ThrowIfNull(independentlyRequestedVectors);
         ArgumentNullException.ThrowIfNull(explicitlyReviewedPureMethod);
+        // Preflight before copying a caller-owned collection; then bind every call to a
+        // frozen snapshot rather than re-reading a mutable vector/source/assembly buffer.
         ValidateInputs(source, originalDocumentBytes, compiledAssemblyBytes,
             rootIndex, independentlyRequestedVectors, reviewedHostLabel, elapsedBudget,
             cancellationToken);
-        HostPin host = InspectLoadedHost(explicitlyReviewedPureMethod, source, rootIndex,
-            compiledAssemblyBytes.Span);
+        BridgeSourceSnapshotV1 pinnedSource = FreezeSource(source);
+        ReadOnlyMemory<byte>[] pinnedDocuments = originalDocumentBytes
+            .Select(d => (ReadOnlyMemory<byte>)d.ToArray()).ToArray();
+        byte[] pinnedPe = compiledAssemblyBytes.ToArray();
+        GoldenVectorV1[] pinnedVectors = independentlyRequestedVectors.ToArray();
+        ValidateInputs(pinnedSource, pinnedDocuments, pinnedPe,
+            rootIndex, pinnedVectors, reviewedHostLabel, elapsedBudget,
+            cancellationToken);
+        HostPin host = InspectLoadedHost(explicitlyReviewedPureMethod, pinnedSource, rootIndex,
+            pinnedPe);
 
         // The only producer path: never accept a caller-supplied observation or after-the-fact cases.
-        bool signed = independentlyRequestedVectors[0].A.Signed;
+        bool signed = pinnedVectors[0].A.Signed;
         var adapter = TrustedAddWordOracleV1.RegisterExplicitlyTrusted(
             explicitlyReviewedPureMethod, reviewedHostLabel, signed);
         var stopwatch = Stopwatch.StartNew();
-        var cases = new GoldenCaseV1[independentlyRequestedVectors.Count];
+        var cases = new GoldenCaseV1[pinnedVectors.Length];
         for (int i = 0; i < cases.Length; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -71,13 +81,13 @@ public static class R301ScalarSessionCodecV2
                 throw new TimeoutException("HB-R301: Elapsed budget exhausted before delegate call.");
             GoldenObservationV1 one = adapter.Observe(
                 TrustedAddWordOracleV1.AllowlistedAdapterId,
-                new[] { independentlyRequestedVectors[i] }, cancellationToken);
+                new[] { pinnedVectors[i] }, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
             // Cooperative/post-return budget only; this code cannot terminate a hung delegate.
             if (stopwatch.Elapsed > elapsedBudget)
                 throw new TimeoutException("HB-R301: Elapsed budget exhausted after delegate call.");
-            if (one.Cases.Count != 1 || one.Cases[0].A != independentlyRequestedVectors[i].A ||
-                one.Cases[0].B != independentlyRequestedVectors[i].B)
+            if (one.Cases.Count != 1 || one.Cases[0].A != pinnedVectors[i].A ||
+                one.Cases[0].B != pinnedVectors[i].B)
                 throw new InvalidOperationException("HB-R301: Delegate observation input mismatch.");
             cases[i] = one.Cases[0];
         }
@@ -87,13 +97,13 @@ public static class R301ScalarSessionCodecV2
             reviewedHostLabel, status, Array.AsReadOnly(cases));
 
         // Detect a changed PE on disk during observation; do not claim memory-loaded PE attestation.
-        HostPin after = InspectLoadedHost(explicitlyReviewedPureMethod, source, rootIndex,
-            compiledAssemblyBytes.Span);
+        HostPin after = InspectLoadedHost(explicitlyReviewedPureMethod, pinnedSource, rootIndex,
+            pinnedPe);
         if (host != after) throw new InvalidOperationException("HB-R301: Host identity changed.");
         cancellationToken.ThrowIfCancellationRequested();
         var bound = GoldenBoundVectorsCodecV1.Capture(
-            source, originalDocumentBytes, compiledAssemblyBytes,
-            rootIndex, independentlyRequestedVectors, observation, cancellationToken);
+            pinnedSource, pinnedDocuments, pinnedPe,
+            rootIndex, pinnedVectors, observation, cancellationToken);
         var receipt = new R301ScalarSessionV2(
             R301ScalarSessionV2.SchemaId, R301ScalarSessionV2.ScalarScope, status,
             host.AssemblySha256, host.AssemblyName, host.ModuleVersionId,
@@ -172,6 +182,27 @@ public static class R301ScalarSessionCodecV2
         {
             throw new ArgumentException("HB-R301: Malformed strict session JSON.", nameof(utf8), error);
         }
+    }
+
+    private static BridgeSourceSnapshotV1 FreezeSource(BridgeSourceSnapshotV1 source)
+    {
+        if (!source.HasConsistentDigest())
+            throw new ArgumentException("HB-R301: Stale source before freezing.");
+        var frozen = source with
+        {
+            Documents = Array.AsReadOnly(source.Documents.ToArray()),
+            References = Array.AsReadOnly(source.References.ToArray()),
+            Roots = Array.AsReadOnly(source.Roots.Select(root => root with
+            {
+                TypeArguments = Array.AsReadOnly(root.TypeArguments.ToArray()),
+                MethodArguments = Array.AsReadOnly(root.MethodArguments.ToArray())
+            }).ToArray()),
+            BodyReferenceIndices = Array.AsReadOnly(source.BodyReferenceIndices.ToArray()),
+            MetadataReferenceIndices = Array.AsReadOnly(source.MetadataReferenceIndices.ToArray())
+        };
+        if (!frozen.HasConsistentDigest())
+            throw new ArgumentException("HB-R301: Source changed during freeze.");
+        return frozen;
     }
 
     private static void ValidateInputs(
