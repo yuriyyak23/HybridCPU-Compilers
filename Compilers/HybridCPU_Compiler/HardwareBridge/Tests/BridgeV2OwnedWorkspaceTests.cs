@@ -258,13 +258,13 @@ internal static class BridgeV2OwnedWorkspaceTests
             // Index must be canonical: duplicate JSON, invented claims and changed SHA.
             byte[] duplicateJson = Encoding.UTF8.GetBytes(
                 Encoding.UTF8.GetString(index.IndexUtf8).Replace(
-                    "{\\\"Schema\\\":", "{\\\"Schema\\\":\\\"duplicate\\\",\\\"Schema\\\":"));
+                    "{\"Schema\":", "{\"Schema\":\"duplicate\",\"Schema\":"));
             Refuse(BridgeV2Refusal.InvalidPin, () =>
                 BridgeV2OwnedWorkspacePublisher.Publish(
                     index with { IndexUtf8 = duplicateJson }, inputs, roots, live, golden));
             byte[] forged = Encoding.UTF8.GetBytes(
                 Encoding.UTF8.GetString(index.IndexUtf8).Replace(
-                    "{\\\"Schema\\\":", "{\\\"Status\\\":\\\"Verified\\\",\\\"Schema\\\":"));
+                    "{\"Schema\":", "{\"Status\":\"Verified\",\"Schema\":"));
             Refuse(BridgeV2Refusal.InvalidPin, () =>
                 BridgeV2OwnedWorkspacePublisher.Publish(
                     index with { IndexUtf8 = forged }, inputs, roots, live, golden));
