@@ -126,6 +126,14 @@ def inventory(root):
             "files": count, "bytes": total, "inventorySha256": h.hexdigest()}
 
 
+def post_inventory(root):
+    """Fail-closed final no-write audit; never leak private path in receipts."""
+    try:
+        return inventory(root)
+    except (Blocked, OSError, subprocess.TimeoutExpired, ValueError) as ex:
+        return {"auditStatus": "Blocked", "failureType": type(ex).__name__}
+
+
 def byte_tree_inventory(root):
     """Pure byte-tree SHA audit; staged outputs have no Git history."""
     root = reject_links(root)
@@ -453,13 +461,13 @@ def main(args):
         for fragment in (out.parent / (out.name + "-capture"), out.parent / (out.name + "-stage")):
             if fragment.exists() and fragment.is_dir() and not fragment.is_symlink():
                 shutil.rmtree(fragment)
-        receipt["bridgeAfter"] = inventory(bridge)
-        receipt["coreAfter"] = inventory(core)
+        receipt["bridgeAfter"] = post_inventory(bridge)
+        receipt["coreAfter"] = post_inventory(core)
         if (receipt.get("bridgeBefore") != receipt["bridgeAfter"] or
                 receipt.get("coreBefore") != receipt["coreAfter"]):
             receipt["disposition"] = "Blocked"
             receipt["blocker"] = "pinned Bridge/Core checkout byte/Git inventory changed"
-        after = inventory(golden)
+        after = post_inventory(golden)
         receipt["goldenAfter"] = after
         receipt["sourceUnchanged"] = before == after
         if not receipt["sourceUnchanged"]:
