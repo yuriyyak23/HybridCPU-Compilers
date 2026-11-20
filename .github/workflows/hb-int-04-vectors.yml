@@ -45,6 +45,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          dotnet run --project Compilers/HybridCPU_Compiler/HardwareBridge/Tests/GoldenBoundVectorsR301.ContractTests.csproj -c Release 2>&1 | tee "$RUNNER_TEMP/hb-r301-scalar-host.log"
-          sha256sum "$RUNNER_TEMP/hb-r301-scalar-host.log"
+          begin=$(date +%s)
+          set +e
+          dotnet run --project Compilers/HybridCPU_Compiler/HardwareBridge/Tests/GoldenBoundVectorsR301.ContractTests.csproj -c Release >"$RUNNER_TEMP/hb-r301-stdout.log" 2>"$RUNNER_TEMP/hb-r301-stderr.log"
+          rc=$?
+          set -e
+          cat "$RUNNER_TEMP/hb-r301-stdout.log"
+          if test -s "$RUNNER_TEMP/hb-r301-stderr.log"; then cat "$RUNNER_TEMP/hb-r301-stderr.log" >&2; fi
+          echo "R3-01 exit=$rc elapsed_seconds=$(($(date +%s)-begin))"
+          sha256sum "$RUNNER_TEMP/hb-r301-stdout.log" "$RUNNER_TEMP/hb-r301-stderr.log"
           echo 'Golden actual: NotRun; stateful CPU/RAM/retire: Blocked; Core authority: Blocked'
+          exit "$rc"
