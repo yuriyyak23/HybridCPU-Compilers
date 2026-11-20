@@ -130,6 +130,9 @@ separately supplied strict JSON file:
  "eventSha256":"<SHA256 of externally recorded R1-01 task event bytes>",
  "stdoutSha256":"<SHA256 of executed output bytes>",
  "stderrSha256":"<SHA256 of executed error bytes>",
+ "eventFile":"<absolute TEMP raw task event file>",
+ "stdoutFile":"<absolute TEMP raw stdout file>",
+ "stderrFile":"<absolute TEMP raw stderr file>",
  "exitCode":0,"eventSource":"R1-01"}]}
 ```
 
@@ -158,3 +161,11 @@ Dependency: R1-01 must provide an actual recorded true Csc event plus
 immutable reviewed witness SHA and contract mapping; R2-01/Core must
 independently accept/re-derive any future strengthened wire version.
 No R1-01, R2-01, Golden, Core or shared roadmap files are edited.
+
+The event, stdout and stderr paths must already exist under OS TEMP; each
+is opened read-only and full-byte hashed against its declared SHA, with
+pre/post file identity checks. No actual event file has been approved or
+provided in this R1-02 PR. The new refusal JSON
+`hybridcpu.hardwarebridge.r1-02-refusal/v1` exposes a stable
+`reasonCode` and `reasonDigestSha256`, without dumping private paths,
+source bytes, tokens or PDBs to CI logs.
