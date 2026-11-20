@@ -160,6 +160,28 @@ public static class GoldenRawTraceCodecV1
         }
     }
 
+    /// <summary>
+    /// Fail-closed v1 compatibility overload: the reader independently pins the requested
+    /// root ordinal, rather than accepting any root in the included source snapshot.
+    /// No change to the v1 wire; the original overload is retained for existing consumers.
+    /// </summary>
+    public static GoldenRawTraceV1 ReadAndValidate(
+        ReadOnlyMemory<byte> json, BridgeSourceSnapshotV1 expectedSource,
+        string expectedCompiledAssemblySha256, int expectedRootIndex,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (expectedSource is null || !expectedSource.HasConsistentDigest() ||
+            expectedRootIndex < 0 || expectedRootIndex >= expectedSource.Roots.Count)
+            throw new ArgumentException("HB-R301: Missing independently expected root.");
+        GoldenRawTraceV1 trace = ReadAndValidate(
+            json, expectedSource, expectedCompiledAssemblySha256, cancellationToken);
+        if (trace.RootIndex != expectedRootIndex)
+            throw new ArgumentException("HB-R301: Raw trace root does not match independent request.");
+        cancellationToken.ThrowIfCancellationRequested();
+        return trace;
+    }
+
     public static string ComputeEventsSha256(IReadOnlyList<GoldenTraceEventV1> events)
     {
         ArgumentNullException.ThrowIfNull(events);
