@@ -9,6 +9,15 @@ internal static class R301ApprovedFixture
 {
     public static uint AddWord(uint a, uint b) => unchecked(a + b);
     public static uint WrongMethod(uint a, uint b) => unchecked(a - b);
+    public static readonly ManualResetEventSlim Entered = new(false);
+    public static readonly ManualResetEventSlim Continue = new(false);
+    public static uint PausingAddWord(uint a, uint b)
+    {
+        Entered.Set();
+        if (!Continue.Wait(TimeSpan.FromSeconds(4)))
+            throw new TimeoutException("Test synchronization timed out.");
+        return unchecked(a + b);
+    }
     public static uint SlowAddWord(uint a, uint b)
     {
         Thread.Sleep(30); // timeout refusal fixture only; execution cannot be preempted
@@ -44,6 +53,8 @@ internal static class GoldenBoundVectorsR301Tests
             nameof(R301ApprovedFixture.AddWord))!;
         MethodInfo slow = typeof(R301ApprovedFixture).GetMethod(
             nameof(R301ApprovedFixture.SlowAddWord))!;
+        MethodInfo pausing = typeof(R301ApprovedFixture).GetMethod(
+            nameof(R301ApprovedFixture.PausingAddWord))!;
         BridgeSourceSnapshotV1 source = BridgeSourceSnapshotV1.Capture(
             new BridgeSourceRequestV1(hostAssembly.GetName().Name!, "CSharp15",
                 new[] { new BridgeSourceTextV1("fixture/R301ApprovedFixture.cs", text) },
@@ -54,6 +65,9 @@ internal static class GoldenBoundVectorsR301Tests
                         Array.Empty<string>(), Array.Empty<string>()),
                     new BridgeRootSelectorV1(typeof(R301ApprovedFixture).FullName!,
                         slow.Name, slow.MetadataToken,
+                        Array.Empty<string>(), Array.Empty<string>()),
+                    new BridgeRootSelectorV1(typeof(R301ApprovedFixture).FullName!,
+                        pausing.Name, pausing.MetadataToken,
                         Array.Empty<string>(), Array.Empty<string>())
                 }, Array.Empty<int>(), Array.Empty<int>()),
             "fixture-only-unqualified", "fixture-csc-unqualified", "fixture-roslyn-unqualified");
@@ -185,6 +199,26 @@ internal static class GoldenBoundVectorsR301Tests
         callerList[0] = new(new(32, false, 42), new(32, false, 23));
         Require(Capture().ToJsonUtf8().SequenceEqual(before),
             "Original receipt independent of mutated caller list");
+
+        // Concurrent caller mutation after the first real delegate entry must not
+        // replace the pre-execution frozen independent vector request.
+        var mutableRequest = vectors.ToList();
+        R301ApprovedFixture.Entered.Reset();
+        R301ApprovedFixture.Continue.Reset();
+        Task<R301ScalarSessionV2> pending = Task.Run(() => Capture(
+            req: mutableRequest, root: 2, method: R301ApprovedFixture.PausingAddWord));
+        bool entered = R301ApprovedFixture.Entered.Wait(TimeSpan.FromSeconds(3));
+        try
+        {
+            Require(entered, "Pausing fixture host must have entered first call.");
+            mutableRequest[0] = new(new(32, false, 77), new(32, false, 88));
+        }
+        finally { R301ApprovedFixture.Continue.Set(); }
+        R301ScalarSessionV2 frozenWhileExecuting = pending.GetAwaiter().GetResult();
+        Require(frozenWhileExecuting.BoundVectors.RequestedVectors[0] == vectors[0] &&
+                frozenWhileExecuting.BoundVectors.Observation.Cases[0].A == vectors[0].A &&
+                frozenWhileExecuting.BoundVectors.Observation.Cases[0].B == vectors[0].B,
+            "Concurrent input mutation changed an already-executing observation.");
 
         // Synthetic fixture receipt only: create atomically in runner-owned TEMP, mark read-only.
         // No Golden checkout or raw Golden artifact is read/written/uploaded.
