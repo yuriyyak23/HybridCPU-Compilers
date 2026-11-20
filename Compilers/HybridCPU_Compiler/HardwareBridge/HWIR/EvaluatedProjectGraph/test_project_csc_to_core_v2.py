@@ -190,5 +190,30 @@ class ProjectorTests(unittest.TestCase):
         self.assertGreaterEqual(count, 1001)
 
 
+
+    def test_deprecated_unreviewed_root_manifest_cannot_masquerade_as_list(self):
+        self.roots.write_bytes(p.encode({"Schema": "hybridcpu.hardwarebridge.root-selectors/v1",
+                                        "Roots": [{"TypeName": "Fixture", "MethodName": "F",
+                                                   "MetadataToken": None, "TypeArguments": [],
+                                                   "MethodArguments": []}]}))
+        with self.assertRaisesRegex(ValueError, "explicitly selected roots"):
+            p.project(self.capture, str(self.roots), self.f.out())
+
+    def test_deprecated_ambiguous_untokened_root_overload_refused(self):
+        roots = [{"TypeName": "Fixture", "MethodName": "F", "MetadataToken": None,
+                  "TypeArguments": [], "MethodArguments": []},
+                 {"TypeName": "Fixture", "MethodName": "F", "MetadataToken": 42,
+                  "TypeArguments": [], "MethodArguments": []}]
+        self.roots.write_bytes(p.encode(roots))
+        with self.assertRaisesRegex(ValueError, "ambiguous untokened overload"):
+            p.project(self.capture, str(self.roots), self.f.out())
+
+    def test_deprecated_malformed_root_identifier_refused(self):
+        self.roots.write_bytes(p.encode([{"TypeName": "9Invalid", "MethodName": "F",
+                                          "MetadataToken": None, "TypeArguments": [],
+                                          "MethodArguments": []}]))
+        with self.assertRaisesRegex(ValueError, "root identity"):
+            p.project(self.capture, str(self.roots), self.f.out())
+
 if __name__ == "__main__":
     unittest.main()

@@ -57,9 +57,7 @@ def strict_keys(obj, keys):
 
 
 def safe_root_text(s):
-    if not isinstance(s, str) or not s or len(s) > 256 or any(
-        c not in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789._" for c in s
-    ):
+    if not isinstance(s, str) or not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_.$+]{0,255}", s):
         reject("root identity outside Core-compatible conservative ASCII subset")
     return s
 
@@ -353,7 +351,7 @@ def main():
         result = project(args.capture, args.roots, args.output)
     else:
         result = verify_projection(args.workspace, args.capture)
-    print("HB-INT-02/03 unqualified Core v2 closure: " + result)
+    print("DEPRECATED compatibility-only, unqualified Core v2 closure: " + result)
 
 
 if __name__ == "__main__":

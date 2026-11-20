@@ -54,6 +54,50 @@ staged raw input must be byte-identical to that managed reference writer.
 The cross-language test invokes those production implementations; it does
 not compare two hand-written fixture serializers.
 
+## R2-01 canonical stage publish and independent byte fixture
+
+**Sole reviewed HB02 production release entrypoint:** `stage_core_v2.py stage`.
+The deprecated `project_csc_to_core_v2.py` is compatibility-only for
+primary-only synthetic captures. Its legacy unpinned root *list* is never
+authoritative for release, independently approved roots, or a Core qualified
+source inventory. Passing that writer is not a replacement for the pinned
+`hybridcpu.hardwarebridge.root-selectors/v1` manifest.
+
+R2-01 constructs a private 0700 staging directory beneath the **same OS TEMP
+parent** and publishes it under the caller's fresh direct-child name only
+after all raw files, ordered canonical JSONL chunks, bridge index, pinned
+source map, capture and root inputs reverify. Publication uses Linux
+`renameat2(RENAME_NOREPLACE)` or Windows no-overwrite directory rename;
+an occupied destination, unsupported OS primitive, mutation, cancellation,
+or timeout fails closed and cleans only the private staging directory.
+Before publication, there is no partially populated public destination.
+
+For stronger **producer-only** crosswalk replay, supply the same separately
+reviewed HB02 bundle when verifying:
+
+```sh
+python3 Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/stage_core_v2.py verify \
+  --output /external/temp/hb02-core-stage-NEW \
+  --bundle /external/temp/hb02-capture-UNIQUE \
+  --reviewed-capture <64-lowercase-HB02-closure-sha> \
+  --reviewed-roots <64-lowercase-root-manifest-sha>
+```
+
+The full `capture-map.json` bytes are canonical and bound to every original
+reviewed HB02 entry when `--bundle` is supplied. This does **not** turn a
+capture map or SHA into independent source qualification; only a Core-owned
+consumer and independently pinned live closure can do that.
+
+The immutable, **synthetic** interop fixture
+`HWIR/EvaluatedProjectGraph/r2_01_wire_contract.json` contains the exact
+raw bytes (hex), one source, one owned-body and one metadata-only row, ordered
+explicit roots, and expected index/JSONL SHA-256 values. R2-03 may independently
+recreate the fixture using the C# serializer; R2-02 may use it as an
+unqualified transport fixture. The current Python tests verify the fixture
+and 1001+ separately captured synthetic source inputs; they do not run Csc,
+Core or Golden. A divergence must be reported as first differing offset
+with both byte digests and the fixture, without modifying another owner.
+
 ## Exact preimages and layout
 
 - `RootManifestSha256` = lowercase SHA256 of raw reviewed

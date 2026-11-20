@@ -272,5 +272,149 @@ class CoreV2StagingTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             stage.verify(self.target, self.pin, self.roots_sha)
 
+
+    def test_r2_atomic_output_is_invisible_until_complete(self):
+        observed = []
+        def during_copy():
+            observed.append(self.target.exists() or self.target.is_symlink())
+        self.run_stage(after_copy=during_copy)
+        self.assertEqual(observed, [False])
+        self.assertTrue((self.target / "bridge-index.json").is_file())
+        self.assertEqual(stage.verify(self.target, self.pin, self.roots_sha, self.bundle),
+                         json.loads((self.target / "bridge-index.json").read_bytes())["ClosureSha256"])
+
+    def test_r2_concurrent_destination_creation_never_overwrites(self):
+        def race():
+            self.target.mkdir()
+            (self.target / "must-stay.txt").write_text("unrelated", encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "destination created"):
+            self.run_stage(after_copy=race)
+        self.assertEqual((self.target / "must-stay.txt").read_text(encoding="utf-8"), "unrelated")
+        self.assertFalse((self.target / "bridge-index.json").exists())
+
+    def test_r2_approved_root_mutated_after_copy_refused(self):
+        original = self.roots.read_bytes()
+        def mutate_roots():
+            self.roots.write_bytes(original + b" ")
+        with self.assertRaisesRegex(ValueError, "reviewed root manifest SHA"):
+            self.run_stage(after_copy=mutate_roots)
+        self.assertFalse(self.target.exists())
+
+    def test_r2_capture_mutated_after_copy_refused_and_rollback(self):
+        chunk = next(Path(self.bundle).glob("chunk-*.bin"))
+        old = chunk.read_bytes()
+        def mutate_capture():
+            chunk.write_bytes(b"forged")
+        with self.assertRaises(ValueError):
+            self.run_stage(after_copy=mutate_capture)
+        self.assertFalse(self.target.exists())
+        self.assertNotEqual(chunk.read_bytes(), old)
+
+    def test_r2_recomputed_noncanonical_chunk_partition_rejected(self):
+        self.run_stage()
+        index_path = self.target / "bridge-index.json"
+        index = json.loads(index_path.read_bytes())
+        first = self.target / index["Chunks"][0]["Path"]
+        rows = first.read_bytes().splitlines(keepends=True)
+        self.assertGreater(len(rows), 1)
+        first.write_bytes(rows[0])
+        second = self.target / "bridge-index/chunk-0001.jsonl"
+        second.write_bytes(b"".join(rows[1:]))
+        index["Chunks"] = [
+            {"Path": "bridge-index/chunk-0000.jsonl", "Sha256": stage.sha(rows[0]),
+             "Bytes": len(rows[0]), "Rows": 1},
+            {"Path": "bridge-index/chunk-0001.jsonl", "Sha256": stage.sha(second.read_bytes()),
+             "Bytes": second.stat().st_size, "Rows": len(rows) - 1}]
+        index_path.write_bytes(stage.json_bytes(index))
+        with self.assertRaisesRegex(ValueError, "noncanonical 64-row"):
+            stage.verify(self.target, self.pin, self.roots_sha)
+
+    def test_r2_crosswalk_requires_exact_reviewed_inventory_when_supplied(self):
+        self.run_stage()
+        path = self.target / "capture-map.json"
+        m = json.loads(path.read_bytes())
+        m["Rows"][0]["LogicalPath"] += "-forged"
+        path.write_bytes(stage.json_bytes(m))
+        # Producer map is not Core authority; optional reviewed capture replay catches it.
+        with self.assertRaisesRegex(ValueError, "capture-map differs"):
+            stage.verify(self.target, self.pin, self.roots_sha, self.bundle)
+
+    def test_r2_duplicate_mapping_json_refused(self):
+        self.run_stage()
+        p = self.target / "capture-map.json"
+        raw = p.read_bytes()
+        self.assertIn(b'"Schema":', raw)
+        p.write_bytes(raw.replace(b'"Schema":', b'"Schema":"forged","Schema":', 1))
+        with self.assertRaisesRegex(ValueError, "duplicate JSON property"):
+            stage.verify(self.target, self.pin, self.roots_sha)
+
+    def test_r2_fixture_no_write_inventory(self):
+        before = {p.relative_to(self.fixture.golden).as_posix(): c.sha(p.read_bytes())
+                  for p in self.fixture.golden.rglob("*") if p.is_file()}
+        self.run_stage()
+        after = {p.relative_to(self.fixture.golden).as_posix(): c.sha(p.read_bytes())
+                 for p in self.fixture.golden.rglob("*") if p.is_file()}
+        self.assertEqual(before, after, "synthetic fixture source changed")
+        self.assertEqual(stage.verify(self.target, self.pin, self.roots_sha, self.bundle),
+                         json.loads((self.target / "bridge-index.json").read_bytes())["ClosureSha256"])
+
+    def test_r2_immutable_three_role_cross_language_bytes(self):
+        # Standalone byte contract; owned synthetic data, never Golden or Core proof.
+        fixture = json.loads((Path(__file__).parent / "r2_01_wire_contract.json").read_bytes())
+        self.assertEqual(fixture["FixtureSchema"], "hybridcpu.hardwarebridge.r2-01-byte-fixture/v1")
+        rows = []
+        for item in fixture["Inputs"]:
+            raw = bytes.fromhex(item["Hex"])
+            self.assertEqual(len(raw), item["Bytes"])
+            self.assertEqual(stage.sha(raw), item["Sha256"])
+            rows.append({"Path": item["Path"], "Role": item["Role"],
+                         "Sha256": item["Sha256"], "Bytes": item["Bytes"]})
+        chunk = b"".join(stage.json_bytes(x) + b"\n" for x in rows)
+        self.assertEqual(stage.sha(chunk), fixture["ExpectedChunkSha256"])
+        index = stage.json_bytes({"Schema": stage.CORE, "Roots": fixture["Roots"],
+            "Chunks": [{"Path": "bridge-index/chunk-0000.jsonl",
+                         "Sha256": stage.sha(chunk), "Bytes": len(chunk), "Rows": len(rows)}],
+            "ClosureSha256": stage.sha(chunk)})
+        self.assertEqual(stage.sha(index), fixture["ExpectedIndexSha256"])
+        self.assertEqual(len(index), fixture["ExpectedIndexBytes"])
+        self.assertEqual(len(chunk), fixture["ExpectedChunkBytes"])
+
+
+    def test_r2_two_independent_runs_are_byte_identical(self):
+        first = Path(tempfile.gettempdir()) / ("hb-r2-01-first-" + uuid.uuid4().hex)
+        second = Path(tempfile.gettempdir()) / ("hb-r2-01-second-" + uuid.uuid4().hex)
+        self.addCleanup(lambda: shutil.rmtree(first, ignore_errors=True))
+        self.addCleanup(lambda: shutil.rmtree(second, ignore_errors=True))
+        closure_a = stage.stage(self.bundle, self.pin, self.roots, self.roots_sha, first)
+        closure_b = stage.stage(self.bundle, self.pin, self.roots, self.roots_sha, second)
+        self.assertEqual(closure_a, closure_b)
+        def inventory(directory):
+            return {p.relative_to(directory).as_posix(): (len(p.read_bytes()), c.sha(p.read_bytes()))
+                    for p in directory.rglob("*") if p.is_file()}
+        self.assertEqual(inventory(first), inventory(second))
+        self.assertEqual(stage.verify(first, self.pin, self.roots_sha, self.bundle), closure_a)
+        self.assertEqual(stage.verify(second, self.pin, self.roots_sha, self.bundle), closure_b)
+
+    def test_r2_raw_index_double_property_rejected(self):
+        self.run_stage()
+        path = self.target / "bridge-index.json"
+        raw = path.read_bytes()
+        path.write_bytes(raw.replace(b'"Schema":', b'"Schema":"forged","Schema":', 1))
+        with self.assertRaisesRegex(ValueError, "duplicate JSON property"):
+            stage.verify(self.target, self.pin, self.roots_sha)
+
+    def test_r2_symlinked_publish_destination_refused(self):
+        foreign = Path(tempfile.gettempdir()) / ("hb-r2-01-foreign-" + uuid.uuid4().hex)
+        foreign.mkdir()
+        self.addCleanup(lambda: shutil.rmtree(foreign, ignore_errors=True))
+        try:
+            self.target.symlink_to(foreign, target_is_directory=True)
+        except (OSError, NotImplementedError):
+            self.skipTest("symlink creation requires platform privilege")
+        with self.assertRaisesRegex(ValueError, "new direct TEMP"):
+            self.run_stage()
+        self.assertFalse((foreign / "bridge-index.json").exists())
+        self.target.unlink()
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
