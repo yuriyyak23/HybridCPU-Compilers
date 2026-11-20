@@ -89,7 +89,10 @@ class ExecutionWitnessMutationTests(unittest.TestCase):
 
     def test_duplicated_csc_process_refused(self):
         self.root = self.root.replace('1760000000.010000 +++ exited', '1760000000.001100 clone(child_stack=NULL, flags=SIGCHLD) = 300\n1760000000.010000 +++ exited')
-        (self.trace / 'trace.300').write_text(self.child.replace('1760000000.002000', '1760000000.003000'))
+        (self.trace / 'trace.300').write_text(
+            self.child.replace('1760000000.002000', '1760000000.002100')
+                      .replace('1760000000.003000', '1760000000.003100')
+                      .replace('1760000000.004000', '1760000000.004100'))
         self.write()
         with self.assertRaisesRegex(w.Blocked, 'process count'):
             self.get()
