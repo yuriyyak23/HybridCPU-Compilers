@@ -369,7 +369,7 @@ class CoreV2StagingTests(unittest.TestCase):
             self.assertEqual(stage.sha(raw), item["Sha256"])
             rows.append({"Path": item["Path"], "Role": item["Role"],
                          "Sha256": item["Sha256"], "Bytes": item["Bytes"]})
-        chunk = b"".join(stage.json_bytes(x) + b"\\n" for x in rows)
+        chunk = b"".join(stage.json_bytes(x) + b"\n" for x in rows)
         self.assertEqual(stage.sha(chunk), fixture["ExpectedChunkSha256"])
         index = stage.json_bytes({"Schema": stage.CORE, "Roots": fixture["Roots"],
             "Chunks": [{"Path": "bridge-index/chunk-0000.jsonl",
