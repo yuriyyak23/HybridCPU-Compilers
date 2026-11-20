@@ -43,12 +43,16 @@ jobs:
           $before = @(git status --porcelain)
           if ($LASTEXITCODE -ne 0 -or $before.Count -ne 0) { throw 'checkout must start clean' }
           $pythonVersion = (& python --version 2>&1 | Out-String).Trim()
-          Write-Host "R2-01 runner=$env:RUNNER_OS Python=$pythonVersion checkout=$((git rev-parse HEAD).Trim())"
+          $pythonExecutable = (& python -c 'import sys; print(sys.executable)').Trim()
+          $pythonExecutableSha = (Get-FileHash -LiteralPath $pythonExecutable -Algorithm SHA256).Hash
+          Write-Host "R2-01 runner=$env:RUNNER_OS Python=$pythonVersion PythonExecutableSha256=$pythonExecutableSha checkout=$((git rev-parse HEAD).Trim())"
+          $watch = [System.Diagnostics.Stopwatch]::StartNew()
           & python -m unittest -v "$root/test_stage_core_v2.py" "$root/test_project_csc_to_core_v2.py" 1> $stdout 2> $stderr
           $exitCode = $LASTEXITCODE
+          $watch.Stop()
           $outHash = (Get-FileHash -LiteralPath $stdout -Algorithm SHA256).Hash
           $errHash = (Get-FileHash -LiteralPath $stderr -Algorithm SHA256).Hash
-          Write-Host "R2-01 command=python -m unittest -v test_stage_core_v2.py test_project_csc_to_core_v2.py exit=$exitCode stdoutSHA256=$outHash stderrSHA256=$errHash"
+          Write-Host "R2-01 command=python -m unittest -v test_stage_core_v2.py test_project_csc_to_core_v2.py exit=$exitCode durationSeconds=$($watch.Elapsed.TotalSeconds.ToString('F3', [Globalization.CultureInfo]::InvariantCulture)) stdoutSHA256=$outHash stderrSHA256=$errHash"
           Get-Content -LiteralPath $stdout
           Get-Content -LiteralPath $stderr
           $after = @(git status --porcelain)
