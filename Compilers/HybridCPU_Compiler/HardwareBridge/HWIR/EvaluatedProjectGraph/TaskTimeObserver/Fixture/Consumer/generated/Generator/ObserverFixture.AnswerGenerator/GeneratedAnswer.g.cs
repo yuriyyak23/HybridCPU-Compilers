@@ -1,0 +1,1 @@
+﻿namespace ObserverFixture; public static class GeneratedAnswer { public const int Value = 42; }
