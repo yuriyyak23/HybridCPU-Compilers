@@ -113,7 +113,7 @@ function InvokeCaptured([string]$name, [string]$exe, [string[]]$argv, [int]$time
     }
     $stages.Add([ordered]@{
         Name = $name
-        Executable = if ($exe -eq 'git') { 'git' } else { 'dotnet' }
+        Executable = [IO.Path]::GetFileName($exe)
         Args = @($sanitized)
         Exit = $exitCode
         DurationMs = $timer.ElapsedMilliseconds
@@ -138,7 +138,7 @@ function Inventory() {
         if (([IO.File]::GetAttributes($path) -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
             throw 'Tracked reparse point refused.'
         }
-        $lines.Add($relative.Replace('\\', '/') + ':' + (FileSha $path))
+        $lines.Add($relative.Replace('\', '/') + ':' + (FileSha $path))
     }
     return [pscustomobject]@{ Count = $names.Count; Digest = HashText (($lines -join "`n") + "`n"); Names = $names }
 }
@@ -158,7 +158,7 @@ function CheckGraph([string]$project, [string]$config, [string]$artifact) {
             throw 'Stale/generated Compile item admitted into production graph.'
         }
     }
-    $refs = @($graph.Items.ProjectReference | ForEach-Object { ([string]$_.Identity).Replace('\\', '/') })
+    $refs = @($graph.Items.ProjectReference | ForEach-Object { ([string]$_.Identity).Replace('\', '/') })
     return [pscustomobject]@{ Count = $items.Count; References = $refs; ItemSha256 = HashText $response.Stdout }
 }
 try {
@@ -179,14 +179,13 @@ try {
     $initial = Inventory
     $report.SourceBefore = [ordered]@{ Files = $initial.Count; Sha256 = $initial.Digest }
     $report.ProductionArtifactTrackedFiles =
-        @($initial.Names | Where-Object { $_.Replace('\\','/') -like 'Compilers/HybridCPU_Compiler/Core/IR/Artifacts/*' }).Count
+        @($initial.Names | Where-Object { $_.Replace('\','/') -like 'Compilers/HybridCPU_Compiler/Core/IR/Artifacts/*' }).Count
     $sdk = InvokeCaptured 'sdk-version' $dotnet @('--version') 30
     RequireSuccess $sdk
     $report.ActualSdk = $sdk.Stdout.Trim()
     RequireSdk $report.ActualSdk
     $info = InvokeCaptured 'dotnet-info' $dotnet @('--info') 60
     RequireSuccess $info
-    $sdkRoot = Split-Path (Split-Path $dotnet -Parent) -Parent
     $sdkLocations = @(
         (Join-Path (Split-Path $dotnet -Parent) ('sdk/' + $ExpectedSdk + '/Roslyn/bincore/csc.dll')),
         (Join-Path $env:ProgramFiles ('dotnet/sdk/' + $ExpectedSdk + '/Roslyn/bincore/csc.dll'))
