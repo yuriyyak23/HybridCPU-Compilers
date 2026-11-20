@@ -6,7 +6,7 @@ on:
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/**'
       - '.github/workflows/hb-int-05-parity.yml'
   push:
-    branches: [master, 'feat/hb-int-05-*']
+    branches: [master, 'feat/hb-int-05-*', 'feat/r3-03-*']
     paths:
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/**'
       - '.github/workflows/hb-int-05-parity.yml'
@@ -20,11 +20,15 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
+          fetch-depth: 0 # R3-03: verify immutable historical Git object identities
       - name: Python runtime and isolated report-only unit tests
         shell: bash
         run: |
           set -euo pipefail
+          export PYTHONDONTWRITEBYTECODE=1
           python3 --version
+          python3 Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/Migration/r3_03_inventory_gate.py --require-history | tee "$RUNNER_TEMP/r3-03-source-inventory.log"
+          sha256sum "$RUNNER_TEMP/r3-03-source-inventory.log"
           python3 -m unittest discover -v -s Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/Tests -p 'test_*.py' 2>&1 | tee "$RUNNER_TEMP/hb-int-05-unit.log"
           sha256sum "$RUNNER_TEMP/hb-int-05-unit.log"
       - name: Verify tests did not mutate checked-in Bridge source bytes
@@ -32,7 +36,10 @@ jobs:
         run: |
           set -euo pipefail
           git diff --exit-code -- Compilers/HybridCPU_Compiler/HardwareBridge
+          test -z "$(git ls-files --others --exclude-standard -- Compilers/HybridCPU_Compiler/HardwareBridge/HWIR)"
+          test -z "$(git status --porcelain -- Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/BridgeHwir*.cs)"
       - name: Explicitly record missing dependent execution as NotRun
         shell: bash
         run: |
+          echo 'Blocked: R3-03 source bytes pinned only; no source-derived Core semantic equivalence, no inferred Processor/Rank4/lane6, no stateful cycle parity.'
           echo 'NotRun: .NET11/Windows Golden live invocation, CW-INT-06 generic lowering, CW-INT-13 clocked lowering, CIRCT/native RTL and target signoff are not part of this portable job.'
