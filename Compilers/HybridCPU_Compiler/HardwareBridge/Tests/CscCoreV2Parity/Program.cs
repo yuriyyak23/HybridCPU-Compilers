@@ -13,6 +13,8 @@ internal static class Program
         {
             if (args.Length == 1 && args[0] == "--wire-limits")
                 return CompareProductionWireLimits();
+            if (args.Length == 1 && args[0] == "--r203-wire-matrix")
+                return R203WireMatrix.Run();
             if (args.Length != 1 || !Path.IsPathFullyQualified(args[0]))
                 throw new ArgumentException("Explicit absolute synthetic transport workspace required.");
             string root = Path.GetFullPath(args[0]);
@@ -86,6 +88,7 @@ internal static class Program
         using JsonDocument mapDoc = JsonDocument.Parse(
             File.ReadAllBytes(Path.Combine(root, "capture-map.json")));
         JsonElement map = mapDoc.RootElement;
+        R203WireMatrix.CheckMapContract(map);
         if (map.GetProperty("Schema").GetString() !=
                 "hybridcpu.hardwarebridge.csc-to-core-map/v1" ||
             map.GetProperty("Disposition").GetString() != "unqualified-software-observation")
@@ -96,6 +99,7 @@ internal static class Program
         if (map.GetProperty("RootManifestSha256").GetString() != rootSha)
             throw new InvalidOperationException("Reviewed root manifest bytes changed.");
         using JsonDocument rootDoc = JsonDocument.Parse(rootBytes);
+        R203WireMatrix.CheckRootsContract(rootDoc.RootElement);
         if (rootDoc.RootElement.GetProperty("Schema").GetString() !=
                 "hybridcpu.hardwarebridge.root-selectors/v1")
             throw new InvalidOperationException("Unknown root review contract.");
@@ -137,8 +141,8 @@ internal static class Program
             ordinal++;
         }
         BridgeV2Transport actual = BridgeSegmentIndexV2.Write(roots, inputs);
-        if (!indexBytes.AsSpan().SequenceEqual(actual.IndexUtf8) ||
-            map.GetProperty("CoreClosureSha256").GetString() != actual.ClosureSha256 ||
+        R203WireMatrix.AssertSameBytes("index", indexBytes, actual.IndexUtf8);
+        if (map.GetProperty("CoreClosureSha256").GetString() != actual.ClosureSha256 ||
             indexDoc.RootElement.GetProperty("ClosureSha256").GetString() != actual.ClosureSha256)
             throw new InvalidOperationException("Python index differs from production .NET serializer.");
         if (indexDoc.RootElement.GetProperty("Chunks").GetArrayLength() != actual.Chunks.Count)
@@ -147,8 +151,7 @@ internal static class Program
         {
             byte[] actualChunk = File.ReadAllBytes(Path.Combine(root,
                 chunk.Path.Replace('/', Path.DirectorySeparatorChar)));
-            if (!actualChunk.AsSpan().SequenceEqual(chunk.Bytes))
-                throw new InvalidOperationException("Python raw JSONL differs from .NET production codec.");
+            R203WireMatrix.AssertSameBytes(chunk.Path, actualChunk, chunk.Bytes);
         }
         BridgeSegmentIndexV2.ValidateAgainstActualBytes(indexBytes, actual.Chunks, roots, inputs);
         Console.WriteLine("PASS: reviewed Python staged bytes == production .NET v2 index + every JSONL chunk; data-only.");

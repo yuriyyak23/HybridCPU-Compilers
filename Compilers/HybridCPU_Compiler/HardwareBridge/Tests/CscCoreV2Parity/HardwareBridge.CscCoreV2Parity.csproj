@@ -13,5 +13,6 @@
     <Compile Include="../../SourceSnapshot/BridgeProvenanceCodecV2.cs" />
     <Compile Include="../../CompilerFacts/BridgeCompilerFactsV1.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="R203WireMatrix.cs" />
   </ItemGroup>
 </Project>

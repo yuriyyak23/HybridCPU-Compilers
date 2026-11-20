@@ -84,3 +84,149 @@ Actual built executable .dll SHA-256:
 4FF7B5CF48B192FB77D1B346524BCB46A76026FD15B08BF85C1EAD3F5AB2A9B0.
 
 **Scope-limited Passed:** Python projection fixture and existing production Bridge v2 .NET byte parity only. Actual Core-owned reader applied to these emitted files, approved Golden Csc, independent source/body evidence and RTL/Physical signoff remain **Blocked/NotRun**. No Golden HybridCPU-v2 files were written.
+
+
+## R2-03 — .NET/Python v2 release-wire parity extension (2026-11-21)
+
+**Draft PR:** [#34](https://github.com/yuriyyak23/HybridCPU-Compilers/pull/34).
+**Pinned pre-change Bridge master:** `9befee4f3971b4945c553cf3162ed84af94134e4`.
+**Feature branch:** `feat/hb-r2-03-dotnet-python-v2-wire-parity-20261121`.
+The previous 77947f8 baseline and 2026-11-19 CI receipts above are historical
+and do not describe the current PR's compiled binary.
+
+Ownership stays within `SourceSnapshot/BridgeSegmentIndexV2.cs`,
+`Tests/CscCoreV2Parity/**`, this document, and
+`.github/workflows/hb-int-02-csc-dotnet-parity.yml`. This PR intentionally
+does not change the production C# codec, because its existing
+`ValidateAgainstActualBytes` already checks whole raw index/JSONL bytes
+against regenerated canonical `Write` bytes; this catches unknown fields,
+duplicate JSON properties, changed property order, BOM/whitespace, wrong
+descriptor SHA and versions. The R2-03 **test-host-only** manifest reader now
+also rejects unknown/missing/duplicate `capture-map` and root-selector fields.
+That reader does **not** become a Bridge-owned Core consumer.
+
+### Immutable release fixture and binary test
+
+The existing owned `emit_reviewed_stage_fixture.py` constructs deterministic
+synthetic Csc-observation bytes (not an executed Csc) and calls the unchanged
+production `HWIR/EvaluatedProjectGraph/stage_core_v2.py`. The synthetic
+primary source fixture includes UTF-8 Unicode and **raw CRLF**; the release
+stager emits numeric ASCII paths/explicit ASCII roots, preserving original
+source bytes. A C#-only matrix also tests System.Text.Json's escaped Unicode
+wire path; the release Python subset cannot emit arbitrary Unicode wire
+identifiers and is **not** asserted to do so.
+
+The new `r203_release_wire_driver.py` executes **both** the release Python
+verification CLI and the compiled production C# `BridgeSegmentIndexV2.Write`
+host, not a mock serializer, for 1/64/65/1001 primary rows (plus actual captured
+metadata and one owned-body fixture at 65). It compares **raw index bytes,
+all JSONL chunks, complete SHA/size/row descriptors, root selectors, file roles,
+source/metadata original pins and concatenated ordered raw JSONL digest**.
+A mismatch reports its first byte offset, two hexadecimal octets, and lengths.
+The in-memory production C# matrix independently checks 1/63/64/65/1001/8192
+rows, all six accepted wire roles, root order, duplicated/ambiguous selectors,
+case-fold aliases, traversal and non-normalized names, 2 MiB source boundary,
+32 MiB metadata boundary, and the existing 512 MiB workspace boundary.
+
+The paired negative mutation matrix applies BOM, invalid UTF-8, index
+whitespace, extra/duplicate index properties, incorrect version, SHA
+letter-case change, corrupted JSONL, reordered JSONL, CRLF framing, duplicate
+role, unknown map field, ownership change, wrong roots and stale original
+source bytes. Both the Python verifier and compiled .NET host must return
+**nonzero** for every changed TEMP fixture, then accept its fully restored
+original bytes. These tests do **not** prove source qualification.
+
+### CI reproduction / immutable checkout
+
+Run the workflow
+[`hb-int-02-csc-dotnet-parity.yml`](https://github.com/yuriyyak23/HybridCPU-Compilers/blob/feat/hb-r2-03-dotnet-python-v2-wire-parity-20261121/.github/workflows/hb-int-02-csc-dotnet-parity.yml)
+on the Draft PR. The R2-03 job matrix uses Ubuntu 24.04 and Windows 2025,
+Python 3.13 and exact SDK `11.0.100-rc.2.26504.105`.
+It creates a temporary `global.json` outside the repository and pins
+`BaseIntermediateOutputPath`, `MSBuildProjectExtensionsPath` and
+`OutputPath` to a fresh OS-TEMP directory. The reproducible commands from
+that TEMP working directory are:
+
+```powershell
+$props = @("-p:BaseIntermediateOutputPath=$obj/", "-p:MSBuildProjectExtensionsPath=$obj/", "-p:OutputPath=$bin/")
+dotnet restore $project @props
+dotnet build $project --configuration Release --no-restore @props
+dotnet (Join-Path $bin 'HardwareBridge.CscCoreV2Parity.dll') --wire-limits
+python $driver (Join-Path $bin 'HardwareBridge.CscCoreV2Parity.dll')
+```
+
+Here `$project` is the absolute
+`Tests/CscCoreV2Parity/HardwareBridge.CscCoreV2Parity.csproj` path,
+`$driver` is the absolute `Tests/CscCoreV2Parity/r203_release_wire_driver.py`
+path, and `$obj`/`$bin` are dedicated new directories under OS TEMP.
+The job hashes the executable test DLL and PDB, `dotnet` host,
+pinned Roslyn `csc.dll` image, build/run logs and records actual exits.
+It requires identical Git HEAD and empty porcelain before/after; no Golden
+checkout is opened or built. Original source SHA inventory is checked only
+for the **synthetic** fixture, not an absent approved Golden workspace.
+
+**First executed evidence (not current head):**
+[run 44836392193](https://github.com/yuriyyak23/HybridCPU-Compilers/actions/runs/44836392193),
+Ubuntu R2-03 job 136633741727 completed **success** on 2026-11-20 23:24 UTC.
+Actual `dotnet restore/build/--wire-limits` and Python release↔.NET host
+returned 0; 15 Python mutations returned 2 and paired .NET refusals returned 1.
+Combined parity output SHA-256:
+`0F44B7ECBA40E3C0C9A315D4761E9EE0739D09D476EDF79E1BC1DAEE04B9E750`.
+Compiled test DLL SHA-256:
+`CA7B9D6335AE7549A2A1D77AC3383DE2A6EBB7A9CF14C74FA7560C7DF0665898`.
+The final PR head must be evaluated independently after all subsequent commits.
+
+| Stage | R2-03 status |
+| --- | --- |
+| Production codec / Python release integration harness | Implemented |
+| Ubuntu first-run synthetic binary parity (historical PR head) | TestedInCI |
+| Windows / final PR head | Pending independent run |
+| Exact fresh Golden Csc process, full source and PE/PDB closure | NotRun |
+| Core-owned importer and independent Roslyn verifier | NotRun |
+| RTL/verification/AcceptedRTL authority | NotRun |
+
+**External handoff:** if a different Python canonical wire byte is found,
+record both pinned fixture digests and the first differing byte and open an
+R2-01 dependency; never edit its Python production code here. Any incompatible
+wire migration requires a separately approved schema version and a Core owner.
+No PR or modification in the private CircuitWeave repository is part of R2-03.
+
+
+### Frozen release-wire contract fixture (after real CRLF correction)
+
+The checked-in `Tests/CscCoreV2Parity/r203_release_wire_driver.py` now pins
+these **raw** expected SHA-256 values from the existing actual Ubuntu
+production-release-stager / compiled C# codec pairing:
+[run 44836465436](https://github.com/yuriyyak23/HybridCPU-Compilers/actions/runs/44836465436),
+job `136633980695`, actual `exit=0` for all positive and refusal checks.
+They are compared as immutable expectations; the driver does **not** derive
+expected values by copying the output it is inspecting. The digest of the
+concatenated JSONL is the existing `ClosureSha256` contract, not a hash of
+the original input byte content.
+
+| Primary source rows | index.json SHA256 | concatenated raw JSONL SHA256 |
+| ---: | --- | --- |
+| 1 | `A8C40E8EAAC55B9DDBD78A56635D6567FDDFA277A7714F80BA02267202CB7131` | `D7021F54A9BD835E933DB7C5D71463B67D135E72462256079CF1A40AD8A9319E` |
+| 64 | `5368902CD828E7CC2CA4F782B2D445624F5CBD608B14345D5ABA998389F4EF20` | `826EDFB86D85322CDB821C6F849BA0F5BD134D24B3DD580FA38835AFC8B0BB4A` |
+| 65 | `2C97DB17A3579BB50A834C4524298DFDAE97EF56C44F24F27FEA749145E792C2` | `2E39298B7F1B063A8ABE814033C1E7F568A67350C5231307CD0B36709BFCD885` |
+| 1001 | `5FF353C3293D50A1774AA62B1C0D35D5BDA20995DFE30E486533F62AC42C28D5` | `27F42F514ABEB3B4B1B28E53515A8099C02D58A7AA8AF6EFEE6E1B2E0118962C` |
+
+Root-selector manifest SHA256 (all four):
+`CF02F40E130BF1F63A105962A2BFEA74BC0628B8CEC721B1C69F82EB26D4D9DD`.
+Rows shown are **primary source counts**; the transport additionally includes
+metadata and, for count 65, an owned-body claim; JSONL descriptor row counts
+and sizes are asserted by the existing codec and release verifier.
+
+On that corrected-CRLF Ubuntu run, compiled synthetic test host DLL SHA256:
+`AB52766D4B080FEF8B2B8CEB3C48C29B630F879E6D06669247AE096447BCA3EB`;
+positive driver log combined SHA256:
+`D3128D52D683BB973825A2DECF828FA8101DD3BDD1937323CC79890B29ED11E3`.
+This is a reviewed **synthetic fixture**, not any actual Golden software
+compiler PE/PDB or independently reviewed Golden closure. A change to one of
+these frozen SHA values must be explicitly reviewed as a deliberate fixture
+transition, not auto-updated or silently relaxed.
+
+The later R2-03 PR head adds explicit hash reporting for the **test**
+PDB and the pinned SDK's Roslyn compiler DLL; these are distinct identities
+from any real executed Golden compiler PE/PDB and have not been substituted
+for such evidence.
