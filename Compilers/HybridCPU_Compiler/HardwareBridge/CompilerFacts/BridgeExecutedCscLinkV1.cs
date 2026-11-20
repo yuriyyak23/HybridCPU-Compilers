@@ -359,7 +359,9 @@ public static class BridgeExecutedCscLinkV1
 
                 BridgeMapRowV1[] rows = facts.SourceMaps.Where(r =>
                     r.MethodIdentity == fact.StableIdentity).ToArray();
-                if (rows.Length is < 1 or > 131072)
+                if (rows.Length is < 1 or > 131072 ||
+                    rows.Select(row => (row.IlOffset, row.IrIndex, row.Document))
+                        .Distinct().Count() != rows.Length)
                     throw Refuse(BridgeCscLinkRefusal.WrongSourceMap,
                         "Primary method needs a bounded PDB source map.");
                 MethodDebugInformation debug = pdb.GetMethodDebugInformation(
@@ -433,6 +435,8 @@ public static class BridgeExecutedCscLinkV1
                 BridgeEdgeFactV1[] claimed = facts.Edges.Where(edge =>
                     edge.Caller == fact.StableIdentity).ToArray();
                 if (claimed.Length != expected.Count ||
+                    claimed.Select(edge => (edge.IlOffset, edge.MetadataToken, edge.Callee))
+                        .Distinct().Count() != claimed.Length ||
                     claimed.Any(edge => !expected.Any(x => x.Offset == edge.IlOffset &&
                         x.Token == edge.MetadataToken && x.Callee == edge.Callee)) ||
                     !fact.DirectCallees.OrderBy(x => x, StringComparer.Ordinal)
@@ -441,6 +445,9 @@ public static class BridgeExecutedCscLinkV1
                     throw Refuse(BridgeCscLinkRefusal.StaleMethodGraph,
                         "Companion call edges differ from actual local IL calls.");
             }
+            if (facts.Edges.Any(edge => !stableIds.Contains(edge.Caller) ||
+                !stableIds.Contains(edge.Callee)))
+                throw Refuse(BridgeCscLinkRefusal.StaleMethodGraph, "Foreign graph node.");
             if (facts.RootIdentities.Distinct(StringComparer.Ordinal).Count() !=
                     facts.RootIdentities.Count ||
                 facts.RootIdentities.Any(id => !stableIds.Contains(id)))
@@ -483,7 +490,8 @@ public static class BridgeExecutedCscLinkV1
         typeof(OpCodes).GetFields(BindingFlags.Public | BindingFlags.Static)
             .Where(field => field.FieldType == typeof(OpCode))
             .Select(field => (OpCode)field.GetValue(null)!)
-            .ToDictionary(op => (int)unchecked((ushort)op.Value), op => op.OperandType);
+            .GroupBy(op => (int)unchecked((ushort)op.Value))
+            .ToDictionary(group => group.Key, group => group.First().OperandType);
 
     private static List<(int Offset, int Token)> ParseIlCalls(byte[] il)
     {
