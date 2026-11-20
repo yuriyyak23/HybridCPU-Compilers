@@ -36,8 +36,14 @@ jobs:
           dotnet --list-sdks
           test "$(dotnet --version)" = "$sdk"
           csc="$DOTNET_ROOT/sdk/$sdk/Roslyn/bincore/csc.dll"
-          echo "actual CSC=$csc"
+          echo "actual CSC executable image SHA256:"
           test -f "$csc"
+          sha256sum "$csc"
+          git -C "$GITHUB_WORKSPACE" ls-files -z | LC_ALL=C sort -z | (
+            cd "$GITHUB_WORKSPACE"
+            xargs -0 sha256sum
+          ) > "$RUNNER_TEMP/hb-int-03-before-files.sha256"
+          sha256sum "$RUNNER_TEMP/hb-int-03-before-files.sha256"
           export HB_CSC_PATH="$csc"
           export HB_SDK_VERSION="$sdk"
           echo "SDK=$sdk RUN_SHA=$GITHUB_SHA"
@@ -69,6 +75,13 @@ jobs:
         run: |
           set -Eeuo pipefail
           git diff --exit-code
+          git ls-files -z | LC_ALL=C sort -z | xargs -0 sha256sum \
+            > "$RUNNER_TEMP/hb-int-03-after-files.sha256"
+          cmp "$RUNNER_TEMP/hb-int-03-before-files.sha256" \
+            "$RUNNER_TEMP/hb-int-03-after-files.sha256"
+          echo "before and after tracked full-file inventories match:"
+          sha256sum "$RUNNER_TEMP/hb-int-03-before-files.sha256" \
+            "$RUNNER_TEMP/hb-int-03-after-files.sha256"
           test -z "$(git status --porcelain --untracked-files=normal)"
           echo 'PASS: tracked checkout unchanged (fixture writes only runner TEMP)'
           echo 'BLOCKED: real Golden executed Csc event, Companion facts, Core reader'
