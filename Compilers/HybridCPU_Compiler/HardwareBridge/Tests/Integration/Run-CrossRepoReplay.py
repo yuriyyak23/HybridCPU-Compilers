@@ -19,6 +19,8 @@ import sys
 import tempfile
 import time
 
+from r2_02_core_mutations import MUTATIONS, prepare_fixture_mutation
+
 SHA = re.compile(r"^[0-9a-f]{64}$")
 GIT = re.compile(r"^[0-9a-f]{40}$")
 MAX_FILES = 25000
@@ -122,6 +124,31 @@ def inventory(root):
     return {"head": git(root, ["rev-parse", "HEAD"]),
             "status": git(root, ["status", "--porcelain=v1", "--untracked-files=all"]),
             "files": count, "bytes": total, "inventorySha256": h.hexdigest()}
+
+
+def byte_tree_inventory(root):
+    """Pure byte-tree SHA audit; staged outputs have no Git history."""
+    root = reject_links(root)
+    require(root.is_dir(), "missing staged byte tree")
+    count, total, rows = 0, 0, []
+    for current, dirs, files in os.walk(root, followlinks=False):
+        dirs[:] = sorted(dirs)
+        for name in dirs + sorted(files):
+            reject_links(Path(current) / name)
+        for name in sorted(files):
+            file = Path(current) / name
+            require(file.is_file(), "nonregular staged input")
+            relative = file.relative_to(root).as_posix()
+            require("\\t" not in relative and "\\n" not in relative, "noncanonical staged path")
+            digest, size = sha_file(file)
+            count += 1
+            total += size
+            require(count <= MAX_FILES and total <= MAX_BYTES, "staged byte inventory budget exceeded")
+            rows.append((relative, size, digest.upper()))
+    h = hashlib.sha256()
+    for name, size, digest in sorted(rows):
+        h.update(f"{name}\\t{size}\\t{digest}\\n".encode("utf-8"))
+    return {"files": count, "bytes": total, "inventorySha256": h.hexdigest()}
 
 
 def kill_tree(proc):
@@ -246,6 +273,8 @@ def main(args):
                 "NUGET_PACKAGES": str(out / "nuget-packages"),
                 "DOTNET_SKIP_FIRST_TIME_EXPERIENCE": "1"})
     try:
+        receipt["bridgeBefore"] = inventory(bridge)
+        receipt["coreBefore"] = inventory(core)
         (out / "global.json").write_text(json.dumps({"sdk": {"version": args.sdk,
             "rollForward": "disable", "allowPrerelease": True}}), encoding="utf-8")
         dotnet = reject_links(args.dotnet)
@@ -347,24 +376,73 @@ def main(args):
             {"ordinal": i, "path": d["Path"], "sha256": d["Sha256"],
              "bytes": d["Bytes"], "rows": d["Rows"]}
             for i, d in enumerate(stage_index["Chunks"])]
-        # Build the test-only caller in a writable copy; NEVER write to pinned Core.
+        # Only Core's genuine importer can decide acceptance/refusal of staged bytes.
+        # Compile the disposable test host ONCE, never inside the pinned Core checkout.
+        stage_before = byte_tree_inventory(stage)
+        receipt["stagedBefore"] = stage_before
         build_core = out / "core-build"; clean_copy(core, build_core)
         host = out / "core-reader-host"; clean_copy(HOST, host)
-        (host / "CoreReaderHost.csproj").write_text((host / "CoreReaderHost.csproj").read_text().replace(
+        project = host / "CoreReaderHost.csproj"
+        project.write_text(project.read_text().replace(
             "__CORE_FRONTEND_PROJECT__",
             (build_core / "src/CircuitWeave.Frontend.Roslyn/CircuitWeave.Frontend.Roslyn.csproj").as_posix()), encoding="utf-8")
-        cmd = [str(dotnet), "run", "--project", str(host / "CoreReaderHost.csproj"),
-               "--configuration", "Release", "--", str(index_path), str(stage), closure, digest]
+        built = run("R2-02-build-core-reader",
+                    [str(dotnet), "build", str(project), "--configuration", "Release", "--nologo"],
+                    out, logs, args.timeout, env)
+        receipt["commands"].append(built)
+        require(built["status"] == "Passed", "disposable Core reader host build failed")
+        assembly = reject_links(host / "bin" / "Release" / "net11.0" / "CoreReaderHost.dll")
+        require(assembly.is_file(), "missing compiled CoreReaderHost assembly")
+        assembly_sha = sha_file(assembly)[0]
+        receipt["coreReaderAssemblySha256"] = assembly_sha
+        receipt["stages"]["R2-02-core-reader"] = "Failed"  # until positive and every required negative verify
+        cmd = [str(dotnet), str(assembly), str(index_path), str(stage), closure, digest]
         result = run("R2-02-core-reader", cmd, out, logs, args.timeout, env)
         receipt["commands"].append(result)
         require(result["status"] == "Passed", "Core reader rejected actual Bridge workspace")
-        response = json_file(out / "core-reader-result.json") if (out / "core-reader-result.json").exists() else None
-        require(response is not None and response.get("state") == "Candidate" and
+        response = json_file(out / "core-reader-result.json")
+        require(response.get("state") == "Candidate" and
+                response.get("code") == "CWINT03_V2_UNQUALIFIED_CLOSURE" and
+                response.get("indexSha256") == digest and response.get("closureSha256") == closure and
+                isinstance(response.get("rows"), int) and response["rows"] >= 1001
+                if args.scope == "fixture" else
+                response.get("state") == "Candidate" and
                 response.get("code") == "CWINT03_V2_UNQUALIFIED_CLOSURE" and
                 response.get("indexSha256") == digest and response.get("closureSha256") == closure,
                 "Core reader did not return pinned unqualified candidate receipt")
-        receipt["stages"]["R2-02-core-reader"] = "Passed"
         receipt["coreReader"] = response
+        receipt["negativeCoreMatrix"] = []
+        if args.scope == "fixture":
+            # A negative is meaningful ONLY after actual Core Candidate, using
+            # separate isolated copies. A process error or stale result is NOT a
+            # successful rejection. Every diagnostic code must match pinned Core.
+            cases = out / "r2-02-negative"; cases.mkdir()
+            for name in MUTATIONS:
+                case = cases / name; case.mkdir()
+                workspace = case / "core-workspace"
+                clean_copy(stage, workspace)
+                index_pin, closure_pin, expected_code = prepare_fixture_mutation(workspace, name)
+                require(sha_file(assembly)[0] == assembly_sha, "Core host binary drift")
+                negative = run("R2-02-negative-" + name,
+                               [str(dotnet), str(assembly), str(workspace / "bridge-index.json"),
+                                str(workspace), closure_pin, index_pin],
+                               out, logs, args.timeout, env)
+                receipt["commands"].append(negative)
+                verdict = json_file(case / "core-reader-result.json")
+                require(negative["status"] == "Failed" and negative["exit"] == 1 and
+                        verdict.get("state") != "Candidate" and
+                        verdict.get("code") == expected_code,
+                        "Core negative mismatch: " + name + " expected " + expected_code +
+                        " got " + str(verdict.get("code")) + " / exit " + str(negative["exit"]))
+                receipt["negativeCoreMatrix"].append({
+                    "mutation": name, "expectedCode": expected_code,
+                    "actualCode": verdict["code"], "actualState": verdict["state"],
+                    "coreExecutableSha256": assembly_sha, "expectedRefusal": "Passed"})
+        receipt["stagedAfter"] = byte_tree_inventory(stage)
+        require(receipt["stagedBefore"] == receipt["stagedAfter"],
+                "Core reader or negative test modified original staged workspace")
+        require(sha_file(assembly)[0] == assembly_sha, "Core host assembly changed after replay")
+        receipt["stages"]["R2-02-core-reader"] = "Passed"
         receipt["disposition"] = "CandidateTransportOnly" if args.scope == "golden" else "FixtureTransportOnly"
     except BaseException as ex:
         receipt["blocker"] = str(ex)[:2000]
@@ -377,6 +455,12 @@ def main(args):
         for fragment in (out.parent / (out.name + "-capture"), out.parent / (out.name + "-stage")):
             if fragment.exists() and fragment.is_dir() and not fragment.is_symlink():
                 shutil.rmtree(fragment)
+        receipt["bridgeAfter"] = inventory(bridge)
+        receipt["coreAfter"] = inventory(core)
+        if (receipt.get("bridgeBefore") != receipt["bridgeAfter"] or
+                receipt.get("coreBefore") != receipt["coreAfter"]):
+            receipt["disposition"] = "Blocked"
+            receipt["blocker"] = "pinned Bridge/Core checkout byte/Git inventory changed"
         after = inventory(golden)
         receipt["goldenAfter"] = after
         receipt["sourceUnchanged"] = before == after
