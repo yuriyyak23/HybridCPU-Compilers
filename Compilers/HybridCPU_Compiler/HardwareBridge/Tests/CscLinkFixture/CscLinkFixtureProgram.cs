@@ -134,6 +134,14 @@ internal static class Program
 
             using var pe = new PEReader(new MemoryStream(result.Pe, false));
             MetadataReader metadata = pe.GetMetadataReader();
+            Guid mvid = metadata.GetGuid(metadata.GetModuleDefinition().Mvid);
+            DebugDirectoryEntry cvEntry = pe.ReadDebugDirectory().Single(entry =>
+                entry.Type == DebugDirectoryEntryType.CodeView);
+            CodeViewDebugDirectoryData cv = pe.ReadCodeViewDebugDirectoryData(cvEntry);
+            Console.WriteLine("actual-mvid=" + mvid.ToString("D") +
+                " codeview-guid=" + cv.Guid.ToString("D") +
+                " codeview-stamp=" + cvEntry.Stamp.ToString("X8") +
+                " codeview-age=" + cv.Age);
             MethodDefinitionHandle methodHandle = metadata.MethodDefinitions.Single(h =>
                 metadata.GetString(metadata.GetMethodDefinition(h).Name) == "Add");
             int token = MetadataTokens.GetToken(methodHandle);
