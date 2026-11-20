@@ -98,3 +98,82 @@ Restore/build are redirected to runner TEMP; changed tracked files fail CI.
   Core token for cross-repository importer workflow. **Blocked** while absent.
 - **Core verification/EDA owners:** Golden full Processor, RTL, formal and
   physical signoff. **Blocked/NotRun**; no test-only fixture can waive them.
+
+
+## R1-03 hardening (bounded v1-compatible checks, 2026-11-21)
+
+This change preserves the **exact v1 schema, property ordering, digest preimages,
+sidecar/v1, compiler-facts/v1, and snapshot/v1**. No v2 wire contract or Core
+approval is silently introduced. Existing v1 material whose claim is not
+independently supported by its supplied bytes can now be **refused**, rather
+than silently reinterpreted. This is a stricter *reader*, not a v1 migration.
+
+The PE **MVID must be nonzero** and is read from the actual PE module metadata.
+The PE must have exactly one **portable** CodeView entry with Age=1. The
+complete **20-byte** portable PDB ID (GUID + four-byte CodeView stamp) must
+match, not merely its first 16 bytes. All PDB documents must have unique
+physical source names and SHA-256 checksums matching exactly captured source
+bytes; undocumented #line aliases, foreign documents, and duplicate names
+fail closed. The source and reference inventories cannot alias physical input
+paths, references must be accounted for exactly once in the ordered argv, and
+Csc response-file indirection is refused until R1-01 can provide expanded
+task-time inputs.
+
+For the **narrow v1 method admission subset**, the observed PE ModuleName and
+AssemblyIdentity must match the asserted Companion module, the declaring type
+and method must be non-generic, and the MethodDef signature must decode into an
+exact, bounded primitive signature matching Companion CanonicalSignature. Any
+generic, nested, byref, array, class/valuetype, custom-modifier or otherwise
+complex signature is **UnsupportedFacts**, pending a distinct reviewed
+contract and independent Core symbol qualification. This is intentional
+fail-closed behavior, not an assertion that real Golden signatures are simple.
+Only exact owned **MethodDef** local calls are cross-linked: IL opcodes and
+operand lengths are decoded from the **actual PE IL**, with call offsets,
+callee MethodDef tokens and Companion direct-callee identities checked against
+the bounded edges. Unknown method facts, missing local edges, duplicated edges,
+unsupported IL and stale method graphs are refused. Foreign MemberRef/MethodSpec
+calls are **not** promoted to owned-body edges by this check.
+
+The updated isolated toy compiles **two separate C# source files in a single
+primary PE module** (`Fixture.Add` calling `Helper.Sum`), checks both physical
+sources, both PDB documents, both signatures and exact IL call offset/token,
+and exercises mismatched signatures, foreign method facts, stale graphs,
+duplicate source maps, mixed PE/PDB from a second actual Csc invocation,
+malformed/noncanonical JSON and changed argv/SDK. This is **not** a two-assembly
+Golden or multi-module acceptance test. A separate positive multi-module link
+must remain **NotRun** unless a complete supported observed receipt is supplied.
+All Csc subprocesses in the fixture have a 90-second bounded wait; no
+`Assembly.Load` is used for untrusted PE.
+
+### Ownership and integration contract
+
+R1-01 must provide an independent **completed task-time Csc execution witness**:
+approved exact SDK/actual compiler executable SHA, ordered raw/expanded argv,
+exit, stdout/stderr byte hashes, timestamps, isolated source/reference path
+inventory and output PE/PDB bytes with on-disk hash attestations. A copied
+`BridgeCscExecutedEventV1` alone is **not** an OS execution witness. R0-01
+must provide real Companion `BridgeCompilerFactsV1` whose method/edge facts,
+owned-body source input identity and PE/PDB digests are tied to its own actual
+successful Companion run. R1-02 must supply its separately pinned source
+capture. The invocation SHA, Companion input digest, SourceSnapshotDigest,
+output pair SHA and Companion facts SHA remain **distinct domains**. No
+synthetic test digest may be reused as Golden provenance. Core must perform
+independent admission and method resolution; Bridge never outputs Verified,
+AcceptedRTL or an authorized launch.
+
+### Status and executable check matrix
+
+| Check | Expected status without R0-01/R1-01 Golden receipts |
+| --- | --- |
+| Actual pinned toy Csc, PE/PDB, MVID, full CodeView/PDB ID | Tested in R1-03 CI only |
+| Two-source single-module primitive MethodDef + owned IL edge | Tested in R1-03 CI only |
+| Strict nested JSON/duplicate/unknown SDK and mutation refusals | Tested in R1-03 CI only |
+| Full Golden software execution and real Companion method graph | **Blocked** |
+| Positive two-assembly or multi-module Golden | **NotRun** |
+| Core independent import, Bindings and RTL verification | **NotRun** |
+| Golden checkout reads/writes/restore/build by this workflow | **NotRun (no checkout)** |
+
+No success of a toy or mutation fixture changes these statuses. Native hashes,
+exact SDK, Csc argv SHA, exit, stdout/stderr SHA and durations are printed by
+the fixture CI; the GitHub Actions workflow does not upload private sources or
+raw Golden artifacts.
