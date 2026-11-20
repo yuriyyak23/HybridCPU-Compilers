@@ -139,6 +139,7 @@ function Assert-HbCoreCheckoutOutcome([string]$Outcome) {
 function Invoke-HbCoreGit([string]$Root, [string[]]$GitArguments) {
     $start = [Diagnostics.ProcessStartInfo]::new()
     $start.FileName = 'git'
+    $commandClock = [Diagnostics.Stopwatch]::StartNew()
     $start.RedirectStandardOutput = $true
     $start.RedirectStandardError = $true
     $start.UseShellExecute = $false
@@ -157,6 +158,8 @@ function Invoke-HbCoreGit([string]$Root, [string[]]$GitArguments) {
         $script:R002GitCommands.Add([ordered]@{
             Name = 'git-' + $GitArguments[0]
             ExitCode = $process.ExitCode
+            DurationMs = $commandClock.ElapsedMilliseconds
+            ExecutableSha256 = (Get-FileHash -LiteralPath (Get-Command git -CommandType Application).Source -Algorithm SHA256).Hash.ToLowerInvariant()
             StdoutSha256 = Get-R002Sha256 $stdout
             StderrSha256 = Get-R002Sha256 $stderr
         })
