@@ -109,3 +109,52 @@ The dedicated `hb-int-02-paired-no-write.yml` job publishes only synthetic
 test logs with raw exit and SHA-256. Genuine clean/dirty Golden capture,
 R1-01 task-time-to-argv linkage, Core independent acceptance and full
 Processor closure remain **Blocked/NotRun** until separately authorized.
+
+
+## R1-02 external task witness (fail-closed production CLI)
+
+The production paired CLI now additionally requires:
+`--clean-witness`, `--dirty-witness`,
+`--clean-witness-sha256` and `--dirty-witness-sha256`.
+Each lowercase reviewed SHA-256 must cover the **exact bytes** of a
+separately supplied strict JSON file:
+
+```json
+{"schema":"hybridcpu.hardwarebridge.r1-02-external-task-crosswalk/v1",
+ "graphSha256":"<SHA256 of raw graph>",
+ "observationSha256":"<SHA256 of raw v2 Csc observation>",
+ "events":[{"nodeId":"<evaluated node id>",
+ "argvSha256":"<SHA256 of canonical argv>",
+ "compilerSha256":"<Csc executable SHA256>",
+ "workingDirectory":"<isolated absolute cwd>",
+ "eventSha256":"<SHA256 of externally recorded R1-01 task event bytes>",
+ "stdoutSha256":"<SHA256 of executed output bytes>",
+ "stderrSha256":"<SHA256 of executed error bytes>",
+ "exitCode":0,"eventSource":"R1-01"}]}
+```
+
+Every observed project must match exactly one external event identity,
+Csc argv SHA, compiler image SHA and isolated working directory. Unknown
+schema/fields, duplicate members/events, changed witness bytes, nonzero
+exit, missing event coverage or absent reviewed pins => Blocked (exit 2).
+This crosswalk is **not an independently verified process attestation**:
+the R1-01 owner must supply actual immutable true task/process event bytes,
+the exact argv expansion linkage and the reviewed provenance of
+`eventSha256` / stdout / stderr. Synthetic test fixtures only check the
+validator and MUST NOT be treated as actual Csc execution.
+
+The CLI uses `require_git=True` and `require_witness=True` and refuses
+a clean snapshot with nonempty `git status --porcelain=v1 -uall`, or a
+dirty snapshot without visible Git changes; both are additionally pinned
+by complete before/after source-file byte inventories. Dirty content is
+never inferred from HEAD. Combined Core v2 transition is capped at 8192
+rows and 512 MiB; the existing 20,000-entry/8 GiB HB02 transport itself
+is unchanged. The Python `pair(require_witness=False)` fixture API stays
+for synthetic transport tests, not as a production certification path.
+The resulting receipt remains unqualified and its `executionGate`
+remains Blocked; Core-owned source qualification is NotRun here.
+
+Dependency: R1-01 must provide an actual recorded true Csc event plus
+immutable reviewed witness SHA and contract mapping; R2-01/Core must
+independently accept/re-derive any future strengthened wire version.
+No R1-01, R2-01, Golden, Core or shared roadmap files are edited.
