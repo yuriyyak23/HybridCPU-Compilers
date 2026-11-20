@@ -13,6 +13,7 @@ from pathlib import Path
 import shlex
 import sys
 import tempfile
+from datetime import datetime, timezone, timedelta
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import segmented_csc_capture_v2 as v2
@@ -100,6 +101,23 @@ def exact_argv(command, compiler):
     return argv
 
 
+def check_execution_window(event, os_row):
+    try:
+        start = datetime.fromisoformat(event["StartUtc"].replace("Z", "+00:00"))
+        finish = datetime.fromisoformat(event["FinishUtc"].replace("Z", "+00:00"))
+        actual_exec = datetime.fromtimestamp(float(os_row["time"]), tz=timezone.utc)
+        actual_exit = datetime.fromtimestamp(float(os_row["exitTime"]), tz=timezone.utc)
+    except (OverflowError, ValueError, TypeError, KeyError) as ex:
+        reject("invalid OS/task clock correlation: " + str(ex))
+    if any(x.tzinfo is None for x in (start, finish)):
+        reject("task event clock is not UTC offset-aware")
+    slack = timedelta(seconds=2)
+    if not (start <= finish and actual_exec <= actual_exit
+            and start - slack <= actual_exec <= finish + slack
+            and start - slack <= actual_exit <= finish + slack):
+        reject("OS Csc invocation/exit outside actual MSBuild task timing")
+
+
 def pinned(path):
     return v2.hash_file(path)[0]
 
@@ -159,6 +177,7 @@ def observe(events_path, baseline_dir, isolated_dir, consumer_project,
             reject("ambiguous project: multiple Csc task executions")
         seen_project.add(original_project)
         argv = exact_argv(event["CommandLine"], compiler)
+        check_execution_window(event, execution["processes"][event["Id"]])
         # Only the independently witnessed child CWD can resolve relative
         # Csc source/output paths. Launcher/project directories are not substitutes.
         cwd = require_temp_dir(execution["processes"][event["Id"]]["cwd"])
