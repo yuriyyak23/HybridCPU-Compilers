@@ -1,0 +1,63 @@
+name: R0-01 Companion production-build qualification (fail closed)
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/HardwareBridge.Companion.csproj'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CompanionBuildContractTests.cs'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/R0_01_Companion_Qualification.ps1'
+      - 'Compilers/HybridCPU_Compiler/Core/HybridCPU.Compiler.Core.csproj'
+      - 'Compilers/HybridCPU_Compiler/Core/IR/Artifacts/**'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/Docs/R0_Companion_Build_Qualification.md'
+      - '.github/workflows/hb-r0-companion-qualification.yml'
+  pull_request:
+    paths:
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/HardwareBridge.Companion.csproj'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CompanionBuildContractTests.cs'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/R0_01_Companion_Qualification.ps1'
+      - 'Compilers/HybridCPU_Compiler/Core/HybridCPU.Compiler.Core.csproj'
+      - 'Compilers/HybridCPU_Compiler/Core/IR/Artifacts/**'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/Docs/R0_Companion_Build_Qualification.md'
+      - '.github/workflows/hb-r0-companion-qualification.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  windows-companion:
+    name: Windows real Core-CIL-Roslyn-Companion Debug and Release
+    runs-on: windows-2025
+    timeout-minutes: 55
+    steps:
+      - name: Checkout exactly the event's Bridge commit without credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          path: bridge
+          ref: '${{ github.event.pull_request.head.sha || github.sha }}'
+          persist-credentials: false
+          submodules: false
+          lfs: false
+
+      - name: Install exact tested .NET 11 preview SDK
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9
+        with:
+          dotnet-version: '11.0.100-rc.2.26504.105'
+
+      - name: Evaluate production graph, build, inspect PE, record source immutability
+        shell: pwsh
+        env:
+          R0_BRIDGE_SHA: '${{ github.event.pull_request.head.sha || github.sha }}'
+        run: |
+          $script = Join-Path $env:GITHUB_WORKSPACE 'bridge/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/R0_01_Companion_Qualification.ps1'
+          & $script -ExpectedSha $env:R0_BRIDGE_SHA -ExpectedSdk '11.0.100-rc.2.26504.105' -OutputRoot (Join-Path $env:RUNNER_TEMP 'hb-r0-01-companion')
+          exit $LASTEXITCODE
+
+      # Deliberately DO NOT upload builds, Core PE/PDB, NuGet cache, stdout/stderr, logs or Golden bytes.
+      - name: Publish only allowlisted immutable R0-01 JSON receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hb-r0-01-companion-receipt
+          path: '${{ runner.temp }}/hb-r0-01-companion/r0-01-qualification.json'
+          if-no-files-found: warn
+          retention-days: 30
