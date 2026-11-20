@@ -3,11 +3,13 @@ on:
   pull_request:
     paths:
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/Integration/**'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/Docs/HB_INT_06_CrossRepo_Replay.md'
       - '.github/workflows/hb-int-06-cross-repo-replay.yml'
   push:
     branches: [master]
     paths:
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/Integration/**'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/Docs/HB_INT_06_CrossRepo_Replay.md'
       - '.github/workflows/hb-int-06-cross-repo-replay.yml'
   workflow_dispatch:
     inputs:
@@ -29,13 +31,53 @@ on:
 permissions:
   contents: read
 jobs:
+  dispatch-policy:
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - name: Refuse untrusted event refs and ambiguous or unapproved execution
+        shell: bash
+        env:
+          FIXTURE: ${{ inputs.approved_fixture }}
+          GOLDEN: ${{ inputs.approved_golden }}
+          CORE_SHA: ${{ inputs.reviewed_core_sha }}
+          GOLDEN_SHA: ${{ inputs.reviewed_golden_sha }}
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REPOSITORY" != 'yuriyyak23/HybridCPU-Compilers' || "$GITHUB_REF" != 'refs/heads/master' ]]; then
+            echo 'BLOCKED: opt-in private paired replay requires trusted Bridge master dispatch' >&2
+            exit 2
+          fi
+          if [[ "$FIXTURE" == "$GOLDEN" ]]; then
+            echo 'BLOCKED: choose exactly one of fixture or Golden approval' >&2
+            exit 2
+          fi
+          if [[ ! "$CORE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo 'BLOCKED: exact reviewed Core SHA is mandatory for paired modes' >&2
+            exit 2
+          fi
+          if [[ "$GOLDEN" == 'true' && ! "$GOLDEN_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo 'BLOCKED: Golden SHA is mandatory for explicitly approved Golden mode' >&2
+            exit 2
+          fi
+          echo "trusted_dispatch=Passed exact_bridge_commit=$GITHUB_SHA; mode pins reviewed"
   fixture-refusals:
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.sha }}
           persist-credentials: false
+      - name: Verify exact event commit and clean fixture checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
       - name: Test synthetic security/mutation/1001 input producers
         shell: bash
         run: |
@@ -53,10 +95,14 @@ jobs:
           cat "$RUNNER_TEMP/hb-int06-refusals.stderr"
           cat "$RUNNER_TEMP/hb-int06-producer.stderr"
           test "$rc1" -eq 0 && test "$rc2" -eq 0
+          cd "$GITHUB_WORKSPACE"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
       - name: Clarify independent Golden and Core status
         run: echo 'FIXTURE ONLY; R1 Golden and paired Core NotRun in this job'
   paired-fixture-core:
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.approved_fixture == true }}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master' && github.repository == 'yuriyyak23/HybridCPU-Compilers' && inputs.approved_fixture == true }}
+    needs: dispatch-policy
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     steps:
@@ -73,6 +119,7 @@ jobs:
           fi
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.sha }}
           path: bridge
           persist-credentials: false
       - uses: actions/checkout@v4
@@ -82,10 +129,21 @@ jobs:
           token: ${{ secrets.HB_INT_06_CORE_READ_TOKEN }}
           path: core
           persist-credentials: false
+      - name: Verify exact Bridge/Core commits, clean checkouts, no trusted-token persistence
+        shell: bash
+        env:
+          CORE_SHA: ${{ inputs.reviewed_core_sha }}
+        run: |
+          set -euo pipefail
+          test "$(git -C bridge rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git -C core rev-parse HEAD)" = "$CORE_SHA"
+          test -z "$(git -C bridge status --porcelain=v1 --untracked-files=all)"
+          test -z "$(git -C core status --porcelain=v1 --untracked-files=all)"
+          echo "Bridge/Core exact checkout pins verified (no private source in log)"
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '11.0.100-rc.2.26504.105'
-      - name: Execute 1001-file Bridge producer and real pinned Core v2 reader
+      - name: Execute 1001-file Bridge producer and real pinned Core v2 reader with seven Core negative mutations
         shell: bash
         env:
           CORE_SHA: ${{ inputs.reviewed_core_sha }}
@@ -118,7 +176,8 @@ jobs:
           path: '${{ runner.temp }}/hb-cross-repo-${{ github.run_id }}/receipt.json'
           if-no-files-found: warn
   golden-real-approved:
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.approved_golden == true && vars.HB_REAL_SOFTWARE_BUILD_APPROVED == 'true' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master' && github.repository == 'yuriyyak23/HybridCPU-Compilers' && inputs.approved_golden == true }}
+    needs: dispatch-policy
     runs-on: windows-2025
     timeout-minutes: 60
     steps:
@@ -130,8 +189,9 @@ jobs:
           CORE_SHA: ${{ inputs.reviewed_core_sha }}
           GOLDEN_SHA: ${{ inputs.reviewed_golden_sha }}
           OBSERVER_READY: ${{ vars.HB_REAL_R1_OBSERVER_READY }}
+          SOFTWARE_APPROVED: ${{ vars.HB_REAL_SOFTWARE_BUILD_APPROVED }}
         run: |
-          if (-not $env:CORE_TOKEN -or -not $env:GOLDEN_TOKEN -or
+          if ($env:SOFTWARE_APPROVED -cne 'true' -or -not $env:CORE_TOKEN -or -not $env:GOLDEN_TOKEN -or
               $env:CORE_SHA -cnotmatch '^[0-9a-f]{40}$' -or
               $env:GOLDEN_SHA -cnotmatch '^[0-9a-f]{40}$' -or
               $env:OBSERVER_READY -cne 'true') {
