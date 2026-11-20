@@ -402,8 +402,12 @@ def capture(graph, observation, golden_root, out_dir, after_copy=None, *, timeou
     def check_timeout():
         if time.monotonic() >= deadline:
             fail("capture timeout")
+    if os.path.normpath(os.fspath(out_dir)) != os.fspath(out_dir):
+        fail("noncanonical TEMP output path")
     output = Path(os.path.abspath(out_dir))
     temp = Path(os.path.abspath(tempfile.gettempdir()))
+    if inside(output, safe_path(golden_root, file=False)):
+        fail("capture output is nested in original Golden source tree")
     if output.parent != temp or output.exists() or output.is_symlink():
         fail("output must be a NEW direct TEMP child directory")
     safe_path(str(output.parent), file=False)
@@ -441,6 +445,10 @@ def capture(graph, observation, golden_root, out_dir, after_copy=None, *, timeou
             check_timeout()
             if hash_file(original) != (digest, length):
                 fail("Golden source mutated during capture")
+        for artifact, initial_sha in ((graph, graph_sha), (observation, obs_sha)):
+            check_timeout()
+            if hash_file(artifact)[0] != initial_sha:
+                fail("graph/observation mutated during capture")
         payload = {"schema": SCHEMA, "disposition": "unqualified-software-observation", "graphSha256": graph_sha,
                    "observationSha256": obs_sha, "chunkSizeLimit": CHUNK_SIZE, "commands": commands, "entries": rows}
         encoded = canonical(payload)
@@ -538,5 +546,17 @@ if __name__ == "__main__":
     try:
         main()
     except (ValueError, KeyError, TypeError, OSError, json.JSONDecodeError) as error:
-        print("HB-INT-02 Blocked: " + str(error), file=sys.stderr)
+        message = str(error)
+        if "symlink" in message or "reparse" in message or "path" in message:
+            code = "HB02_PATH_REFUSAL"
+        elif "mutated" in message or "concurrent" in message or "changed" in message:
+            code = "HB02_INPUT_DRIFT"
+        elif "oversized" in message or "budget" in message or "limit" in message:
+            code = "HB02_BOUND_EXCEEDED"
+        else:
+            code = "HB02_INVALID_INPUT"
+        print(json.dumps({"schema": "hybridcpu.hardwarebridge.r1-02-refusal/v1",
+                          "disposition": "Blocked", "reasonCode": code,
+                          "reasonDigestSha256": sha(message.encode("utf-8")),
+                          "actualCsc": "NotRun"}, sort_keys=True), file=sys.stderr)
         sys.exit(2)
