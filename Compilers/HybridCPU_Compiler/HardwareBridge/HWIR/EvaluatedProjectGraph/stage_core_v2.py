@@ -1,4 +1,9 @@
-"""Opt-in HB-INT-02 -> CW-INT-03 v2 transport staging; NEVER executes Csc or verifies hardware."""
+"""Release HB-INT-02 -> Core v2 data-only staging with independently reviewed
+HB-INT-02 closure and root-manifest SHA pins. The reference wire writer is
+SourceSnapshot/BridgeSegmentIndexV2.cs; Python must remain byte-identical.
+Neither source claims nor file hashes qualify executable ownership.
+NEVER executes Csc, changes Golden, or verifies hardware.
+"""
 import argparse
 import hashlib
 import json
@@ -132,8 +137,13 @@ def verify(output, reviewed_capture, reviewed_roots):
             item["Path"] != "bridge-index/chunk-%04d.jsonl" % i
         ):
             refuse("changed chunk descriptor")
-        contents = capture.safe_path(str(base / item["Path"])).read_bytes()
-        if len(contents) != item["Bytes"] or len(contents) > 4194304 or sha(contents) != item["Sha256"]:
+        chunk_file = capture.safe_path(str(base / item["Path"]))
+        if type(item["Bytes"]) is not int or not 0 < item["Bytes"] <= 4194304 or (
+            chunk_file.stat().st_size != item["Bytes"]
+        ):
+            refuse("oversized/truncated raw JSONL chunk before read")
+        contents = chunk_file.read_bytes()
+        if len(contents) != item["Bytes"] or sha(contents) != item["Sha256"]:
             refuse("changed raw JSONL chunk bytes")
         lines = contents.splitlines(keepends=True)
         if len(lines) != item["Rows"] or any(not x.endswith(b"\n") for x in lines):
@@ -148,6 +158,7 @@ def verify(output, reviewed_capture, reviewed_roots):
         refuse("changed closure digest / row count")
     if not 1 <= len(rows) <= MAX_ROWS:
         refuse("Core file count exceeded")
+    total_bytes = 0
     for i, (row, original) in enumerate(zip(rows, mapping["Rows"])):
         if not isinstance(row, dict) or set(row) != {"Path", "Role", "Sha256", "Bytes"} or (
             not isinstance(original, dict) or set(original) != {
@@ -160,12 +171,27 @@ def verify(output, reviewed_capture, reviewed_roots):
         if row != {"Path": expected_path, "Role": category,
                     "Sha256": original["Sha256"], "Bytes": original["Bytes"]}:
             refuse("wrong source role/path/digest mapping")
+        if type(row["Bytes"]) is not int or row["Bytes"] < (0 if category == "source" else 1) or (
+            row["Bytes"] > (2097152 if category == "source" else 33554432)
+        ):
+            refuse("Core file limit exceeded")
+        total_bytes += row["Bytes"]
+        if total_bytes > MAX_SIZE:
+            refuse("Core 512MiB total budget exceeded")
         f = capture.safe_path(str(base / expected_path))
-        if f.stat().st_size != row["Bytes"] or sha(f.read_bytes()) != row["Sha256"]:
+        if f.stat().st_size != row["Bytes"]:
+            refuse("mutated output file length")
+        file_sha, size = capture.hash_file(f)
+        if size != row["Bytes"] or file_sha.upper() != row["Sha256"]:
             refuse("mutated output file bytes")
         if category == "source":
             try:
-                f.read_bytes().decode("utf-8", errors="strict")
+                with f.open("rb") as stream:
+                    import codecs
+                    decode = codecs.getincrementaldecoder("utf-8")("strict")
+                    while block := stream.read(65536):
+                        decode.decode(block)
+                    decode.decode(b"", final=True)
             except UnicodeDecodeError:
                 refuse("Core source must be UTF-8")
     if [x["Path"] for x in rows] != sorted(x["Path"] for x in rows):
