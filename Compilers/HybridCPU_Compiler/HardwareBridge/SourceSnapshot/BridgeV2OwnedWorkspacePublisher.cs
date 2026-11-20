@@ -28,6 +28,7 @@ public static class BridgeV2OwnedWorkspacePublisher
     // Disk-mutation seams are excluded from production assemblies.
     internal static Action? AfterSourcePreflightForTests;
     internal static Action<string>? AfterStageWriteForTests;
+    internal static Action<string, int>? AfterCopyBlockForTests;
 #endif
 
     public static BridgeV2PublishedWorkspace Publish(
@@ -332,6 +333,9 @@ public static class BridgeV2OwnedWorkspacePublisher
             int take = Math.Min(CopyBlock, data.Length - offset);
             file.Write(data.Span.Slice(offset, take));
             offset += take;
+#if HARDWAREBRIDGE_TESTS
+            AfterCopyBlockForTests?.Invoke(relative, offset);
+#endif
         }
         file.Flush(flushToDisk: true);
     }
