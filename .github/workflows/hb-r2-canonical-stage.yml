@@ -1,0 +1,57 @@
+name: HB R2-01 canonical Core-v2 stage (synthetic, unqualified)
+on:
+  pull_request:
+    paths:
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/stage_core_v2.py'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/project_csc_to_core_v2.py'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/test_stage_core_v2.py'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/test_project_csc_to_core_v2.py'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/r2_01_wire_contract.json'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/Docs/source-transport-v2-release.md'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/Docs/HB_INT_02_03_Core_V2_Staging.md'
+      - '.github/workflows/hb-r2-canonical-stage.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  canonical-stage:
+    name: ${{ matrix.os }} pinned Python source-byte contract (not Core qualification)
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: R2-01 immutable producer tests, exit and log SHA receipt
+        shell: pwsh
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph'
+          $stdout = Join-Path $env:RUNNER_TEMP 'r2-01-stdout.txt'
+          $stderr = Join-Path $env:RUNNER_TEMP 'r2-01-stderr.txt'
+          $before = @(git status --porcelain)
+          if ($LASTEXITCODE -ne 0 -or $before.Count -ne 0) { throw 'checkout must start clean' }
+          $pythonVersion = (& python --version 2>&1 | Out-String).Trim()
+          Write-Host "R2-01 runner=$env:RUNNER_OS Python=$pythonVersion checkout=$((git rev-parse HEAD).Trim())"
+          & python -m unittest -v "$root/test_stage_core_v2.py" "$root/test_project_csc_to_core_v2.py" 1> $stdout 2> $stderr
+          $exitCode = $LASTEXITCODE
+          $outHash = (Get-FileHash -LiteralPath $stdout -Algorithm SHA256).Hash
+          $errHash = (Get-FileHash -LiteralPath $stderr -Algorithm SHA256).Hash
+          Write-Host "R2-01 command=python -m unittest -v test_stage_core_v2.py test_project_csc_to_core_v2.py exit=$exitCode stdoutSHA256=$outHash stderrSHA256=$errHash"
+          Get-Content -LiteralPath $stdout
+          Get-Content -LiteralPath $stderr
+          $after = @(git status --porcelain)
+          if ($LASTEXITCODE -ne 0 -or $after.Count -ne 0) { throw 'checkout mutated by tests' }
+          if ($exitCode -ne 0) { throw "R2-01 producer test failure exit=$exitCode" }
+          Write-Host 'Synthetic software byte transport only: Core reader, real Csc and Golden remain separate gates.'
