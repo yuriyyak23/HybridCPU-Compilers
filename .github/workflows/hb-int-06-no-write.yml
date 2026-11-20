@@ -78,6 +78,9 @@ jobs:
     name: Pinned Core importer contract host (NOT source qualification)
     runs-on: windows-2025
     timeout-minutes: 45
+    # Keep this job visible and non-green for PR/absent secret; no implicit skip-as-pass.
+    permissions:
+      contents: read
     steps:
       - name: Checkout Bridge from immutable event SHA
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -88,23 +91,27 @@ jobs:
           submodules: false
           lfs: false
       - name: No-secret pin and event preflight; fail Blocked, never skip green
+        id: core_preflight
         shell: pwsh
         env:
           HB_BRIDGE_SHA: '${{ github.event.pull_request.head.sha || github.sha }}'
           # No credential is even evaluated on PR runs.
-          HB_CORE_READ_TOKEN: "${{ ((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/master') && secrets.HB_INT_06_CORE_READ_TOKEN || '' }}"
+          HB_CORE_READ_TOKEN: "${{ ((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/master' && github.ref_protected && github.repository == 'yuriyyak23/HybridCPU-Compilers') && secrets.HB_INT_06_CORE_READ_TOKEN || '' }}"
         run: |
           $gate = Join-Path $env:GITHUB_WORKSPACE 'bridge/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/HbInt06.CoreGate.ps1'
-          & $gate -Mode Preflight -ExpectedBridgeSha $env:HB_BRIDGE_SHA -ExpectedCoreSha '18caf04768df6abf31f5517dbb489e7fea2e1c7e'
+          & $gate -Mode Preflight -ExpectedBridgeSha $env:HB_BRIDGE_SHA -ExpectedCoreSha 'b5c44685197a40df99a4d48891120b12475c6ca5'
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Checkout private Core at exact pinned commit with read-only credential
+        # Only the checkout action may receive a token; PR never reaches this step.
+        # continue-on-error exposes the checkout outcome to the mandatory failing gate.
+        if: steps.core_preflight.outcome == 'success'
         id: core_checkout
         continue-on-error: true
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: yuriyyak23/CircuitWeave
-          ref: 18caf04768df6abf31f5517dbb489e7fea2e1c7e
-          token: "${{ ((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/master') && secrets.HB_INT_06_CORE_READ_TOKEN || '' }}"
+          ref: b5c44685197a40df99a4d48891120b12475c6ca5
+          token: "${{ ((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/master' && github.ref_protected && github.repository == 'yuriyyak23/HybridCPU-Compilers') && secrets.HB_INT_06_CORE_READ_TOKEN || '' }}"
           path: core
           fetch-depth: 0
           persist-credentials: false
@@ -116,7 +123,7 @@ jobs:
           HB_CORE_CHECKOUT_OUTCOME: '${{ steps.core_checkout.outcome }}'
         run: |
           $gate = Join-Path $env:GITHUB_WORKSPACE 'bridge/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/HbInt06.CoreGate.ps1'
-          & $gate -Mode Checkout -CheckoutOutcome $env:HB_CORE_CHECKOUT_OUTCOME -CoreRoot (Join-Path $env:GITHUB_WORKSPACE 'core') -ExpectedCoreSha '18caf04768df6abf31f5517dbb489e7fea2e1c7e'
+          & $gate -Mode Checkout -CheckoutOutcome $env:HB_CORE_CHECKOUT_OUTCOME -CoreRoot (Join-Path $env:GITHUB_WORKSPACE 'core') -ExpectedCoreSha 'b5c44685197a40df99a4d48891120b12475c6ca5'
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Checkout independent pinned Golden source (no compiler/build in checkout)
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -132,6 +139,7 @@ jobs:
         with:
           dotnet-version: 11.0.100-rc.2.26504.105
       - name: Execute Bridge v1/v2/Companion and actual pinned Core CW-INT-03 reader contract
+        id: paired_validator
         shell: pwsh
         env:
           HB_BRIDGE_SHA: '${{ github.event.pull_request.head.sha || github.sha }}'
@@ -143,14 +151,18 @@ jobs:
             GoldenRoot = (Join-Path $env:GITHUB_WORKSPACE 'golden')
             ExpectedGoldenSha = '6946ccab9d888f7dae0a4d8e18480f436138acd9'
             CoreRoot = (Join-Path $env:GITHUB_WORKSPACE 'core')
-            ExpectedCoreSha = '18caf04768df6abf31f5517dbb489e7fea2e1c7e'
+            ExpectedCoreSha = 'b5c44685197a40df99a4d48891120b12475c6ca5'
             CoreImporterProject = 'tests/CircuitWeave.CWINT03.BridgeImport/CircuitWeave.CWINT03.BridgeImport.csproj'
             ExpectedSdkVersion = '11.0.100-rc.2.26504.105'
             OutputRoot = (Join-Path $env:RUNNER_TEMP 'hb-int-06-paired')
             RequirePaired = $true
           }
           # Deliberately NOT CoreOnly: execute both sets; a failed Companion is not masked.
+          # Parent owns compiler results and source inventory. Never override its failure.
           & $script @arguments
+          $runExit = $LASTEXITCODE
+          $gate = Join-Path $env:GITHUB_WORKSPACE 'bridge/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/HbInt06.CoreGate.ps1'
+          & $gate -Mode Downstream -ExpectedCoreSha 'b5c44685197a40df99a4d48891120b12475c6ca5' -DownstreamExitCode $runExit -PairedReceiptPath (Join-Path $env:RUNNER_TEMP 'hb-int-06-paired/hb-int-06-qa-receipt.json')
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Emit allowlisted no-source/no-secret paired QA summary
         if: always()
@@ -164,7 +176,6 @@ jobs:
             $commands = @($r.Commands | ForEach-Object {
               [ordered]@{
                 Name = $_.Name; Status = $_.Status; ExitCode = $_.ExitCode
-                Arguments = @($_.Arguments)
                 ExecutableSha256 = $_.ExecutableSha256
                 StdoutSha256 = $_.StdoutSha256; StderrSha256 = $_.StderrSha256
               }
@@ -174,6 +185,10 @@ jobs:
               Scope = 'Unqualified software-only contract tests; NOT Golden/RTL qualification'
               BridgeHead = $r.BridgeHead; CoreHead = $r.CoreHead; GoldenHead = $r.GoldenHead
               SdkVersion = $r.ExpectedSdkVersion
+              # The public summary is NOT a qualification receipt.
+              GateStatus = 'See hb-r0-02-core-gate-receipts artifact'
+              CoreImporter = $r.Matrix.StrictCoreImporter
+              PairedValidatorOutcome = '${{ steps.paired_validator.outcome }}'
               GoldenBeforeTreeSha256 = $r.GoldenBefore.TreeSha256
               GoldenAfterTreeSha256 = $r.GoldenAfter.TreeSha256
               GoldenSourceUnchanged = $r.SourceUnchanged
@@ -181,14 +196,15 @@ jobs:
               CoreAfterTreeSha256 = $r.CoreAfter.TreeSha256
               CoreSourceUnchanged = $r.CoreSourceUnchanged
               Matrix = $r.Matrix; Commands = $commands
-              Error = $r.Error
             }
           } else {
             $safe = [ordered]@{
               Schema = 'hb-int-06-ci-public-summary/v1'; Status = 'Blocked'
-              CorePin = '18caf04768df6abf31f5517dbb489e7fea2e1c7e'
+              CorePin = 'b5c44685197a40df99a4d48891120b12475c6ca5'
               Reason = 'No paired receipt: credential/event, checkout or SDK step blocked; see job conclusions'
               Commands = @()
+              CoreImporter = 'NotRun'
+              PairedValidatorOutcome = '${{ steps.paired_validator.outcome }}'
             }
           }
           $file = Join-Path $dest 'summary.json'
@@ -201,4 +217,13 @@ jobs:
           name: hb-int-06-paired-summary-no-source
           path: '${{ runner.temp }}/hb-int-06-paired-summary/summary.json'
           if-no-files-found: error
+          retention-days: 3
+
+      - name: Publish only sanitized R0-02 gate receipts (no private data)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: hb-r0-02-core-gate-receipts
+          path: '${{ runner.temp }}/hb-r0-02-core-gate/*.json'
+          if-no-files-found: warn
           retention-days: 3
