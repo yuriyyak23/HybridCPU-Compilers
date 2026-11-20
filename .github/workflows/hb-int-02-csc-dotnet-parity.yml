@@ -168,6 +168,49 @@ jobs:
               throw 'Actual compiled production-codec host DLL missing'
             }
             Write-Host "Compiled test host DLL SHA=$((Get-FileHash $dll -Algorithm SHA256).Hash)"
+            $pdb = Join-Path $bin 'HardwareBridge.CscCoreV2Parity.pdb'
+            if (-not (Test-Path -LiteralPath $pdb -PathType Leaf)) {
+              throw 'Actual compiled test host PDB missing'
+            }
+            Write-Host "Compiled synthetic host PDB SHA=$((Get-FileHash $pdb -Algorithm SHA256).Hash)"
+            $dotnetHost = (Get-Command dotnet).Source
+            Write-Host "Actual dotnet host SHA=$((Get-FileHash $dotnetHost -Algorithm SHA256).Hash)"
+            $sdkLine = & dotnet --list-sdks | Where-Object { $_.StartsWith("$version [") } | Select-Object -First 1
+            if (-not $sdkLine) { throw 'Pinned SDK location not found' }
+            $sdkParent = [regex]::Match($sdkLine, '\[(.*)\]
+            & dotnet $dll --wire-limits > $limitsLog 2>&1
+            $rc = $LASTEXITCODE
+            Write-Host "dotnet --wire-limits exit=$rc stdout/stderr SHA=$((Get-FileHash $limitsLog -Algorithm SHA256).Hash)"
+            if ($rc -ne 0) { Get-Content $limitsLog; throw 'Production codec high-water limits failed' }
+            $parityLog = Join-Path $logs 'release-parity.txt'
+            & python $driver $dll > $parityLog 2>&1
+            $rc = $LASTEXITCODE
+            Write-Host "Python release-stager + compiled DLL parity exit=$rc stdout/stderr SHA=$((Get-FileHash $parityLog -Algorithm SHA256).Hash)"
+            Get-Content -LiteralPath $parityLog -Tail 110
+            if ($rc -ne 0) { throw 'Cross-language binary fixture/negative matrix failed' }
+            Write-Host 'R2-03 fixture-only PASS. Real Golden Csc and Core-owned reader: NotRun.'
+          } finally {
+            Pop-Location
+            $afterSha = (& git rev-parse HEAD).Trim()
+            $after = (& git status --porcelain=v1 --untracked-files=all) -join [Environment]::NewLine
+            Write-Host "Checkout HEAD before=$beforeSha after=$afterSha; porcelain beforeLength=$($before.Length) afterLength=$($after.Length)"
+            if ($beforeSha -ne $afterSha -or $after -ne $before) {
+              throw 'R2-03 violated immutable Git checkout'
+            }
+            if (Test-Path -LiteralPath $work) {
+              Remove-Item -LiteralPath $work -Recurse -Force
+            }
+          }
+          exit 0
+
+# R2-03 synthetic transport-only checks; no Golden source or Core consumer access.
+).Groups[1].Value
+            if (-not $sdkParent) { throw 'Pinned SDK location malformed' }
+            $roslyn = Join-Path (Join-Path $sdkParent $version) 'Roslyn/bincore/csc.dll'
+            if (-not (Test-Path -LiteralPath $roslyn -PathType Leaf)) {
+              throw 'Actual pinned Roslyn compiler image missing'
+            }
+            Write-Host "Pinned SDK Roslyn/csc.dll SHA=$((Get-FileHash $roslyn -Algorithm SHA256).Hash)"
             $limitsLog = Join-Path $logs 'limits.txt'
             & dotnet $dll --wire-limits > $limitsLog 2>&1
             $rc = $LASTEXITCODE
