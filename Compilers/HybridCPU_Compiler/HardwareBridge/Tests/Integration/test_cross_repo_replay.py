@@ -155,6 +155,17 @@ class ReplayRefusals(unittest.TestCase):
         receipt = r.run('cancels', [sys.executable, '-c', 'import time;time.sleep(9)'],
                         self.base, logs, .01)
         self.assertEqual(receipt['status'], 'Blocked')
+    def test_exact_isolation_inventory_matches_original_checkout_bytes(self):
+        before = r.inventory(self.golden)
+        isolated = self.base / 'isolated-source'
+        r.clean_copy(self.golden, isolated)
+        copied = r.byte_tree_inventory(isolated)
+        self.assertEqual(copied, {key: before[key] for key in
+                                 ('files', 'bytes', 'inventorySha256')})
+        (isolated / 'A.cs').write_bytes(b'changed isolated bytes only')
+        self.assertNotEqual(r.byte_tree_inventory(isolated), copied)
+        self.assertEqual(r.inventory(self.golden), before)
+
     def test_final_missing_source_audit_is_blocked_not_false_success(self):
         result = r.post_inventory(self.base / 'vanished-golden')
         self.assertEqual(result, {'auditStatus': 'Blocked', 'failureType': 'Blocked'})
