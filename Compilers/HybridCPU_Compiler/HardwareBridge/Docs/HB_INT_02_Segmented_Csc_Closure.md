@@ -68,3 +68,22 @@ BridgeSourceSnapshotV1 (hybridcpu.hardwarebridge.source-snapshot/v1; 128 docs/re
 BLOCKED: independent Csc task/process provenance, generator execution and completeness attestation, actual approved isolated Processor Debug/Release and clean/dirty captures, full exact Csc closure, Core reader CW-INT-03, downstream CW-INT-04 independent ownership, RTL acceptance and physical signoff. NotRun: real .NET 11 / MSBuild / Csc / Golden Processor and EDA runs on a host without dotnet or approved tool pins. The included fixture tests exercise **transport only**; they are not real compiler/CPU outputs.
 
 Filesystem pre/post rehash does not prevent every adversarial concurrent rename (notably Windows reparse races). SIGKILL can leave partial TEMP output; never trust partial folders. Do not execute any unapproved target in Golden.
+
+## R1-02 hardening (21 November 2026)
+
+The `hybridcpu.hardwarebridge.csc-closure-index/v2` wire contract,
+its unqualified disposition and the 1 MiB binary chunk limit are retained.
+Reads now use bounded descriptor-based full-byte SHA-256 hashing and test
+device/inode, mode, size, mtime, ctime and the pathname both before and after
+each read. Lexical traversal, noncanonical absolute paths, symlink/reparse
+ancestors, copied-source hardlinks to Golden originals, duplicate/case-folded
+paths, duplicate JSON members and NaN/Infinity are refused. The filename
+does not enter the digest. This catches observed concurrent mutation, not a
+hostile mutation hidden by the filesystem; immutable read-only mounts/ACLs
+and reviewed OS isolation remain host/operator prerequisites.
+
+The producer's own byte consistency, an observed Csc event, a process exit
+of zero, and a matching digest cannot qualify source method ownership.
+The separate paired-CLI external task crosswalk is a **producer-side
+structural precondition only**; its genuine event source and independent
+review are outside this owner's files.
