@@ -106,20 +106,23 @@ count as executed until its actual logs/exit/hashes are available.
 - Core cross-repo checkout **Failed/Blocked** (`git fetch` exit 128, `Repository not found`) because the default Bridge workflow token cannot access the pinned Core repository. The workflow now requires an explicit least-privilege repository secret `HB_INT_06_CORE_READ_TOKEN`; missing secret yields fail-closed exit 2 and **never** a Core importer PASS. A real Core contract receipt remains NotRun until read access is explicitly provided and tests execute.
 - No RTL independent acceptance, Golden Processor source semantics or physical signoff was executed; these gates remain Blocked.
 
-## 2026-11-20 — owner-operated pinned private Core CI gate (R2-02)
+## 2026-11-20 follow-up: missing software compiler Core contracts
 
-**Live base:** Bridge `master@797b6dd4fc1c7a44f958ebb22d43e745d0e6938c`; Core `master@18caf04768df6abf31f5517dbb489e7fea2e1c7e` (this new gate pins exactly that Core commit, not the earlier `21706d1...`); Golden `6946ccab9d888f7dae0a4d8e18480f436138acd9`; SDK `11.0.100-rc.2.26504.105`. Only a deliberately reviewed workflow change may rotate any of these SHA/version pins. Pinned `actions/checkout`, `actions/setup-dotnet`, `actions/upload-artifact` are immutable GitHub action commit SHAs rather than moving major tags. Core importer is the actual `tests/CircuitWeave.CWINT03.BridgeImport/CircuitWeave.CWINT03.BridgeImport.csproj` checked into that private Core revision; it uses synthetic byte fixtures and **does not validate a real Golden compiler export**.
+Audited `HybridCPU-Compilers/master@797b6dd4fc1c7a44f958ebb22d43e745d0e6938c`;
+latest red run at audit:
+[44634030755](https://github.com/yuriyyak23/HybridCPU-Compilers/actions/runs/44634030755).
+That run has v1/v2/mutation exit 0, but implicit Companion build/run exit 1.
+The source directory `Compilers/HybridCPU_Compiler/Core/IR/Artifacts` is missing,
+and code search for `CompilerEmissionPackage` finds consumers rather than an
+exported definition. The dependency is **same-repository software compiler Core**,
+transitively required by real Roslyn/CIL; it is not CircuitWeave Core.
 
-**Repository owner steps (required; cannot be completed by an assistant without the actual credential):**
-1. Create a **fine-grained personal access token** (or approved installation access token) that can read **only** `yuriyyak23/CircuitWeave` with **Repository permissions → Contents: Read-only**; repository metadata is implicitly readable. No workflows/actions write, issue write, administration, package write or broader organization permissions. For a time-limited credential, arrange explicit rotation before expiry; do not reuse the default Bridge `GITHUB_TOKEN`, which is repository-scoped.
-2. In **HybridCPU-Compilers → Settings → Secrets and variables → Actions → New repository secret**, set the **exact name** `HB_INT_06_CORE_READ_TOKEN` and paste the token value privately. Never place it in workflow YAML, issue/PR body, diagnostic command, `git remote -v`, artifact, or CI log. Treat this token as a secret and revoke/rotate if leaked. Review the permissions and expiry in GitHub's token settings.
-3. Review/merge this Draft PR when appropriate; run the protected workflow on a **trusted master push** or `workflow_dispatch` on `master`. **Pull-request runs intentionally receive no private Core credential**: the named required paired job terminates **Blocked** (exit 2), not skipped or green, even when the owner has installed the secret. This avoids running editable PR code with private Core read credentials. Do not mark a PR's skipped or fixture-only checks as cross-repo qualification. Owners must configure branch protection/check expectations accordingly; a mandatory paired check on PR cannot pass under this trust policy. For premerge private Core testing a separately reviewed trusted-base workflow is required.
-4. Check the exact run's `Pinned Core importer contract host` job. Missing token and unauthorized/expired token (checkout step failure) are **Blocked**; wrong SHA, shallow checkout, dirty checkout or missing Core test project are **Blocked**, not synthetic PASS. The authenticated read-only checkout has `persist-credentials: false`; Core history is full-depth to reject shallow, with its own path/workspace; no public unauthenticated private-Core URLs are used.
-
-**Runs/tests:** the paired job invokes `Run-HbInt06.ps1 -RequirePaired` **without** `-CoreOnly`, running v1, v2, Companion, synthetic mutations and the real **Core-owned** CW-INT-03 reader executable in a fresh `RUNNER_TEMP` output root. It hashes Golden before/after, and newly Core before/after, rejects dirty Core writes, source links and wrong HEAD, and collects exact executable/argv/exit/stdout/stderr SHA-256 receipts. Both test families' failures remain visible individually. It never executes Golden PE, HWIR-to-RTL lowering, native EDA or proof. Even success is only `unqualified software-facts-only`, not `Verified`.
-
-**Artifact policy:** paired job uploads **only** `hb-int-06-paired-summary-no-source/summary.json` (allowed SHA, argv, exit, statuses, before/after tree digests). Raw compiler output, private Core checkout, Golden/Bridge source file inventory, Csc source bytes, test fixtures and Git credentials remain on the ephemeral runner, **not** in paired Actions artifacts. Never pass token through argv; checkout owns ephemeral authentication. The standalone public Bridge job still uploads its existing short-retention raw Bridge-only diagnostics.
-
-**Negative evidence:** `HbInt06.CoreGate.ps1 -Mode SelfTest` (synthetic Git only) refuses missing credential, simulated expired/unauthorized checkout outcome, truncated/invalid/wrong SHA, path escape, missing project, dirty source and shallow checkout. Real token expiration is **not simulated as live authentication**; it must be demonstrated by a failed authenticated Core checkout in an actual runner. Core-owned strict v1/v2 tests separately refuse malformed schema, altered source/chunk bytes, missing artifacts, and incompatible roles. If Core reader must expose additional consumer APIs, create **a separate Core-owned issue/PR under R2-02**; never edit its reader in this Bridge PR.
-
-**Known failure on baseline run:** [Bridge Actions 44634030755](https://github.com/yuriyyak23/HybridCPU-Compilers/actions/runs/44634030755) on `master@797b6dd4fc1c7a44f958ebb22d43e745d0e6938c`: paired failed at missing `HB_INT_06_CORE_READ_TOKEN`; standalone v1/v2/mutations passed but `companion-selftests` failed `exit=1`. Owner of Compiler/Core.IR artifacts must fix Companion separately (HB-INT-01/06 compiler dependency issue); this CI supply-chain PR intentionally does not modify Golden or compiler contracts. Missing secret remains Blocked, new PR CI statuses are not pre-claimed as Passed.
+A bounded regression now demands actual restore → build → output DLL SHA → run.
+The opt-in test also references *real exported compiler-owned types* and verifies
+their originating assembly at runtime, not merely filenames. No Golden,
+`sidecar/v1`, `source-index/v2`, Roslyn/CIL lowering semantics or parent
+compiler configuration is modified by this follow-up. The software compiler
+contracts owner must restore the missing substantive production contracts;
+all missing contracts remain a **Blocked** release gate, never assumed from
+a successful codec-only test. The separate Core importer read-token gate
+remains blocked without `HB_INT_06_CORE_READ_TOKEN`.

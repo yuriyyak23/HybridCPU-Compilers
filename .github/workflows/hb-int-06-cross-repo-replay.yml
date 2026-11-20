@@ -1,0 +1,144 @@
+name: HB-INT-06 cross-repo replay (fixture/gated Golden, NOT RTL proof)
+on:
+  pull_request:
+    paths:
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/Integration/**'
+      - '.github/workflows/hb-int-06-cross-repo-replay.yml'
+  push:
+    branches: [master]
+    paths:
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/Integration/**'
+      - '.github/workflows/hb-int-06-cross-repo-replay.yml'
+  workflow_dispatch:
+    inputs:
+      approved_fixture:
+        type: boolean
+        description: 'Paired 1001-file synthetic Bridge -> private Core reader'
+        default: false
+      reviewed_core_sha:
+        type: string
+        description: 'Reviewed exact 40-character Core commit SHA'
+        required: false
+      approved_golden:
+        type: boolean
+        description: 'Real Golden requires external approved R1 Csc/PE/PDB observer'
+        default: false
+      reviewed_golden_sha:
+        type: string
+        required: false
+permissions:
+  contents: read
+jobs:
+  fixture-refusals:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Test synthetic security/mutation/1001 input producers
+        shell: bash
+        run: |
+          set -uo pipefail
+          cd Compilers/HybridCPU_Compiler/HardwareBridge
+          python3 -m unittest discover -v -s Tests/Integration -p 'test_*.py' > "$RUNNER_TEMP/hb-int06-refusals.stdout" 2> "$RUNNER_TEMP/hb-int06-refusals.stderr"
+          rc1=$?
+          python3 -m unittest discover -v -s HWIR/EvaluatedProjectGraph -p 'test_*.py' > "$RUNNER_TEMP/hb-int06-producer.stdout" 2> "$RUNNER_TEMP/hb-int06-producer.stderr"
+          rc2=$?
+          echo "fixture_refusal_exit=$rc1 fixture_producer_exit=$rc2"
+          sha256sum "$RUNNER_TEMP/hb-int06-refusals.stdout" "$RUNNER_TEMP/hb-int06-refusals.stderr" "$RUNNER_TEMP/hb-int06-producer.stdout" "$RUNNER_TEMP/hb-int06-producer.stderr"
+          echo "python_executable=$(readlink -f "$(command -v python3)")"
+          sha256sum "$(readlink -f "$(command -v python3)")"
+          python3 --version
+          cat "$RUNNER_TEMP/hb-int06-refusals.stderr"
+          cat "$RUNNER_TEMP/hb-int06-producer.stderr"
+          test "$rc1" -eq 0 && test "$rc2" -eq 0
+      - name: Clarify independent Golden and Core status
+        run: echo 'FIXTURE ONLY; R1 Golden and paired Core NotRun in this job'
+  paired-fixture-core:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.approved_fixture == true }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - name: Fail closed when private Core read token or reviewed commit is absent
+        shell: bash
+        env:
+          CORE_TOKEN: ${{ secrets.HB_INT_06_CORE_READ_TOKEN }}
+          CORE_SHA: ${{ inputs.reviewed_core_sha }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$CORE_TOKEN" || ! "$CORE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo 'BLOCKED: HB_INT_06_CORE_READ_TOKEN or reviewed_core_sha missing' >&2
+            exit 2
+          fi
+      - uses: actions/checkout@v4
+        with:
+          path: bridge
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: yuriyyak23/CircuitWeave
+          ref: ${{ inputs.reviewed_core_sha }}
+          token: ${{ secrets.HB_INT_06_CORE_READ_TOKEN }}
+          path: core
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '11.0.100-rc.2.26504.105'
+      - name: Execute 1001-file Bridge producer and real pinned Core v2 reader
+        shell: bash
+        env:
+          CORE_SHA: ${{ inputs.reviewed_core_sha }}
+          BRIDGE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          export TMPDIR="$RUNNER_TEMP"
+          export PYTHONDONTWRITEBYTECODE=1
+          python3 bridge/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/Integration/PrepareFixtureReplay.py --result "$RUNNER_TEMP/fixture-meta.json" --count 1001
+          readarray -t data < <(python3 - "$RUNNER_TEMP/fixture-meta.json" <<'PY'
+          import json,sys
+          a=json.load(open(sys.argv[1]))
+          for k in ('golden','golden_sha','graph','observation','roots','roots_sha','closure_sha'):
+              print(a[k])
+          PY
+          )
+          python3 bridge/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/Integration/Run-CrossRepoReplay.py \
+            --scope fixture --bridge "$GITHUB_WORKSPACE/bridge" --bridge-sha "$BRIDGE_SHA" \
+            --core "$GITHUB_WORKSPACE/core" --core-sha "$CORE_SHA" \
+            --golden "${data[0]}" --golden-sha "${data[1]}" \
+            --graph "${data[2]}" --observation "${data[3]}" --roots "${data[4]}" \
+            --roots-sha "${data[5]}" --closure-sha "${data[6]}" \
+            --sdk '11.0.100-rc.2.26504.105' --dotnet "$(command -v dotnet)" \
+            --output "$RUNNER_TEMP/hb-cross-repo-${GITHUB_RUN_ID}"
+      - name: Upload fixture verdict only, NEVER raw source
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hb-cross-repo-fixture-receipt
+          path: '${{ runner.temp }}/hb-cross-repo-${{ github.run_id }}/receipt.json'
+          if-no-files-found: warn
+  golden-real-approved:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.approved_golden == true && vars.HB_REAL_SOFTWARE_BUILD_APPROVED == 'true' }}
+    runs-on: windows-2025
+    timeout-minutes: 60
+    steps:
+      - name: Verify read-only Core/Golden access and independent R1 observer readiness
+        shell: pwsh
+        env:
+          CORE_TOKEN: ${{ secrets.HB_INT_06_CORE_READ_TOKEN }}
+          GOLDEN_TOKEN: ${{ secrets.HB_REAL_GOLDEN_READ_TOKEN }}
+          CORE_SHA: ${{ inputs.reviewed_core_sha }}
+          GOLDEN_SHA: ${{ inputs.reviewed_golden_sha }}
+          OBSERVER_READY: ${{ vars.HB_REAL_R1_OBSERVER_READY }}
+        run: |
+          if (-not $env:CORE_TOKEN -or -not $env:GOLDEN_TOKEN -or
+              $env:CORE_SHA -cnotmatch '^[0-9a-f]{40}$' -or
+              $env:GOLDEN_SHA -cnotmatch '^[0-9a-f]{40}$' -or
+              $env:OBSERVER_READY -cne 'true') {
+            throw 'BLOCKED: reviewed exact SHAs, read tokens or actual R1 observer unavailable.'
+          }
+      - name: Refuse synthetic substitution until reviewed real observer and PE/PDB evidence are provisioned
+        shell: pwsh
+        run: |
+          Write-Error 'BLOCKED: real R1 observation, PE/PDB method facts and reviewed command/byte SHA inputs not provisioned. No Golden E2E claim.'
+          exit 2

@@ -1,0 +1,116 @@
+name: HB-INT-02 reviewed Core v2 wire parity (unqualified)
+on:
+  pull_request:
+    paths:
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/project_csc_to_core_v2.py'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/stage_core_v2.py'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/test_stage_core_v2.py'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/test_project_csc_to_core_v2.py'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CscCoreV2Parity/**'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/Docs/source-transport-v2-release.md'
+      - '.github/workflows/hb-int-02-reviewed-v2-parity.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  python-dotnet-production-parity:
+    name: ${{ matrix.os }} actual Python stage vs .NET reference codec (NO Golden)
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025]
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 11.0.100-rc.2.26504.105
+      - name: Actual Python producer mutation suites
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $testRoot = 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph'
+          & python -m unittest -v "$testRoot/test_stage_core_v2.py" "$testRoot/test_project_csc_to_core_v2.py"
+          if ($LASTEXITCODE -ne 0) { throw "Python production producer/migration tests exit=$LASTEXITCODE" }
+      - name: Stage actual HB02 fixture and compare full index/chunks/files with managed codec
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $false
+          $temp = (& python -c 'import tempfile; print(tempfile.gettempdir())').Trim()
+          if ($LASTEXITCODE -ne 0 -or -not $temp) { throw 'Python TEMP unavailable' }
+          $work = Join-Path $temp ('hb-reviewed-wire-' + [Guid]::NewGuid().ToString('N'))
+          New-Item -Path $work -ItemType Directory | Out-Null
+          $log = Join-Path $work 'logs'
+          New-Item -Path $log -ItemType Directory | Out-Null
+          [IO.File]::WriteAllText((Join-Path $work 'global.json'),
+            '{"sdk":{"version":"11.0.100-rc.2.26504.105","rollForward":"disable","allowPrerelease":true}}',
+            [Text.UTF8Encoding]::new($false))
+          $env:DOTNET_CLI_HOME = Join-Path $work 'home'
+          $env:NUGET_PACKAGES = Join-Path $work 'packages'
+          $env:DOTNET_NOLOGO = '1'
+          $env:DOTNET_CLI_TELEMETRY_OPTOUT = '1'
+          $project = Join-Path $env:GITHUB_WORKSPACE 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CscCoreV2Parity/HardwareBridge.CscCoreV2Parity.csproj'
+          $fixture = Join-Path $env:GITHUB_WORKSPACE 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CscCoreV2Parity/emit_reviewed_stage_fixture.py'
+          $artifacts = Join-Path $work 'artifacts'
+          Push-Location $work
+          try {
+            $version = (& dotnet --version).Trim()
+            if ($LASTEXITCODE -ne 0 -or $version -cne '11.0.100-rc.2.26504.105') {
+              throw "Expected pinned SDK 11.0.100-rc.2.26504.105; got $version"
+            }
+            $buildLog = Join-Path $log 'build.txt'
+            & dotnet build $project -c Release "-p:ArtifactsPath=$artifacts" > $buildLog 2>&1
+            $buildExit = $LASTEXITCODE
+            Write-Host "Pinned SDK=$version build exit=$buildExit SHA256=$((Get-FileHash $buildLog -Algorithm SHA256).Hash)"
+            if ($buildExit -ne 0) { Get-Content $buildLog; throw 'Managed reference codec build failed' }
+            $limitsLog = Join-Path $log 'actual-dotnet-limits.txt'
+            & dotnet run --project $project -c Release --no-build --no-restore "-p:ArtifactsPath=$artifacts" -- --wire-limits > $limitsLog 2>&1
+            $limitsExit = $LASTEXITCODE
+            Write-Host "Actual production .NET wire bounds exit=$limitsExit SHA256=$((Get-FileHash $limitsLog -Algorithm SHA256).Hash)"
+            Get-Content $limitsLog
+            if ($limitsExit -ne 0) { throw 'Actual production codec size/count boundaries failed' }
+            foreach ($count in @(1,64,65,1001)) {
+              $output = Join-Path $temp ('hb-stage-' + [Guid]::NewGuid().ToString('N'))
+              try {
+                $pythonLog = Join-Path $log "stage-$count.txt"
+                & python $fixture $output $count > $pythonLog 2>&1
+                $pythonExit = $LASTEXITCODE
+                Write-Host "Actual Python capture/stage count=$count exit=$pythonExit SHA256=$((Get-FileHash $pythonLog -Algorithm SHA256).Hash)"
+                if ($pythonExit -ne 0) { Get-Content $pythonLog; throw 'Reviewed Python stage failed' }
+                Get-Content $pythonLog
+                $dotnetLog = Join-Path $log "managed-$count.txt"
+                & dotnet run --project $project -c Release --no-build --no-restore "-p:ArtifactsPath=$artifacts" -- $output > $dotnetLog 2>&1
+                $managedExit = $LASTEXITCODE
+                Write-Host "Actual .NET byte parity count=$count exit=$managedExit SHA256=$((Get-FileHash $dotnetLog -Algorithm SHA256).Hash)"
+                Get-Content $dotnetLog
+                if ($managedExit -ne 0) { throw 'Python vs production .NET codec mismatched' }
+                if ($count -eq 65) {
+                  $index = Join-Path $output 'bridge-index/chunk-0000.jsonl'
+                  $raw = [IO.File]::ReadAllBytes($index)
+                  try {
+                    [IO.File]::WriteAllBytes($index, [byte[]]@(1,2,3))
+                    $badLog = Join-Path $log 'mutation-chunk.txt'
+                    & dotnet run --project $project -c Release --no-build --no-restore "-p:ArtifactsPath=$artifacts" -- $output > $badLog 2>&1
+                    $badExit = $LASTEXITCODE
+                    Write-Host "Mutated JSONL .NET exit=$badExit SHA256=$((Get-FileHash $badLog -Algorithm SHA256).Hash)"
+                    if ($badExit -eq 0) { throw 'Changed raw chunk was accepted' }
+                  } finally { [IO.File]::WriteAllBytes($index, $raw) }
+                }
+              } finally {
+                if (Test-Path -LiteralPath $output) {
+                  Remove-Item -LiteralPath $output -Recurse -Force
+                }
+              }
+            }
+            Write-Host "Source-transport v2 cross-language checks are fixture-only; Core consumer E2E remains BLOCKED."
+          } finally {
+            Pop-Location
+          }
+          # For diagnostic retention GitHub job logs include exact SHA/exit above.

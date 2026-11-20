@@ -39,6 +39,7 @@ internal static class BridgeSelfTests
     {
         try
         {
+            CompanionBuildContractTests.Run();
             GoldenRawTraceTests.Run();
             // Snapshot tests hash opaque caller bytes; use a bounded deterministic image rather than
             // assuming the current runtime CoreLib fits the bridge's 16 MiB reference budget.
