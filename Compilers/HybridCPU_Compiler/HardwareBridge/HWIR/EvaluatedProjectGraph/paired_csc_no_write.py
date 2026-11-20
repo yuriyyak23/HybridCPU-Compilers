@@ -30,6 +30,8 @@ def reject(message):
 
 
 def new_temp_child(path):
+    if os.path.normpath(os.fspath(path)) != os.fspath(path):
+        reject("noncanonical/traversing TEMP output")
     raw = Path(os.path.abspath(path))
     root = Path(os.path.abspath(tempfile.gettempdir()))
     hb.safe_path(str(root), file=False)
@@ -125,7 +127,9 @@ def check_external_witness(path, reviewed_sha, graph, observation):
     for event in events:
         if not isinstance(event, dict) or set(event) != {
                 "nodeId", "argvSha256", "compilerSha256", "workingDirectory",
-                "eventSha256", "stdoutSha256", "stderrSha256", "exitCode", "eventSource"
+                "eventSha256", "stdoutSha256", "stderrSha256",
+                "eventFile", "stdoutFile", "stderrFile",
+                "exitCode", "eventSource"
         }:
             reject("invalid external event contract")
         if (event["eventSource"] != "R1-01" or type(event["exitCode"]) is not int
@@ -133,6 +137,13 @@ def check_external_witness(path, reviewed_sha, graph, observation):
                 or not re.fullmatch(r"[0-9a-f]{64}", event[k])
                 for k in ("eventSha256", "stdoutSha256", "stderrSha256"))):
             reject("invalid R1-01 recorded event or nonzero exit")
+        for label in ("event", "stdout", "stderr"):
+            full = event[label + "File"]
+            if not isinstance(full, str) or not os.path.isabs(full) or not hb.inside(
+                    Path(os.path.abspath(full)), Path(os.path.abspath(tempfile.gettempdir()))):
+                reject("external R1-01 " + label + " bytes must be under isolated TEMP")
+            if hb.hash_file(full)[0] != event[label + "Sha256"]:
+                reject("external R1-01 " + label + " bytes differ from event pin")
         node = event["nodeId"]
         if not isinstance(node, str) or node in index:
             reject("duplicate/invalid R1-01 event mapping")
@@ -252,5 +263,17 @@ if __name__ == "__main__":
     try:
         main()
     except (ValueError, KeyError, TypeError, OSError, subprocess.TimeoutExpired, UnicodeError) as error:
-        print("HB-INT-02 Blocked: " + str(error), file=sys.stderr)
+        message = str(error)
+        if "witness" in message or "R1-01" in message:
+            code = "HB02_R1_01_WITNESS_REFUSAL"
+        elif "Git" in message or "dirty" in message or "clean" in message:
+            code = "HB02_SNAPSHOT_IDENTITY_REFUSAL"
+        elif "Core" in message or "512 MiB" in message:
+            code = "HB02_CORE_BOUND_EXCEEDED"
+        else:
+            code = "HB02_INPUT_REFUSAL"
+        print(json.dumps({"schema": "hybridcpu.hardwarebridge.r1-02-refusal/v1",
+                          "disposition": "Blocked", "reasonCode": code,
+                          "reasonDigestSha256": hb.sha(message.encode("utf-8")),
+                          "actualCsc": "NotRun"}, sort_keys=True), file=sys.stderr)
         sys.exit(2)
