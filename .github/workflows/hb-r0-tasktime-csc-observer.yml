@@ -74,7 +74,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: hb-r1-01-task-csc-toy-receipts
-          path: ${{ runner.temp }}/hb-r0-tasktime-receipts/
+          path: ${{ runner.temp }}/hb-r1-01-tasktime-receipts/
           if-no-files-found: warn
           retention-days: 7
 # A real Linux OS trace + v2 toy capture is still unqualified software evidence.
