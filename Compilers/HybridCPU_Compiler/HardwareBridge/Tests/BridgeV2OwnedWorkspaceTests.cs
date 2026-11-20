@@ -255,6 +255,52 @@ internal static class BridgeV2OwnedWorkspaceTests
                 RemoveSyntheticOutput(failed);
             }
 
+            // Rename changes the exact staged filename even though the original
+            // chunk bytes remain valid. It must not qualify the published tree.
+            failed = null;
+            try
+            {
+                BridgeV2OwnedWorkspacePublisher.AfterStageWriteForTests = path => {
+                    failed = path;
+                    File.Move(Path.Combine(path, index.Chunks[0].Path),
+                        Path.Combine(path, "bridge-index", "renamed.jsonl"));
+                };
+                Refuse(BridgeV2Refusal.InvalidPin, () =>
+                    BridgeV2OwnedWorkspacePublisher.Publish(index, inputs, roots, live, golden));
+                Check(failed is not null &&
+                    File.Exists(Path.Combine(failed, "bridge-index", "renamed.jsonl")),
+                    "renamed/unowned output must not be recursively removed");
+            }
+            finally
+            {
+                BridgeV2OwnedWorkspacePublisher.AfterStageWriteForTests = null;
+                RemoveSyntheticOutput(failed);
+            }
+
+            if (!OperatingSystem.IsWindows())
+            {
+                failed = null;
+                try
+                {
+                    BridgeV2OwnedWorkspacePublisher.AfterStageWriteForTests = path => {
+                        failed = path;
+                        File.SetUnixFileMode(Path.Combine(path, "source", "Fixture.cs"),
+                            UnixFileMode.None);
+                    };
+                    Refuse(BridgeV2Refusal.InvalidPin, () =>
+                        BridgeV2OwnedWorkspacePublisher.Publish(index, inputs, roots, live, golden));
+                    Check(failed is not null && !Directory.Exists(failed),
+                        "unreadable output must clean its owned staging tree");
+                }
+                finally
+                {
+                    BridgeV2OwnedWorkspacePublisher.AfterStageWriteForTests = null;
+                    RemoveSyntheticOutput(failed);
+                }
+            }
+            else
+                Console.WriteLine("NOTRUN: Unix unreadable chmod mutation on Windows; Windows ACL is separate.");
+
             // Index must be canonical: duplicate JSON, invented claims and changed SHA.
             byte[] duplicateJson = Encoding.UTF8.GetBytes(
                 Encoding.UTF8.GetString(index.IndexUtf8).Replace(
