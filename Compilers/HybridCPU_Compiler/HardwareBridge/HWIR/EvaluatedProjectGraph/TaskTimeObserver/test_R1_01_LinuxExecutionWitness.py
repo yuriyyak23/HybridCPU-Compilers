@@ -48,6 +48,20 @@ class ExecutionWitnessMutationTests(unittest.TestCase):
                        launch_argv=[str(self.app), 'build'], compiler=self.compiler,
                        event_argv=self.events, expected_compiler_sha=w.digest(self.compiler))
 
+    def test_shared_fs_group_cwd_is_replayed(self):
+        # A second cloned thread shares the root fs_struct. Its successful
+        # chdir changes the future inherited cwd of a normal Csc fork.
+        self.root = self.root.replace(
+            '1760000000.001000 clone(',
+            '1760000000.000500 clone(child_stack=NULL, flags=CLONE_FS|CLONE_THREAD) = 300\\n'
+            '1760000000.001000 clone(').replace('\\n', '\n')
+        (self.trace / 'trace.300').write_text(
+            '1760000000.000700 chdir(' + json.dumps(str(self.project)) + ') = 0\n'
+            '1760000000.000800 +++ exited with 0 +++\n')
+        self.write()
+        result = self.get()
+        self.assertEqual(result['processes']['task-1']['cwd'], str(self.project))
+
     def test_changed_cwd_receipt_blocked(self):
         result = self.get()
         result['processes']['task-1']['cwd'] = str(self.tmp)
