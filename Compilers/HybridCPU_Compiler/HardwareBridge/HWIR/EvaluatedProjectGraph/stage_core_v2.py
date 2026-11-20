@@ -104,7 +104,7 @@ def role(row):
     return {"primary": "source", "owned-body": "owned-body",
             "metadata-only": "metadata-only"}[ownership]
 
-def verify(output, reviewed_capture, reviewed_roots):
+def verify(output, reviewed_capture, reviewed_roots, capture_bundle=None):
     if (not isinstance(reviewed_capture, str) or not re.fullmatch(r"[0-9a-f]{64}", reviewed_capture)
         or not isinstance(reviewed_roots, str) or not re.fullmatch(r"[0-9a-f]{64}", reviewed_roots)):
         refuse("missing reviewed hash inputs")
@@ -119,7 +119,13 @@ def verify(output, reviewed_capture, reviewed_roots):
         index["Schema"] != CORE or index["Roots"] != roots or json_bytes(index) != raw
     ):
         refuse("mutated/noncanonical Core index")
-    mapping = load(base / "capture-map.json", 4 * 1048576)
+    mapping_file = capture.safe_path(str(base / "capture-map.json"))
+    if mapping_file.stat().st_size > 4 * 1048576:
+        refuse("oversized source provenance mapping")
+    mapping_raw = mapping_file.read_bytes()
+    mapping = json.loads(mapping_raw, object_pairs_hook=capture.pairs_unique)
+    if json_bytes(mapping) != mapping_raw:
+        refuse("noncanonical source provenance mapping")
     if not isinstance(mapping, dict) or set(mapping) != {"Schema", "Disposition",
         "Hb02ClosureRootSha256", "RootManifestSha256", "CoreClosureSha256", "Rows"} or (
         mapping["Schema"] != MAPPING or mapping["Disposition"] != "unqualified-software-observation"
@@ -132,6 +138,7 @@ def verify(output, reviewed_capture, reviewed_roots):
     if not isinstance(descriptors, list) or not 1 <= len(descriptors) <= 256:
         refuse("invalid chunk list")
     rows, aggregate = [], hashlib.sha256()
+    aggregate_manifest_bytes = 0
     for i, item in enumerate(descriptors):
         if not isinstance(item, dict) or set(item) != {"Path", "Sha256", "Bytes", "Rows"} or (
             item["Path"] != "bridge-index/chunk-%04d.jsonl" % i
@@ -142,6 +149,13 @@ def verify(output, reviewed_capture, reviewed_roots):
             chunk_file.stat().st_size != item["Bytes"]
         ):
             refuse("oversized/truncated raw JSONL chunk before read")
+        if type(item["Rows"]) is not int or not 1 <= item["Rows"] <= 64 or (
+            i < len(descriptors) - 1 and item["Rows"] != 64
+        ):
+            refuse("noncanonical 64-row Core chunk partition")
+        aggregate_manifest_bytes += item["Bytes"]
+        if aggregate_manifest_bytes > 67108864:
+            refuse("cumulative Core manifest byte budget exceeded")
         contents = chunk_file.read_bytes()
         if len(contents) != item["Bytes"] or sha(contents) != item["Sha256"]:
             refuse("changed raw JSONL chunk bytes")
@@ -196,6 +210,24 @@ def verify(output, reviewed_capture, reviewed_roots):
                 refuse("Core source must be UTF-8")
     if [x["Path"] for x in rows] != sorted(x["Path"] for x in rows):
         refuse("reordered Core source list")
+    if len(descriptors) != (len(rows) + 63) // 64:
+        refuse("noncanonical Core chunk count")
+    if capture_bundle is not None:
+        # Producer-side crosswalk replay only. Not a Core qualification gate.
+        original_base = capture.safe_path(os.path.abspath(capture_bundle), file=False)
+        if capture.verify(str(original_base)) != reviewed_capture:
+            refuse("reviewed capture bytes changed during crosswalk replay")
+        original = load(original_base / "index.json", capture.MAX_INDEX)
+        if len(original["entries"]) != len(mapping["Rows"]):
+            refuse("capture-map does not cover all reviewed inputs")
+        for i, entry in enumerate(original["entries"]):
+            expected_mapping = {
+                "NodeId": entry["nodeId"], "Kind": entry["kind"],
+                "SourceRole": entry["role"], "LogicalPath": entry["logicalPath"],
+                "Path": rows[i]["Path"], "Sha256": entry["sha256"].upper(),
+                "Bytes": entry["bytes"]}
+            if mapping["Rows"][i] != expected_mapping:
+                refuse("capture-map differs from independently pinned HB02 inventory")
     expected = {"bridge-index.json", "capture-map.json", "roots-manifest.json"} | {
         x["Path"] for x in rows
     } | {x["Path"] for x in descriptors}
@@ -211,6 +243,31 @@ def verify(output, reviewed_capture, reviewed_roots):
     if actual_dirs != {"inputs", "bridge-index"}:
         refuse("unexpected output directory")
     return index["ClosureSha256"]
+
+def _publish_new_directory(work, target):
+    """Atomic same-TEMP-filesystem publish that never replaces a destination."""
+    if target.exists() or target.is_symlink():
+        refuse("output destination created during stage; no overwrite")
+    if sys.platform.startswith("linux"):
+        # Plain POSIX rename can replace an empty destination directory.
+        # Linux renameat2(RENAME_NOREPLACE) closes that TOCTOU window.
+        import ctypes
+        libc = ctypes.CDLL(None, use_errno=True)
+        renameat2 = getattr(libc, "renameat2", None)
+        if renameat2 is None:
+            refuse("atomic no-replace directory publish unavailable")
+        renameat2.argtypes = [ctypes.c_int, ctypes.c_char_p, ctypes.c_int,
+                              ctypes.c_char_p, ctypes.c_uint]
+        renameat2.restype = ctypes.c_int
+        if renameat2(-100, os.fsencode(work), -100, os.fsencode(target), 1) != 0:
+            errno = ctypes.get_errno()
+            raise OSError(errno, os.strerror(errno), str(target))
+    elif os.name == "nt":
+        # Win32 MoveFile semantics behind os.rename refuse an existing target.
+        os.rename(work, target)
+    else:
+        refuse("atomic no-replace directory publish unavailable on this OS")
+
 
 def stage(bundle, reviewed_capture, roots_file, reviewed_roots, output, timeout_seconds=300,
           after_copy=None):
@@ -254,11 +311,12 @@ def stage(bundle, reviewed_capture, roots_file, reviewed_roots, output, timeout_
         refuse("output must be new direct TEMP child")
     capture.safe_path(str(temporary), file=False)
     deadline()
-    target.mkdir(mode=0o700)
+    # Build privately; the requested final destination is never visible partially.
+    work = Path(tempfile.mkdtemp(prefix="hb-r2-01-stage-", dir=temporary))
     try:
-        (target / "inputs").mkdir()
-        (target / "bridge-index").mkdir()
-        with (target / "roots-manifest.json").open("xb") as sink:
+        (work / "inputs").mkdir()
+        (work / "bridge-index").mkdir()
+        with (work / "roots-manifest.json").open("xb") as sink:
             sink.write(raw_roots)
         core_rows, mapping = [], []
         for i, row in enumerate(entries):
@@ -266,14 +324,20 @@ def stage(bundle, reviewed_capture, roots_file, reviewed_roots, output, timeout_
             category = role(row)
             name = "inputs/%05d%s" % (i, ".cs" if category in ("source", "owned-body") else ".bin")
             h, length = hashlib.sha256(), 0
-            with (target / name).open("xb") as sink:
+            with (work / name).open("xb") as sink:
                 for part in row["chunks"]:
                     deadline()
                     if not isinstance(part, dict) or set(part) != {"name", "bytes", "sha256"} or (
                         not re.fullmatch(r"chunk-[0-9]{8}\.bin", part["name"])
                     ):
                         refuse("invalid captured chunk identity")
-                    data = capture.safe_path(str(source / part["name"])).read_bytes()
+                    chunk_path = capture.safe_path(str(source / part["name"]))
+                    if type(part["bytes"]) is not int or not 0 < part["bytes"] <= capture.CHUNK_SIZE or (
+                        chunk_path.stat().st_size != part["bytes"]
+                    ):
+                        refuse("captured chunk size changed before bounded read")
+                    with chunk_path.open("rb") as stream:
+                        data = stream.read(capture.CHUNK_SIZE + 1)
                     if len(data) != part["bytes"] or capture.sha(data) != part["sha256"]:
                         refuse("chunk changed during stage")
                     sink.write(data)
@@ -298,7 +362,7 @@ def stage(bundle, reviewed_capture, roots_file, reviewed_roots, output, timeout_
             if len(raw) > 4194304 or len(descriptors) >= 256:
                 refuse("Core JSONL chunk budget exceeded")
             name = "bridge-index/chunk-%04d.jsonl" % len(descriptors)
-            with (target / name).open("xb") as sink:
+            with (work / name).open("xb") as sink:
                 sink.write(raw)
             descriptors.append({"Path": name, "Sha256": sha(raw),
                                 "Bytes": len(raw), "Rows": len(core_rows[i:i+64])})
@@ -308,21 +372,27 @@ def stage(bundle, reviewed_capture, roots_file, reviewed_roots, output, timeout_
                             "Chunks": descriptors, "ClosureSha256": close_sha})
         if len(index) > 1048576:
             refuse("Core v2 index too large")
-        with (target / "bridge-index.json").open("xb") as sink:
+        with (work / "bridge-index.json").open("xb") as sink:
             sink.write(index)
         mapping_payload = json_bytes({"Schema": MAPPING, "Disposition": "unqualified-software-observation",
             "Hb02ClosureRootSha256": reviewed_capture, "RootManifestSha256": reviewed_roots,
             "CoreClosureSha256": close_sha, "Rows": mapping})
         if len(mapping_payload) > 4 * 1048576:
             refuse("mapping too large")
-        with (target / "capture-map.json").open("xb") as sink:
+        with (work / "capture-map.json").open("xb") as sink:
             sink.write(mapping_payload)
         deadline()
-        verify(target, reviewed_capture, reviewed_roots)
+        verify(work, reviewed_capture, reviewed_roots, source)
+        deadline()
+        if capture.verify(str(source)) != reviewed_capture:
+            refuse("capture changed before atomic publish")
+        check_roots(roots_file, reviewed_roots)
+        deadline()
+        _publish_new_directory(work, target)
         return close_sha
-    except BaseException:
-        shutil.rmtree(target)
-        raise
+    finally:
+        if work.exists():
+            shutil.rmtree(work)
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -334,15 +404,16 @@ def main():
     command = commands.add_parser("verify")
     for name in ("output", "reviewed-capture", "reviewed-roots"):
         command.add_argument("--" + name, required=True)
+    command.add_argument("--bundle", help="optional reviewed HB02 capture for exact crosswalk replay")
     args = parser.parse_args()
     result = (stage(args.bundle, args.reviewed_capture, args.roots, args.reviewed_roots,
                     args.output, args.timeout) if args.command == "stage" else
-              verify(args.output, args.reviewed_capture, args.reviewed_roots))
+              verify(args.output, args.reviewed_capture, args.reviewed_roots, args.bundle))
     print("Unqualified Core v2 ClosureSha256=" + result)
 
 if __name__ == "__main__":
     try:
         main()
-    except (ValueError, KeyError, TypeError, OSError, OverflowError, json.JSONDecodeError) as exc:
+    except (ValueError, KeyError, TypeError, OSError, OverflowError, RecursionError, json.JSONDecodeError) as exc:
         print("HB-INT-02/03 Blocked: " + str(exc), file=sys.stderr)
         sys.exit(2)
