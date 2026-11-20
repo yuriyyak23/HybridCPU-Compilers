@@ -60,6 +60,11 @@ $report = [ordered]@{
     ExpectedSdkVersion = $ExpectedSdkVersion
     Commands = @()
     Matrix = [ordered]@{
+        CompanionRestore = 'NotRun'
+        CompanionBuild = 'NotRun'
+        SelfTestsRestore = 'NotRun'
+        SelfTestsBuild = 'NotRun'
+        RealCompilerTypeContract = 'NotRun'
         StandaloneCompanion = 'NotRun'
         SidecarV1 = 'NotRun'
         CscPePdb = 'NotRun'
@@ -118,17 +123,73 @@ try {
         $report.Blockers += 'Opt-in v2 byte codec tests failed; these are not real Golden Csc capture receipts'
         $report.Error = 'Isolated v2 codec contract tests failed or blocked'
     }
-    $project = Join-Path $PSScriptRoot 'HardwareBridge.SelfTests.csproj'
-    $args = @('run','--project',$project,'--configuration','Release',
-        "-p:ArtifactsPath=$artifacts",'-p:UseArtifactsOutput=true')
-    $standalone = Invoke-HbRecordedCommand 'companion-selftests' 'dotnet' $args $OutputRoot $OutputRoot $TimeoutSeconds
-    $report.Commands += $standalone
-    $report.Matrix.StandaloneCompanion = $standalone.Status
-    $report.Matrix.CscPePdb = $standalone.Status
-    if ($standalone.Status -ne 'Passed') {
+    # No implicit build: each mandatory production project is restored and compiled
+    # in its own recorded command. A failed build is NOT a test run.
+    $buildProps = @("-p:ArtifactsPath=$artifacts", '-p:UseArtifactsOutput=true')
+    $companionProject = Join-Path $PSScriptRoot '../HardwareBridge.Companion.csproj'
+    $companionRestore = Invoke-HbRecordedCommand 'companion-restore' 'dotnet' (
+        @('restore', $companionProject) + $buildProps) $OutputRoot $OutputRoot $TimeoutSeconds
+    $report.Commands += $companionRestore
+    $report.Matrix.CompanionRestore = $companionRestore.Status
+    if ($companionRestore.Status -eq 'Passed') {
+        $companionBuild = Invoke-HbRecordedCommand 'companion-build' 'dotnet' (
+            @('build', $companionProject, '--configuration', 'Release', '--no-restore') + $buildProps
+        ) $OutputRoot $OutputRoot $TimeoutSeconds
+        $report.Commands += $companionBuild
+        $report.Matrix.CompanionBuild = $companionBuild.Status
+    }
+    if ($report.Matrix.CompanionBuild -ne 'Passed') {
         $failed = $true
-        $report.Blockers += 'Actual Companion Csc PE/PDB test could not complete: inspect companion-selftests.stdout.txt; no fixture substitution'
-        $report.Error = 'Standalone Companion / Csc PE-PDB tests failed or blocked'
+        $report.Blockers += 'Actual software compiler Core dependency blocked Companion DLL build; inspect companion-build logs; no DTO substitution'
+        $report.Error = 'Companion restore or build failed'
+    } else {
+        $companionDll = @(Get-ChildItem -LiteralPath $artifacts -Recurse -File -Filter 'HardwareBridge.Companion.dll' |
+            Where-Object { $_.FullName -match '[\\/]bin[\\/]' })
+        if ($companionDll.Count -ne 1) {
+            $failed = $true
+            $report.Error = 'Expected exactly one actual Companion output DLL under external bin'
+            $report.Blockers += $report.Error
+            $report.Matrix.CompanionBuild = 'Failed'
+        }
+    }
+
+    $project = Join-Path $PSScriptRoot 'HardwareBridge.SelfTests.csproj'
+    $testRestore = Invoke-HbRecordedCommand 'selftests-restore' 'dotnet' (
+        @('restore', $project) + $buildProps) $OutputRoot $OutputRoot $TimeoutSeconds
+    $report.Commands += $testRestore
+    $report.Matrix.SelfTestsRestore = $testRestore.Status
+    if ($testRestore.Status -eq 'Passed' -and $report.Matrix.CompanionBuild -eq 'Passed') {
+        $testBuild = Invoke-HbRecordedCommand 'selftests-build' 'dotnet' (
+            @('build', $project, '--configuration', 'Release', '--no-restore') + $buildProps
+        ) $OutputRoot $OutputRoot $TimeoutSeconds
+        $report.Commands += $testBuild
+        $report.Matrix.SelfTestsBuild = $testBuild.Status
+    }
+    if ($report.Matrix.SelfTestsBuild -eq 'Passed') {
+        $selfTestDll = @(Get-ChildItem -LiteralPath $artifacts -Recurse -File -Filter 'HardwareBridge.SelfTests.dll' |
+            Where-Object { $_.FullName -match '[\\/]bin[\\/]' })
+        if ($selfTestDll.Count -ne 1) {
+            $failed = $true
+            $report.Error = 'Expected exactly one actual SelfTests output DLL under external bin'
+            $report.Matrix.SelfTestsBuild = 'Failed'
+        }
+    }
+    if ($report.Matrix.CompanionBuild -eq 'Passed' -and $report.Matrix.SelfTestsBuild -eq 'Passed') {
+        $runArgs = @('run','--project',$project,'--configuration','Release','--no-build','--no-restore') + $buildProps
+        $standalone = Invoke-HbRecordedCommand 'companion-selftests' 'dotnet' $runArgs $OutputRoot $OutputRoot $TimeoutSeconds
+        $report.Commands += $standalone
+        $report.Matrix.StandaloneCompanion = $standalone.Status
+        $report.Matrix.CscPePdb = $standalone.Status
+        $report.Matrix.RealCompilerTypeContract = $standalone.Status
+        if ($standalone.Status -ne 'Passed') {
+            $failed = $true
+            $report.Blockers += 'Real Companion/type-contract/Csc PE-PDB selftests failed; inspect raw logs'
+            $report.Error = 'Companion selftests failed'
+        }
+    } else {
+        $failed = $true
+        $report.Blockers += 'SelfTests not run: actual Companion and SelfTests DLL builds are required before dotnet run --no-build'
+        if (-not $report.Error) { $report.Error = 'Required standalone compiler dependency or SelfTests build unavailable' }
     }
     if (-not (Test-Path -LiteralPath $artifacts)) {
         throw 'No external build artifact directory: compiled test may have written inside sources'
@@ -202,6 +263,19 @@ finally {
         Write-Host "EXEC $($entry.Name): status=$($entry.Status) exit=$($entry.ExitCode) stdoutSHA=$($entry.StdoutSha256) stderrSHA=$($entry.StderrSha256)"
     }
     Write-Host "Downstream v2/Core/native/RTL/physical: Blocked or NotRun (never promoted)"
+    # Surface the compiler's exact diagnostics in the Actions job log, bounded
+    # to avoid flooding it; full raw stdout/stderr files remain in the artifact.
+    if ($failed) {
+        foreach ($command in @('companion-restore', 'companion-build', 'selftests-restore', 'selftests-build', 'companion-selftests')) {
+            foreach ($stream in @('stdout', 'stderr')) {
+                $raw = Join-Path $OutputRoot "$command.$stream.txt"
+                if (Test-Path -LiteralPath $raw -PathType Leaf) {
+                    Write-Host "DIAGNOSTICS $command $stream (last 60 lines; see raw hash receipt):"
+                    Get-Content -LiteralPath $raw -Tail 60 | ForEach-Object { Write-Host $_ }
+                }
+            }
+        }
+    }
 }
 if ($failed) {
     Write-Error "HB-INT-06 FAILED/BLOCKED: $($report.Error)" -ErrorAction Continue

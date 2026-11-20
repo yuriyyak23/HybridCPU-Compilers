@@ -87,3 +87,30 @@ dotnet run --project Compilers/HybridCPU_Compiler/HardwareBridge/Tests/GoldenBou
 ```
 
 Tests exercise the actual `GoldenBoundVectorsCodecV1` and the original fixed AddWord delegate with an explicit test-only host registration. The source and PE bytes used here are **synthetic fixture inputs**, not real Golden CPU provenance. The new Windows/Linux CI job reports process exit and SHA-256 of captured output. The existing Companion integration and Core acceptance gates are not reclassified by these fixture checks; they remain separate and fail closed.
+
+## HB-INT-06 actual build dependency regression (2026-11-20)
+
+`HardwareBridge.Companion.csproj` is opt-in and not referenced by the default
+`HybridCPU_Compiler.csproj`. Its real dependency graph is
+`Companion → HybridCPU.Compiler.Roslyn → HybridCPU.Compiler.Cil → HybridCPU.Compiler.Core`,
+all from this repository; **no CircuitWeave checkout** is required for standalone
+builds. The type regression compiles against the exported assembly identities
+and actual `CompilerEmissionPackage`, `CompilerSidebandEnvelope`,
+`DescriptorEnvelope`, `TypedSlotFactsEnvelope` and
+`CompilerEvidenceEnvelope`, never source grep or surrogate declarations.
+
+The pinned Windows `Run-HbInt06.ps1` now records explicit `dotnet restore`
+and `dotnet build --no-restore` for both Companion and SelfTests before a
+`dotnet run --no-build --no-restore`. It requires a produced Companion DLL
+and SelfTests DLL under the external artifact directory and records DLL SHA-256,
+actual command exit and stdout/stderr hashes. A failed build leaves runtime
+tests `NotRun` and keeps the gate red. Existing v1/v2/mutation commands remain
+independent and execute even when the Companion build is blocked.
+
+**Current parent-compiler blocker at 2026-11-20 audit:** `Core/IR/Artifacts`
+does not exist in `master@797b6dd4fc1c7a44f958ebb22d43e745d0e6938c`,
+while the compiler Core consumers require exported artifacts contracts.
+Restore the actual compiler-owned contract implementation and its validators
+in the software compiler owner zone; do not add fake DTOs to Bridge and
+do not exclude the Core IR subtree to make CI green. Until a real compile
+passes, the Companion build and Csc/PE/PDB run are **Blocked/NotRun**.

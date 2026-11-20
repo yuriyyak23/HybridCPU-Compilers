@@ -105,3 +105,24 @@ count as executed until its actual logs/exit/hashes are available.
 - `v2-codec-contract` stdout SHA256: `2710E72A922677E72F96873D2836945AF8047D22898602AC3AA96C32510662D7`; `v1-protocol-tests` stdout SHA256: `4D3434F50A7DE62D4A3EDF74283FF9002A489E4DF7AF11F5EE7FD52E7F3D4E61`; `no-write-mutations` stdout SHA256: `1070B3D160E26FD6BC947FF5DC36E2C49D5B04976AE17C7F11392C9E833E33AF`; actual separate command exits 0, 0, 0.
 - Core cross-repo checkout **Failed/Blocked** (`git fetch` exit 128, `Repository not found`) because the default Bridge workflow token cannot access the pinned Core repository. The workflow now requires an explicit least-privilege repository secret `HB_INT_06_CORE_READ_TOKEN`; missing secret yields fail-closed exit 2 and **never** a Core importer PASS. A real Core contract receipt remains NotRun until read access is explicitly provided and tests execute.
 - No RTL independent acceptance, Golden Processor source semantics or physical signoff was executed; these gates remain Blocked.
+
+## 2026-11-20 follow-up: missing software compiler Core contracts
+
+Audited `HybridCPU-Compilers/master@797b6dd4fc1c7a44f958ebb22d43e745d0e6938c`;
+latest red run at audit:
+[44634030755](https://github.com/yuriyyak23/HybridCPU-Compilers/actions/runs/44634030755).
+That run has v1/v2/mutation exit 0, but implicit Companion build/run exit 1.
+The source directory `Compilers/HybridCPU_Compiler/Core/IR/Artifacts` is missing,
+and code search for `CompilerEmissionPackage` finds consumers rather than an
+exported definition. The dependency is **same-repository software compiler Core**,
+transitively required by real Roslyn/CIL; it is not CircuitWeave Core.
+
+A bounded regression now demands actual restore → build → output DLL SHA → run.
+The opt-in test also references *real exported compiler-owned types* and verifies
+their originating assembly at runtime, not merely filenames. No Golden,
+`sidecar/v1`, `source-index/v2`, Roslyn/CIL lowering semantics or parent
+compiler configuration is modified by this follow-up. The software compiler
+contracts owner must restore the missing substantive production contracts;
+all missing contracts remain a **Blocked** release gate, never assumed from
+a successful codec-only test. The separate Core importer read-token gate
+remains blocked without `HB_INT_06_CORE_READ_TOKEN`.
