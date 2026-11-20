@@ -137,8 +137,13 @@ public static class R301ScalarSessionCodecV2
             expectedAssemblyBytes.Length > GoldenBoundVectorsCodecV1.MaxAssemblyBytes ||
             !ValidVectors(independentlyRequestedVectors) || !ValidLabel(expectedHostLabel))
             throw new ArgumentException("HB-R301: Unbounded replay or missing independent inputs.");
-        HostPin host = InspectLoadedHost(expectedLoadedHostMethod, expectedSource,
-            expectedRootIndex, expectedAssemblyBytes.Span);
+        BridgeSourceSnapshotV1 pinnedExpectedSource = FreezeSource(expectedSource);
+        byte[] pinnedExpectedPe = expectedAssemblyBytes.ToArray();
+        GoldenVectorV1[] pinnedExpectedVectors = independentlyRequestedVectors.ToArray();
+        if (!ValidVectors(pinnedExpectedVectors))
+            throw new ArgumentException("HB-R301: Independent request mutated during replay freeze.");
+        HostPin host = InspectLoadedHost(expectedLoadedHostMethod, pinnedExpectedSource,
+            expectedRootIndex, pinnedExpectedPe);
         try
         {
             using var json = JsonDocument.Parse(utf8, new JsonDocumentOptions { MaxDepth = 32 });
@@ -161,9 +166,9 @@ public static class R301ScalarSessionCodecV2
                 throw new ArgumentException("HB-R301: Invalid, forged, or noncanonical session.");
             // Strict nested v1 reader additionally binds source/assembly/root/vector order.
             GoldenBoundVectorsCodecV1.ReadAndValidate(
-                receipt.BoundVectors.ToJsonUtf8(), expectedSource,
+                receipt.BoundVectors.ToJsonUtf8(), pinnedExpectedSource,
                 host.AssemblySha256, expectedRootIndex, expectedHostLabel,
-                independentlyRequestedVectors, cancellationToken);
+                pinnedExpectedVectors, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
             return receipt with
             {
