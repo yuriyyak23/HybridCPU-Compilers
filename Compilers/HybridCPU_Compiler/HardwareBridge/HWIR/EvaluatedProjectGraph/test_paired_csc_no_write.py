@@ -197,6 +197,68 @@ class PairTests(unittest.TestCase):
                          "")
         self.assertNotEqual(cmd(self.dirty.golden, "status", "--porcelain=v1"), "")
 
+    def test_external_witness_structural_gate_synthetic_only(self):
+        project = self.clean.observation["projects"][0]
+        event = {"nodeId": project["nodeId"], "argvSha256": project["argvSha256"],
+                 "compilerSha256": project["compiler"]["sha256"],
+                 "workingDirectory": project["workingDirectory"],
+                 "eventSha256": "1" * 64, "stdoutSha256": hb.sha(b""),
+                 "stderrSha256": hb.sha(b""), "exitCode": 0,
+                 "eventSource": "R1-01"}
+        record = {"schema": paired.WITNESS_SCHEMA,
+                  "graphSha256": hb.hash_file(self.clean.graph_path)[0],
+                  "observationSha256": hb.hash_file(self.clean.observation_path)[0],
+                  "events": [event]}
+        witness = self.clean.tmp / "synthetic-external-crosswalk.json"
+        def write():
+            witness.write_bytes(hb.canonical(record))
+            return hb.hash_file(witness)[0]
+        pin = write()
+        self.assertEqual(paired.check_external_witness(witness, pin, self.clean.graph_path,
+                         self.clean.observation_path), pin)
+        with self.assertRaisesRegex(ValueError, "digest"):
+            paired.check_external_witness(witness, "0" * 64, self.clean.graph_path,
+                                          self.clean.observation_path)
+        event["argvSha256"] = "0" * 64
+        with self.assertRaisesRegex(ValueError, "crosswalk mismatch"):
+            paired.check_external_witness(witness, write(), self.clean.graph_path,
+                                          self.clean.observation_path)
+        event["argvSha256"] = project["argvSha256"]
+        record["events"].append(dict(event))
+        with self.assertRaisesRegex(ValueError, "duplicate"):
+            paired.check_external_witness(witness, write(), self.clean.graph_path,
+                                          self.clean.observation_path)
+        record["events"].pop()
+        event["exitCode"] = 1
+        with self.assertRaisesRegex(ValueError, "nonzero exit"):
+            paired.check_external_witness(witness, write(), self.clean.graph_path,
+                                          self.clean.observation_path)
+        self.modify_dirty()
+        self.assert_refused("missing exact reviewed R1-01 witness SHA",
+                            require_witness=True)
+
+    def test_core_512m_boundary_refusal(self):
+        self.modify_dirty()
+        with mock.patch.object(paired, "CORE_MAX_BYTES", 1):
+            self.assert_refused("512 MiB")
+
+    @unittest.skipUnless(shutil.which("git"), "git binary unavailable")
+    def test_wrong_clean_dirty_git_state_refused(self):
+        def git(root, *args):
+            subprocess.run(["git", "-C", str(root), *args], capture_output=True, check=True)
+        git(self.clean.golden, "init", "-q")
+        git(self.clean.golden, "-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid",
+            "add", "--all")
+        git(self.clean.golden, "-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid",
+            "commit", "-qm", "fixture")
+        shutil.copytree(self.clean.golden / ".git", self.dirty.golden / ".git")
+        commit = subprocess.check_output(["git", "-C", str(self.clean.golden), "rev-parse", "HEAD"]).decode().strip()
+        self.modify_dirty()
+        self.clean.original.write_bytes(self.clean.original.read_bytes() + b"// unapproved clean change")
+        with self.assertRaisesRegex(ValueError, "pinned clean snapshot"):
+            self.run_pair(clean_commit=commit, dirty_commit=commit, require_git=True)
+
+
 
 if __name__ == "__main__":
     unittest.main()
