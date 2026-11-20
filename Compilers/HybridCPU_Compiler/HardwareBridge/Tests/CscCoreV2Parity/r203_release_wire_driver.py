@@ -76,8 +76,9 @@ def mutations(out):
             b'{"Schema":', b'{"Schema":"bad","Schema":')),
         ("wrong-version", index, replace_exact(index.read_bytes(),
             b'closure-index/v2', b'closure-index/v3')),
-        ("sha-case", index, replace_exact(index.read_bytes(),
-            b'"ClosureSha256":"', b'"ClosureSha256":"dead')),
+        ("sha-case", index, re.sub(
+            rb'(?<="ClosureSha256":")[A-F0-9]{64}',
+            lambda match: match.group(0).lower(), index.read_bytes(), count=1)),
         ("chunk-corrupt", chunk, raw_chunk[:-1] + b"x"),
         ("jsonl-reordered", chunk, b"".join([lines[1], lines[0]] + lines[2:])),
         ("crlf", chunk, raw_chunk.replace(b"\n", b"\r\n")),
