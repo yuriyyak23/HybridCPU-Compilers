@@ -13,9 +13,11 @@ from pathlib import Path
 import shlex
 import sys
 import tempfile
+from datetime import datetime, timezone, timedelta
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import segmented_csc_capture_v2 as v2
+import R1_01_LinuxExecutionWitness as r1
 
 EVENT_SCHEMA = "hybridcpu.hardwarebridge.msbuild-csc-task-events/v1"
 MAX_LOG = 4 * 1024 * 1024
@@ -99,6 +101,23 @@ def exact_argv(command, compiler):
     return argv
 
 
+def check_execution_window(event, os_row):
+    try:
+        start = datetime.fromisoformat(event["StartUtc"].replace("Z", "+00:00"))
+        finish = datetime.fromisoformat(event["FinishUtc"].replace("Z", "+00:00"))
+        actual_exec = datetime.fromtimestamp(float(os_row["time"]), tz=timezone.utc)
+        actual_exit = datetime.fromtimestamp(float(os_row["exitTime"]), tz=timezone.utc)
+    except (OverflowError, ValueError, TypeError, KeyError) as ex:
+        reject("invalid OS/task clock correlation: " + str(ex))
+    if any(x.tzinfo is None for x in (start, finish)):
+        reject("task event clock is not UTC offset-aware")
+    slack = timedelta(seconds=2)
+    if not (start <= finish and actual_exec <= actual_exit
+            and start - slack <= actual_exec <= finish + slack
+            and start - slack <= actual_exit <= finish + slack):
+        reject("OS Csc invocation/exit outside actual MSBuild task timing")
+
+
 def pinned(path):
     return v2.hash_file(path)[0]
 
@@ -110,7 +129,9 @@ def relative_sanitized(path):
 
 def observe(events_path, baseline_dir, isolated_dir, consumer_project,
             compiler_path, graph_path, observation_path, capture_dir=None, *,
-            build_artifacts_dir=None, host_cwd=None):
+            build_artifacts_dir=None, host_cwd=None, trace_dir=None,
+            launch_argv=None, compiler_sha_before=None, companion_path=None,
+            emitted_outputs=None, build_stdout_path=None, build_stderr_path=None):
     baseline = require_temp_dir(baseline_dir)
     isolated = require_temp_dir(isolated_dir)
     if baseline == isolated or under(baseline, isolated) or under(isolated, baseline):
@@ -129,6 +150,18 @@ def observe(events_path, baseline_dir, isolated_dir, consumer_project,
     if not under(consumer, baseline):
         reject("root project must be an immutable baseline fixture copy")
     entries = read_events(events_path)
+    if not (trace_dir and launch_argv and compiler_sha_before and companion_path
+            and emitted_outputs and build_stdout_path and build_stderr_path):
+        reject("R1-01 independent syscall trace, exact pin and companion outputs required")
+    # Do not synthesize process execution from MSBuild events. Cross-check every
+    # task's ordered Csc argv against the separate ptrace execve record.
+    full_task_argv = {event["Id"]: [str(compiler), *exact_argv(event["CommandLine"], compiler)]
+                      for event in entries}
+    execution = r1.verify(trace_dir, launch_cwd=launcher_cwd,
+                          launch_argv=launch_argv, compiler=compiler,
+                          event_argv=full_task_argv,
+                          expected_compiler_sha=compiler_sha_before)
+    r1.verify_output_pins(emitted_outputs)
     graph_nodes = []
     observed = []
     seen_project = set()
@@ -144,22 +177,10 @@ def observe(events_path, baseline_dir, isolated_dir, consumer_project,
             reject("ambiguous project: multiple Csc task executions")
         seen_project.add(original_project)
         argv = exact_argv(event["CommandLine"], compiler)
-        # For this subset require all actual Csc paths to be absolute, so an
-        # MSBuild task event cannot imply an unproven process working directory.
-        cwd = launcher_cwd
-        # All Csc input/output file operands must be absolute, so successful
-        # transport never depends on an assumed Csc process working directory.
-        input_flags = ("/reference:", "/r:", "/analyzer:", "/analyzerconfig:",
-                       "/additionalfile:", "/sourcelink:", "/appconfig:",
-                       "/out:", "/pdb:", "/refout:", "/doc:", "/errorlog:",
-                       "/generatedfilesout:")
-        for token in argv:
-            low = token.lower()
-            prefix = next((x for x in input_flags if low.startswith(x)), None)
-            if prefix and not os.path.isabs(token[len(prefix):]):
-                reject("relative Csc file option without actual process cwd proof")
-            if low.endswith(".cs") and not prefix and not os.path.isabs(token):
-                reject("relative Csc source without actual process cwd proof")
+        check_execution_window(event, execution["processes"][event["Id"]])
+        # Only the independently witnessed child CWD can resolve relative
+        # Csc source/output paths. Launcher/project directories are not substitutes.
+        cwd = require_temp_dir(execution["processes"][event["Id"]]["cwd"])
         sources, artifacts, generator_dir = v2.command_files(argv, cwd)
         source_rows = []
         original_sources = []
@@ -229,9 +250,20 @@ def observe(events_path, baseline_dir, isolated_dir, consumer_project,
     # v2 independently hashes staged bytes, matches source argv, and refuses
     # generated output/file pins and paths it cannot classify.
     v2.build_inputs(str(graph_output), str(obs_output), str(baseline))
-    if capture_dir is not None:
-        return v2.capture(str(graph_output), str(obs_output), str(baseline), capture_dir)
-    return v2.sha(v2.canonical(observation))
+    result = (v2.capture(str(graph_output), str(obs_output), str(baseline), capture_dir)
+              if capture_dir is not None else v2.sha(v2.canonical(observation)))
+    companion = {"schema": r1.SCHEMA, "disposition": "unqualified-software-observation",
+                 "osExecution": execution, "emittedOutputs": emitted_outputs,
+                 "buildOutput": {"stdoutSha256": r1.digest(build_stdout_path),
+                                 "stderrSha256": r1.digest(build_stderr_path)},
+                 "v2ObservationSha256": v2.sha(v2.canonical(observation)),
+                 "v2TransportRoot": result}
+    companion_file = Path(os.path.abspath(companion_path))
+    if (companion_file.exists() or companion_file.is_symlink()
+            or companion_file.parent != Path(tempfile.gettempdir())):
+        reject("R1-01 companion must be a NEW direct TEMP output")
+    companion_file.write_bytes(v2.canonical(companion))
+    return result
 
 
 def main():
