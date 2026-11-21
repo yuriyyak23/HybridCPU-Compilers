@@ -443,27 +443,25 @@ internal static class BridgeV2OwnedWorkspaceTests
             Refuse(BridgeV2Refusal.InvalidRole, () =>
                 BridgeV2OwnedWorkspacePublisher.Publish(conflictTransport, conflictInputs,
                     roots, new[] { live[0] with { Path = "references" } }, golden));
-            // A swapped file symlink is refused even when its target has identical bytes.
-            if (!OperatingSystem.IsWindows())
+            // Preflight-to-stage source replacement is a mandatory negative
+            // on both OS runners, even when target bytes match the original.
+            string external = Path.Combine(golden, "identical.cs");
+            File.WriteAllBytes(external, current);
+            try
             {
-                string external = Path.Combine(golden, "identical.cs");
-                File.WriteAllBytes(external, current);
-                try
-                {
-                    BridgeV2OwnedWorkspacePublisher.AfterSourcePreflightForTests = () => {
-                        File.Delete(sourcePath);
-                        File.CreateSymbolicLink(sourcePath, external);
-                    };
-                    Refuse(BridgeV2Refusal.InvalidRole, () =>
-                        BridgeV2OwnedWorkspacePublisher.Publish(index, inputs, roots, live, golden));
-                }
-                finally
-                {
-                    BridgeV2OwnedWorkspacePublisher.AfterSourcePreflightForTests = null;
-                    if (File.Exists(sourcePath)) File.Delete(sourcePath);
-                    File.WriteAllBytes(sourcePath, current);
-                    File.Delete(external);
-                }
+                BridgeV2OwnedWorkspacePublisher.AfterSourcePreflightForTests = () => {
+                    File.Delete(sourcePath);
+                    File.CreateSymbolicLink(sourcePath, external);
+                };
+                Refuse(BridgeV2Refusal.InvalidRole, () =>
+                    BridgeV2OwnedWorkspacePublisher.Publish(index, inputs, roots, live, golden));
+            }
+            finally
+            {
+                BridgeV2OwnedWorkspacePublisher.AfterSourcePreflightForTests = null;
+                if (File.Exists(sourcePath)) File.Delete(sourcePath);
+                File.WriteAllBytes(sourcePath, current);
+                File.Delete(external);
             }
 
             Check(Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(sourcePath))) ==
