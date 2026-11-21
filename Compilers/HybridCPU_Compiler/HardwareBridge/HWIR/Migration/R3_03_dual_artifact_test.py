@@ -146,6 +146,15 @@ class DualArtifactEvidenceMutations(unittest.TestCase):
         self.review['slice'] = 'scheduler'
         self.refuses('R303_CW_INT_13_TEMPORAL_BLOCKED')
 
+    def test_missing_explicit_reset_memory_or_overflow_role_refused(self):
+        for role in ('reset', 'memory', 'overflow'):
+            with self.subTest(role=role):
+                self.setUp()
+                for artifact in self.artifacts:
+                    del artifact['modules'][0]['contract'][role]
+                self.repin()
+                self.refuses('R303_MISSING_EXPLICIT_CONTRACT_ROLE')
+
     def test_wrong_golden_input_output_order_and_binary_pins(self):
         self.golden['vectors'][0]['outputs']['out'] = '1'
         self.review['golden']['observationSha256'] = gate.sha256(gate.canonical(self.golden))
