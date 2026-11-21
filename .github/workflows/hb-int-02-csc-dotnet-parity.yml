@@ -156,6 +156,24 @@ jobs:
           # Imported production Python modules must not produce __pycache__
           # or any other bytecode beneath the immutable Git checkout.
           $env:PYTHONDONTWRITEBYTECODE = '1'
+          function Invoke-R203([string]$Step, [string]$Executable, [string[]]$Arguments) {
+            $stdoutFile = Join-Path $logs ($Step + '.stdout')
+            $stderrFile = Join-Path $logs ($Step + '.stderr')
+            $timer = [Diagnostics.Stopwatch]::StartNew()
+            & $Executable @Arguments 1> $stdoutFile 2> $stderrFile
+            $code = $LASTEXITCODE
+            $timer.Stop()
+            $outHash = (Get-FileHash -LiteralPath $stdoutFile -Algorithm SHA256).Hash
+            $errHash = (Get-FileHash -LiteralPath $stderrFile -Algorithm SHA256).Hash
+            $argvJson = ConvertTo-Json -InputObject @($Arguments) -Compress
+            Write-Host "R203_EXEC step=$Step executable=$Executable argv=$argvJson exit=$code elapsedMs=$($timer.ElapsedMilliseconds) stdoutSHA256=$outHash stderrSHA256=$errHash"
+            if ($code -ne 0) {
+              Get-Content -LiteralPath $stdoutFile -Tail 60
+              Get-Content -LiteralPath $stderrFile -Tail 60
+              throw "R2-03 $Step failed: exit=$code"
+            }
+            return $stdoutFile
+          }
           $beforeSha = (& git rev-parse HEAD).Trim()
           $before = (& git status --porcelain=v1 --untracked-files=all) -join [Environment]::NewLine
           if ($LASTEXITCODE -ne 0 -or $before) { throw 'Checkout must start clean' }
@@ -168,21 +186,15 @@ jobs:
               throw "Expected pinned SDK, received $version"
             }
             $props = @("-p:BaseIntermediateOutputPath=$obj/", "-p:MSBuildProjectExtensionsPath=$obj/", "-p:OutputPath=$bin/")
-            $restoreLog = Join-Path $logs 'restore.txt'
-            & dotnet restore $project @props > $restoreLog 2>&1
-            $rc = $LASTEXITCODE
-            Write-Host "dotnet restore SDK=$version exit=$rc stdout/stderr SHA=$((Get-FileHash $restoreLog -Algorithm SHA256).Hash)"
-            if ($rc -ne 0) { Get-Content $restoreLog; throw 'Production codec restore failed' }
-            $buildLog = Join-Path $logs 'build.txt'
-            & dotnet build $project --configuration Release --no-restore @props > $buildLog 2>&1
-            $rc = $LASTEXITCODE
-            Write-Host "dotnet build SDK=$version exit=$rc stdout/stderr SHA=$((Get-FileHash $buildLog -Algorithm SHA256).Hash)"
-            if ($rc -ne 0) { Get-Content $buildLog; throw 'Production codec build failed' }
+            $restoreLog = Invoke-R203 'restore' 'dotnet' (@('restore',$project) + $props)
+            $buildLog = Invoke-R203 'build' 'dotnet' (@('build',$project,'--configuration','Release','--no-restore') + $props)
             $dll = Join-Path $bin 'HardwareBridge.CscCoreV2Parity.dll'
             if (-not (Test-Path -LiteralPath $dll -PathType Leaf)) {
               throw 'Actual compiled production-codec host DLL missing'
             }
             Write-Host "Compiled test host DLL SHA=$((Get-FileHash $dll -Algorithm SHA256).Hash)"
+            $codecSource = Join-Path $env:GITHUB_WORKSPACE 'Compilers/HybridCPU_Compiler/HardwareBridge/SourceSnapshot/BridgeSegmentIndexV2.cs'
+            Write-Host "Production codec source SHA=$((Get-FileHash $codecSource -Algorithm SHA256).Hash)"
             $pdb = Join-Path $bin 'HardwareBridge.CscCoreV2Parity.pdb'
             if (-not (Test-Path -LiteralPath $pdb -PathType Leaf)) {
               throw 'Actual compiled test host PDB missing'
@@ -202,17 +214,9 @@ jobs:
               throw 'Actual pinned Roslyn compiler image missing'
             }
             Write-Host "Pinned SDK Roslyn/csc.dll SHA=$((Get-FileHash $roslyn -Algorithm SHA256).Hash)"
-            $limitsLog = Join-Path $logs 'limits.txt'
-            & dotnet $dll --wire-limits > $limitsLog 2>&1
-            $rc = $LASTEXITCODE
-            Write-Host "dotnet --wire-limits exit=$rc stdout/stderr SHA=$((Get-FileHash $limitsLog -Algorithm SHA256).Hash)"
-            if ($rc -ne 0) { Get-Content $limitsLog; throw 'Production codec high-water limits failed' }
-            $parityLog = Join-Path $logs 'release-parity.txt'
-            & python $driver $dll > $parityLog 2>&1
-            $rc = $LASTEXITCODE
-            Write-Host "Python release-stager + compiled DLL parity exit=$rc stdout/stderr SHA=$((Get-FileHash $parityLog -Algorithm SHA256).Hash)"
+            $limitsLog = Invoke-R203 'wire-limits' 'dotnet' @($dll,'--wire-limits')
+            $parityLog = Invoke-R203 'release-parity' 'python' @($driver,$dll)
             Get-Content -LiteralPath $parityLog -Tail 110
-            if ($rc -ne 0) { throw 'Cross-language binary fixture/negative matrix failed' }
             Write-Host 'R2-03 fixture-only PASS. Real Golden Csc and Core-owned reader: NotRun.'
           } finally {
             Pop-Location
