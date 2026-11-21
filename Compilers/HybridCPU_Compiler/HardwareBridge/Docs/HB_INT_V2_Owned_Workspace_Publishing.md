@@ -90,3 +90,11 @@ Windows job URLs, stdout/stderr SHA-256 and PE/PDB SHA-256 must be reported
 only after the jobs complete. Previous failing runs do **not** qualify this
 branch. Real approved Golden software capture, Csc provenance and Core paired
 acceptance remain Blocked/NotRun until separate owner receipts.
+
+**Exact-head CI lease:** For pull requests the workflow explicitly checks out
+`github.event.pull_request.head.sha`, not GitHub's synthesized PR merge commit.
+Both OS jobs check the resulting git HEAD against the supplied immutable head SHA,
+then compare the complete tracked-source SHA inventory before and after the
+isolated build. The same-byte source replacement mutation must execute on
+both operating systems. A missing symlink privilege fails that OS job rather
+than silently awarding a PASS.
