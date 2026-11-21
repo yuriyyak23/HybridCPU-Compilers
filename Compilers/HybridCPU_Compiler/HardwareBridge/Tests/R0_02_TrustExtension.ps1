@@ -29,6 +29,9 @@ function Assert-R0_02SafeRoot([string]$Root) {
     if ([string]::IsNullOrWhiteSpace($Root) -or -not (Test-Path -LiteralPath $Root -PathType Container)) {
         throw 'R002CheckoutRootAbsent'
     }
+    if (((Get-Item -LiteralPath $Root -Force).Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
+        throw 'R002LinkedCheckoutPath'
+    }
     $full = [IO.Path]::GetFullPath((Resolve-Path -LiteralPath $Root).ProviderPath)
     $cursor = $full
     while ($cursor) {
@@ -216,7 +219,18 @@ function Invoke-R0_02SyntheticNegatives {
         if (-not $refused) { throw 'R002NegativeMutationAdmitted' }
         Write-Host "PASS R0-02 negative: $Code"
     }
-    Denied { Assert-R0_02DispatchTrust } 'dispatch-without-owner-approval'
+    # Synthetic tests must remain deterministic even when a future approved dispatch
+    # supplies real owner variables. Never inspect or print the private credential.
+    $oldEvent = $env:GITHUB_EVENT_NAME
+    try {
+        $env:GITHUB_EVENT_NAME = 'pull_request'
+        Denied { Assert-R0_02DispatchTrust } 'untrusted-pull-request'
+    } finally { $env:GITHUB_EVENT_NAME = $oldEvent }
+    $oldCoreApproval = $env:HB_R0_02_APPROVED_CORE_SHA
+    try {
+        $env:HB_R0_02_APPROVED_CORE_SHA = ''
+        Denied { Assert-R0_02DispatchTrust } 'dispatch-without-owner-approval'
+    } finally { $env:HB_R0_02_APPROVED_CORE_SHA = $oldCoreApproval }
     Denied { Assert-R0_02FineGrainedToken 'synthetic-fake-token' } 'malformed-token-marker'
     Denied { Assert-R0_02CoreCheckout '.' ('0' * 40) '../test.csproj' } 'wrong-test-host'
     $parent = Join-Path ([IO.Path]::GetTempPath()) ("R0_02_" + [Guid]::NewGuid().ToString('N'))
