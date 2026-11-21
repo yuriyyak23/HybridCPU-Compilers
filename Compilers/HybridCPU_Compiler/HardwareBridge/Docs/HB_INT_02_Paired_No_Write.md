@@ -169,3 +169,28 @@ provided in this R1-02 PR. The new refusal JSON
 `hybridcpu.hardwarebridge.r1-02-refusal/v1` exposes a stable
 `reasonCode` and `reasonDigestSha256`, without dumping private paths,
 source bytes, tokens or PDBs to CI logs.
+
+## R1-02 residual inventory DoS guard after merge #29
+
+The complete Git clean/dirty byte inventory now caps **directories as well
+as files**, with 20,000 visited directories maximum (including root) and a
+300-second monotonic wall clock limit per inventory. A folder-only tree used
+to evade the file-count cap is refused, as is a capture that expires while
+enumerating files. No partial inventory digest is accepted. Existing 20,000
+files / 8 GiB, per-file descriptor byte hashing, Git HEAD/porcelain and
+before/after comparisons remain mandatory. Synthetic mutation tests shrink
+the budgets instead of generating resource-intensive hostile trees. The
+real Golden gate is still Blocked/NotRun without a separately approved,
+immutable source/worktree identity and actual R1-01 OS witness.
+
+### Windows Git root identity follow-up
+
+[R1-02 run 44854556176](https://github.com/yuriyyak23/HybridCPU-Compilers/actions/runs/44854556176)
+removed the original `file replaced between check and open` cascade,
+but left 1 failure / 3 errors in synthetic Git clean/dirty fixtures:
+`snapshot path is not exact Git root`. On Windows `git rev-parse
+--show-toplevel` may return a different spelling of the same OS directory.
+The read-only Git guard now uses `os.path.samefile` to establish actual
+directory identity, refusing on mismatch or unavailable identity, rather
+than comparing spelled path objects. This does not relax the requirement
+to pin the exact 40-hex HEAD and full porcelain+source-byte inventories.

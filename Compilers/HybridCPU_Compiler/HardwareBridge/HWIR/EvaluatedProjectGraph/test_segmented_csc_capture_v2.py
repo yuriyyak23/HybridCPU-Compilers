@@ -248,6 +248,35 @@ class ClosureTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "hardlink/alias"):
             c.build_inputs(str(self.graph_path), str(self.observation_path), str(self.golden))
 
+    def test_r1_02_windows_path_fd_ctime_separation_and_id_guard(self):
+        # Independent namespaces: Windows Python 3.12 ctime can differ on
+        # path vs descriptor, but each baseline must remain unchanged.
+        import os
+        from types import SimpleNamespace
+        for path in (self.source, self.graph_path, self.observation_path):
+            before = path.lstat()
+            p, stream, states = c.stable_open(path)
+            with stream:
+                self.assertEqual(stream.read(), path.read_bytes())
+                c.ensure_stable(p, stream, states)
+            self.assertEqual(states[0].st_ino, before.st_ino)
+            self.assertEqual(states[0].st_ctime_ns, before.st_ctime_ns)
+            self.assertEqual(c.hash_file(path)[0], digest(path))
+
+        baseline = self.source.lstat()
+        names = ("st_dev", "st_ino", "st_mode", "st_size",
+                 "st_mtime_ns", "st_ctime_ns")
+        values = {name: getattr(baseline, name) for name in names}
+        changed_time = dict(values, st_ctime_ns=values["st_ctime_ns"] + 1)
+        self.assertEqual(c._same_path_fd_identity(
+            baseline, SimpleNamespace(**changed_time)), os.name == "nt")
+        changed_file_id = dict(values, st_ino=values["st_ino"] + 1)
+        self.assertFalse(c._same_path_fd_identity(
+            baseline, SimpleNamespace(**changed_file_id)))
+        changed_mtime = dict(values, st_mtime_ns=values["st_mtime_ns"] + 1000000000)
+        self.assertFalse(c._same_path_fd_identity(
+            baseline, SimpleNamespace(**changed_mtime)))
+
     def test_full_byte_identity_not_filename(self):
         other = self.copy / "DifferentName.cs"
         other.write_bytes(self.source.read_bytes())

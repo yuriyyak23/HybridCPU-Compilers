@@ -87,3 +87,35 @@ of zero, and a matching digest cannot qualify source method ownership.
 The separate paired-CLI external task crosswalk is a **producer-side
 structural precondition only**; its genuine event source and independent
 review are outside this owner's files.
+
+## R1-02 Windows Python 3.12 path/handle identity regression (post-merge #29)
+
+Observed R1-02 own fixture CI on merged PR #29:
+[run 44838110045](https://github.com/yuriyyak23/HybridCPU-Compilers/actions/runs/44838110045)
+had Linux synthetic PASS but Windows synthetic FAIL (49 errors/failures, mostly
+`file replaced between check and open`). The follow-up diagnostic
+[run 44854407920](https://github.com/yuriyyak23/HybridCPU-Compilers/actions/runs/44854407920)
+showed unequal `st_ctime_ns` across Windows `Path.lstat()` and `os.fstat()`
+for newly created synthetic source/graph/observation bytes even when
+`st_dev`, `st_ino`, `st_mode`, `st_size` and `st_mtime_ns` matched.
+
+The R1-02 reader now binds a Windows pathname to its opened descriptor by
+nonzero OS file ID, volume ID, file type, size and modification time. It
+**does not compare Windows ctime across the different API namespaces**.
+Instead it preserves the entire initial pathname stat and the entire initial
+descriptor stat, independently checks **both complete states** after read,
+and rechecks path/descriptor identity after read. POSIX retains the original
+all-field cross-handle comparison. A missing Windows file ID, changed
+descriptor/path metadata, changed content hash or renamed/reparse ancestor
+still refuses input; this is not a fallback to hash-only acceptance.
+
+The synthetic test gates cover newly-created graph/observation files, file ID
+replacement, modification-time drift and same-size mid-read restoration.
+No versioned closure JSONL wire bytes change. The fixture regression
+does **not** prove the source mount cannot be modified adversarially;
+Windows host-level read-only snapshot/ACL isolation is still required.
+The genuine R1-01 task-time/rsp-open-read witness, R0-01 Companion source
+facts, separately approved exact Golden clean/dirty SHA + worktree snapshots,
+and Core independent Roslyn acceptance are external **Blocked/NotRun**
+dependencies. Neither the synthetic fix nor a zero exit promotes Candidate,
+Observed, or Unqualified into Verified or AcceptedRTL.
