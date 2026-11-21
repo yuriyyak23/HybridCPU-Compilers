@@ -262,6 +262,20 @@ class ClosureTests(unittest.TestCase):
                   ",".join(name + ":" + str(matches[name]) for name in fields))
             self.assertEqual(descriptor.st_size, path_state.st_size)
             self.assertEqual(descriptor.st_mtime_ns, path_state.st_mtime_ns)
+        for label, path in (("source", self.source), ("graph", self.graph_path),
+                            ("observation", self.observation_path)):
+            before = path.lstat()
+            fd = os.open(path, os.O_RDONLY | getattr(os, "O_BINARY", 0) |
+                         getattr(os, "O_NOFOLLOW", 0))
+            try:
+                after = os.fstat(fd)
+                fields = ("st_dev", "st_ino", "st_mode", "st_size",
+                          "st_mtime_ns", "st_ctime_ns")
+                print("R1_02_OS_OPEN_" + label + "_FIELD_MATCH=" +
+                      ",".join(n + ":" + str(getattr(after, n) == getattr(before, n))
+                               for n in fields))
+            finally:
+                os.close(fd)
 
     def test_full_byte_identity_not_filename(self):
         other = self.copy / "DifferentName.cs"
