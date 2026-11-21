@@ -36,7 +36,7 @@ jobs:
           set -euo pipefail
           git rev-parse HEAD
           mkdir -p "$RUNNER_TEMP/hb-r301-sdk"
-          printf '%s\\n' '{"sdk":{"version":"11.0.100","rollForward":"disable"}}' > "$RUNNER_TEMP/hb-r301-sdk/global.json"
+          echo '{"sdk":{"version":"11.0.100","rollForward":"disable"}}' > "$RUNNER_TEMP/hb-r301-sdk/global.json"
           cd "$RUNNER_TEMP/hb-r301-sdk"
           echo 'R3-01 toolchain: fixture SDK 11.0.100; NOT historical Core 11.0.100-rc.2.26504.105'
           dotnet --version
