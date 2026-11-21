@@ -45,7 +45,7 @@ The production implementation still depends on path-based .NET APIs for source r
 
 ### R3-02 test scope and platform qualification
 
-The existing `HardwareBridge.V2.ContractTests.csproj` host compiles the real publisher with conditional test-only disk mutation seams. Tests exercise canonical index/role/refusal, stale source before and after staging, changed output bytes, missing chunk, unknown staged file, path traversal, file-versus-directory collision, forged `Verified` field, wrong rows, malformed/duplicate roots, cancellation after files were staged, and reentrant publication in distinct TEMP roots. A Linux symlink swap test is deterministic; Windows symlink creation requires separately granted privileges and is explicitly NotRun in the existing fixture. This is **not** a test of untrusted concurrent hostile-process race immunity.
+The existing `HardwareBridge.V2.ContractTests.csproj` host compiles the real publisher with conditional test-only disk mutation seams. Tests exercise canonical index/role/refusal, stale source before and after staging, changed output bytes, missing chunk, unknown staged file, path traversal, file-versus-directory collision, forged `Verified` field, wrong rows, malformed/duplicate roots, cancellation after files were staged, and reentrant publication in distinct TEMP roots. Real file-symlink and directory-ancestor-symlink rejection are now mandatory on **both** Linux and Windows CI runners; missing Windows link privilege fails the job instead of counting an unexecuted test as success. This is **not** a test of untrusted concurrent hostile-process race immunity.
 
 The dedicated `hb-int-v2-workspace.yml` matrix runs on Ubuntu and Windows using SDK `11.0.100-rc.2.26504.105`, with stdout/stderr hashes, test-host binary hashes, and before/after entire Git-tracked checkout SHA inventory. No private Core token is required; no Golden source checkout is restored or built.
 
@@ -56,3 +56,37 @@ dotnet run --project Compilers/HybridCPU_Compiler/HardwareBridge/Tests/HardwareB
 ```
 
 **Open dependency:** R2-02 owns the paired Core `BridgeSegmentIndexImporterV2.Import` replay with externally trusted expected closure and explicit private Core read permission. A success from this Bridge-only host cannot mark that integration TestedInCI.
+
+## R3-02 post-merge repair — strict compile / seal gate (2026-11-21)
+
+This change is strictly additive to merged PR #36 and does not revise Core-v2 wire bytes or
+software-origin authority. The prior pinned workflow run
+[`44836903358`](https://github.com/yuriyyak23/HybridCPU-Compilers/actions/runs/44836903358)
+failed on **both** Ubuntu and Windows at `CS0161` in `Publish`. Its catch branches now
+throw `BridgeV2RefusalException(InvalidPin)` explicitly after scoped cleanup;
+the compiler is not required to infer non-returning control flow from an attribute.
+The Unix-only `File.SetUnixFileMode` mutation checks `OperatingSystem.IsWindows()`
+*inside the lambda* to establish a correct CA1416 platform guard.
+
+The bounded post-seal check verifies every staged file has `FileAttributes.ReadOnly`
+and, on Unix, verifies that no owned directory grants owner-write mode. Test-only
+`AfterSealForTests` clears a file's seal while preserving its bytes and must return
+the typed `InvalidPin` refusal, cleaning the owned output. An injected `IOException`
+inside a multi-block file copy must also return a typed refusal and remove its
+partially written own TEMP. An ordinary source and its symlinked ancestor must
+both be refused on both OS CI runners. Tests never open, write, or build the
+actual Golden checkout and never import the private Core consumer.
+
+**Security limits:** `ReadOnly` and Unix mode are advisory DAC checks, not
+privileged OS hardening against an attacker able to alter attributes or replace
+path components concurrently. No hard no-follow handle-relative identity or
+safe same-user hostile race guarantee is asserted. A foreign/untracked injected
+descendant is deliberately not recursively destroyed by production cleanup; a
+test fixture owns and removes its own injected path. Core independent byte
+rehash and externally trusted closure expectation remain R2-02 dependencies.
+
+**Acceptance:** Build, actual test-host execution, current-head Ubuntu and
+Windows job URLs, stdout/stderr SHA-256 and PE/PDB SHA-256 must be reported
+only after the jobs complete. Previous failing runs do **not** qualify this
+branch. Real approved Golden software capture, Csc provenance and Core paired
+acceptance remain Blocked/NotRun until separate owner receipts.
