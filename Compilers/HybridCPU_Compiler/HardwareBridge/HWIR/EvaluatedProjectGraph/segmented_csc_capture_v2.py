@@ -89,23 +89,46 @@ def safe_path(path, *, file=True):
     return p
 
 
+def _same_path_fd_identity(path_state, fd_state):
+    # Windows Python 3.12 may expose different st_ctime_ns for an lstat
+    # pathname and the live fstat descriptor. A raw tuple comparison falsely
+    # rejects ordinary immutable files. Never discard either ctime: compare
+    # each against its OWN before/after snapshot in ensure_stable().
+    if os.name != "nt":
+        return _file_state(path_state) == _file_state(fd_state)
+    if not path_state.st_ino or not fd_state.st_ino:
+        return False  # No file ID: cannot establish Windows path/handle binding.
+    return (path_state.st_dev, path_state.st_ino,
+            stat.S_IFMT(path_state.st_mode), path_state.st_size,
+            path_state.st_mtime_ns) == (
+            fd_state.st_dev, fd_state.st_ino,
+            stat.S_IFMT(fd_state.st_mode), fd_state.st_size,
+            fd_state.st_mtime_ns)
+
+
 def stable_open(path):
     p = safe_path(path)
-    before = p.lstat()
+    path_before = p.lstat()
     flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NOFOLLOW", 0)
     fd = os.open(p, flags)
     try:
-        if _file_state(os.fstat(fd)) != _file_state(before):
+        fd_before = os.fstat(fd)
+        if not _same_path_fd_identity(path_before, fd_before):
             fail("file replaced between check and open")
-        return p, os.fdopen(fd, "rb"), before
+        # Retain separate whole metadata baselines, including EACH ctime.
+        return p, os.fdopen(fd, "rb"), (path_before, fd_before)
     except BaseException:
         os.close(fd)
         raise
 
 
 def ensure_stable(p, stream, before):
-    if (_file_state(os.fstat(stream.fileno())) != _file_state(before) or
-            _file_state(safe_path(p).lstat()) != _file_state(before)):
+    path_before, fd_before = before
+    fd_after = os.fstat(stream.fileno())
+    path_after = safe_path(p).lstat()
+    if (_file_state(fd_after) != _file_state(fd_before) or
+            _file_state(path_after) != _file_state(path_before) or
+            not _same_path_fd_identity(path_after, fd_after)):
         fail("concurrent file mutation/replacement: " + str(p))
 
 
