@@ -15,6 +15,7 @@ import stat
 import subprocess
 import sys
 import tempfile
+import time
 
 import segmented_csc_capture_v2 as hb
 
@@ -23,6 +24,8 @@ CORE_MAX_ROWS = 8192
 CORE_MAX_BYTES = 512 * 1024 * 1024
 WITNESS_SCHEMA = "hybridcpu.hardwarebridge.r1-02-external-task-crosswalk/v1"
 INVENTORY_MAX_FILES = hb.MAX_FILES
+INVENTORY_MAX_DIRS = hb.MAX_FILES
+INVENTORY_MAX_SECONDS = 300
 
 
 def reject(message):
@@ -48,9 +51,16 @@ def source_inventory(path, expected_commit=None):
         reject("expected Git commit must be exact lowercase 40-hex SHA")
     rows = []
     total = 0
+    directories = 0
+    deadline = time.monotonic() + INVENTORY_MAX_SECONDS
     # Deliberately exclude only administrative .git metadata; the exact source
     # tree, including ignored/untracked source files, is enumerated and hashed.
     for folder, dirs, files in os.walk(root, topdown=True, followlinks=False):
+        directories += 1
+        if directories > INVENTORY_MAX_DIRS:
+            reject("snapshot exceeds bounded directory budget")
+        if time.monotonic() >= deadline:
+            reject("snapshot inventory time budget exceeded")
         dirs.sort()
         files.sort()
         for directory in dirs:
@@ -58,6 +68,10 @@ def source_inventory(path, expected_commit=None):
         if Path(folder) == root and ".git" in dirs:
             dirs.remove(".git")
         for filename in files:
+            if time.monotonic() >= deadline:
+                reject("snapshot inventory time budget exceeded")
+            if len(rows) >= INVENTORY_MAX_FILES:
+                reject("snapshot exceeds bounded 20000 files / 8 GiB; no truncation")
             full = Path(folder) / filename
             hb.safe_path(str(full))
             if Path(folder) == root and filename == ".git":
