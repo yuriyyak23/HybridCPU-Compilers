@@ -41,10 +41,16 @@ jobs:
           $env:DOTNET_CLI_HOME = Join-Path $sdk 'home'
           $env:NUGET_PACKAGES = Join-Path $sdk 'packages'
           $env:DOTNET_NOLOGO = '1'
+          $env:PYTHONDONTWRITEBYTECODE = '1'
           $project = Join-Path $env:GITHUB_WORKSPACE 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CscCoreV2Parity/HardwareBridge.CscCoreV2Parity.csproj'
           $fixture = Join-Path $env:GITHUB_WORKSPACE 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CscCoreV2Parity/emit_fixture.py'
           $artifactPath = Join-Path $sdk 'artifacts'
+          $props = @("-p:BaseIntermediateOutputPath=$sdk/obj/", "-p:MSBuildProjectExtensionsPath=$sdk/obj/", "-p:OutputPath=$artifactPath/")
+          $audit = Join-Path $env:GITHUB_WORKSPACE 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CscCoreV2Parity/R2_03_checkout_inventory.py'
+          $auditFile = Join-Path $sdk 'before-inventory.json'
           try {
+            & python $audit --root $env:GITHUB_WORKSPACE --record $auditFile
+            if ($LASTEXITCODE -ne 0) { throw 'Full checkout before-inventory failed' }
             & python $fixture $output
             if ($LASTEXITCODE -ne 0) { throw "Synthetic PR14 producer fixture failed: exit=$LASTEXITCODE" }
             Push-Location $sdk
@@ -53,10 +59,9 @@ jobs:
               if ($LASTEXITCODE -ne 0 -or $version -cne '11.0.100-rc.2.26504.105') {
                 throw "Wrong SDK: $version"
               }
-              $args = @('run','--project',$project,'--configuration','Release',
-                "-p:ArtifactsPath=$artifactPath",'--',$output)
+              $runArgv = @('run','--project',$project,'--configuration','Release') + $props + @('--',$output)
               $goodLog = Join-Path $sdk 'positive.txt'
-              & dotnet @args > $goodLog 2>&1
+              & dotnet @runArgv > $goodLog 2>&1
               $goodExit = $LASTEXITCODE
               Write-Host "Actual positive command exit=$goodExit stdout/stderr SHA256=$((Get-FileHash $goodLog -Algorithm SHA256).Hash)"
               if ($goodExit -ne 0) {
@@ -65,7 +70,7 @@ jobs:
               }
               Get-Content -LiteralPath $goodLog
               $testArgv = @('run','--no-build','--no-restore','--project',$project,
-                '--configuration','Release',"-p:ArtifactsPath=$artifactPath",'--',$output)
+                '--configuration','Release') + $props + @('--',$output)
               function Assert-Refused([string] $Label) {
                 $log = Join-Path $sdk ("negative-" + $Label + ".txt")
                 & dotnet @testArgv > $log 2>&1
@@ -97,6 +102,9 @@ jobs:
             } finally { Pop-Location }
           } finally {
             if (Test-Path -LiteralPath $output) { Remove-Item -LiteralPath $output -Recurse -Force }
+            & python $audit --root $env:GITHUB_WORKSPACE --verify $auditFile
+            if ($LASTEXITCODE -ne 0) { throw 'Windows codec source SHA inventory changed' }
+            if (Test-Path -LiteralPath $sdk) { Remove-Item -LiteralPath $sdk -Recurse -Force }
           }
           # Three negative executable runs intentionally returned 1. Explicitly
           # mark only the harness as successful after all assertions and hashes.
@@ -132,6 +140,8 @@ jobs:
           New-Item -Path $work -ItemType Directory | Out-Null
           $project = Join-Path $env:GITHUB_WORKSPACE 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CscCoreV2Parity/HardwareBridge.CscCoreV2Parity.csproj'
           $driver = Join-Path $env:GITHUB_WORKSPACE 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CscCoreV2Parity/r203_release_wire_driver.py'
+          $audit = Join-Path $env:GITHUB_WORKSPACE 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CscCoreV2Parity/R2_03_checkout_inventory.py'
+          $auditFile = Join-Path $work 'before-inventory.json'
           $obj = Join-Path $work 'obj'
           $bin = Join-Path $work 'bin'
           $logs = Join-Path $work 'logs'
@@ -149,6 +159,8 @@ jobs:
           $beforeSha = (& git rev-parse HEAD).Trim()
           $before = (& git status --porcelain=v1 --untracked-files=all) -join [Environment]::NewLine
           if ($LASTEXITCODE -ne 0 -or $before) { throw 'Checkout must start clean' }
+          & python $audit --root $env:GITHUB_WORKSPACE --record $auditFile
+          if ($LASTEXITCODE -ne 0) { throw 'R2-03 checkout inventory failed' }
           Push-Location $work
           try {
             $version = (& dotnet --version).Trim()
@@ -210,6 +222,8 @@ jobs:
             if ($beforeSha -ne $afterSha -or $after -ne $before) {
               throw 'R2-03 violated immutable Git checkout'
             }
+            & python $audit --root $env:GITHUB_WORKSPACE --verify $auditFile
+            if ($LASTEXITCODE -ne 0) { throw 'R2-03 tracked SHA inventory changed' }
             if (Test-Path -LiteralPath $work) {
               Remove-Item -LiteralPath $work -Recurse -Force
             }
