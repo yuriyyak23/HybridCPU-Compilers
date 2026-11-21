@@ -416,5 +416,91 @@ class CoreV2StagingTests(unittest.TestCase):
         self.assertFalse((foreign / "bridge-index.json").exists())
         self.target.unlink()
 
+    def test_r2_pinned_root_manifest_is_parsed_from_the_hashed_bytes(self):
+        # A secondary path load could parse an attacker-swapped file rather than the
+        # raw bytes that matched the reviewed SHA. No second load is permitted.
+        from unittest import mock
+        with mock.patch.object(stage, "load", side_effect=AssertionError("second roots read")):
+            roots, raw = stage.check_roots(self.roots, self.roots_sha)
+        self.assertEqual(c.sha(raw), self.roots_sha)
+        self.assertEqual(roots[0]["MethodName"], "Step")
+
+    def test_r2_rehashed_index_and_selector_property_reorder_blocked_before_core(self):
+        self.run_stage()
+        p = self.target / "bridge-index.json"
+        original = json.loads(p.read_bytes())
+        tampered = {"Chunks": original["Chunks"], "Schema": original["Schema"],
+                    "Roots": original["Roots"], "ClosureSha256": original["ClosureSha256"]}
+        p.write_bytes(stage.json_bytes(tampered))
+        with self.assertRaisesRegex(ValueError, "R2_01_INDEX_PROPERTY_ORDER"):
+            stage.verify(self.target, self.pin, self.roots_sha)
+        root = original["Roots"][0]
+        original["Roots"][0] = {"MethodName": root["MethodName"], "TypeName": root["TypeName"],
+            "MetadataToken": root["MetadataToken"], "TypeArguments": root["TypeArguments"],
+            "MethodArguments": root["MethodArguments"]}
+        p.write_bytes(stage.json_bytes(original))
+        with self.assertRaisesRegex(ValueError, "R2_01_INDEX_PROPERTY_ORDER"):
+            stage.verify(self.target, self.pin, self.roots_sha)
+
+    def test_r2_rehashed_chunk_descriptor_and_jsonl_property_order_blocked(self):
+        self.run_stage()
+        p = self.target / "bridge-index.json"
+        index = json.loads(p.read_bytes())
+        desc = index["Chunks"][0]
+        index["Chunks"][0] = {"Rows": desc["Rows"], "Path": desc["Path"],
+                              "Sha256": desc["Sha256"], "Bytes": desc["Bytes"]}
+        p.write_bytes(stage.json_bytes(index))
+        with self.assertRaisesRegex(ValueError, "R2_01_CHUNK_PROPERTY_ORDER"):
+            stage.verify(self.target, self.pin, self.roots_sha)
+        index["Chunks"][0] = desc
+        chunk = self.target / desc["Path"]
+        lines = chunk.read_bytes().splitlines(keepends=True)
+        first = json.loads(lines[0])
+        lines[0] = stage.json_bytes({"Role": first["Role"], "Path": first["Path"],
+                                     "Sha256": first["Sha256"], "Bytes": first["Bytes"]}) + b"\n"
+        chunk.write_bytes(b"".join(lines))
+        desc["Bytes"], desc["Sha256"] = chunk.stat().st_size, stage.sha(chunk.read_bytes())
+        index["ClosureSha256"] = stage.sha(b"".join(
+            (self.target / x["Path"]).read_bytes() for x in index["Chunks"]))
+        p.write_bytes(stage.json_bytes(index))
+        map_file = self.target / "capture-map.json"
+        mapping = json.loads(map_file.read_bytes())
+        mapping["CoreClosureSha256"] = index["ClosureSha256"]
+        map_file.write_bytes(stage.json_bytes(mapping))
+        with self.assertRaisesRegex(ValueError, "R2_01_ROW_PROPERTY_ORDER"):
+            stage.verify(self.target, self.pin, self.roots_sha)
+
+    def test_r2_paired_r1_02_receipt_cannot_claim_executed_csc(self):
+        with self.assertRaisesRegex(ValueError, "R2_01_EXECUTION_PIN_MISSING"):
+            self.run_stage(require_executed_csc=True)
+        receipt_path = self.fixture.tmp / "R2_01_paired_receipt.json"
+        receipt = {"schema": stage.PAIRED, "disposition": "unqualified-software-observation",
+            "executionGate": "Blocked: R1-01 executed Csc provenance not independently attested",
+            "clean": {"closureRootSha256": self.pin},
+            "dirty": {"closureRootSha256": "0" * 64}}
+        receipt_path.write_bytes(c.canonical(receipt) + b"\n")
+        reviewed = c.sha(receipt_path.read_bytes())
+        with self.assertRaisesRegex(ValueError, "R2_01_EXECUTION_ARGUMENTS"):
+            self.run_stage(paired_receipt=receipt_path, reviewed_receipt_sha=reviewed)
+        with self.assertRaisesRegex(ValueError, "R2_01_EXECUTION_BLOCKED"):
+            self.run_stage(require_executed_csc=True,
+                           paired_receipt=receipt_path, reviewed_receipt_sha=reviewed)
+        with self.assertRaisesRegex(ValueError, "R2_01_EXECUTION_RECEIPT_SHA"):
+            self.run_stage(require_executed_csc=True,
+                           paired_receipt=receipt_path, reviewed_receipt_sha="0" * 64)
+        receipt["executionGate"] = "ExecutedCscQualified"
+        receipt_path.write_bytes(c.canonical(receipt) + b"\n")
+        reviewed = c.sha(receipt_path.read_bytes())
+        with self.assertRaisesRegex(ValueError, "R2_01_EXECUTION_BLOCKED"):
+            self.run_stage(require_executed_csc=True,
+                           paired_receipt=receipt_path, reviewed_receipt_sha=reviewed)
+        receipt["clean"]["closureRootSha256"] = "1" * 64
+        receipt_path.write_bytes(c.canonical(receipt) + b"\n")
+        reviewed = c.sha(receipt_path.read_bytes())
+        with self.assertRaisesRegex(ValueError, "R2_01_EXECUTION_CAPTURE_MISMATCH"):
+            self.run_stage(require_executed_csc=True,
+                           paired_receipt=receipt_path, reviewed_receipt_sha=reviewed)
+        self.assertFalse(self.target.exists())
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
