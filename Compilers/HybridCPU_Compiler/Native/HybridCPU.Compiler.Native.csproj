@@ -9,9 +9,6 @@
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis" Version="5.9.0" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Core\HybridCPU.Compiler.Core.csproj" GlobalPropertiesToRemove="DefineTestSupport;BuildRuntimeDiagnosticConsole;HybridCpuIseProjectReferenceProperties" />

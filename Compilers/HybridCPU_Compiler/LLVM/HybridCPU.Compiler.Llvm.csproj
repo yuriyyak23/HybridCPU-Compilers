@@ -13,7 +13,6 @@
   <ItemGroup>
     <PackageReference Include="LLVMSharp" Version="23.1.5" />
     <PackageReference Include="LLVMSharp.Interop" Version="23.1.5" />
-    <PackageReference Include="Microsoft.CodeAnalysis" Version="5.9.0" />
   </ItemGroup>
 
   <ItemGroup>
