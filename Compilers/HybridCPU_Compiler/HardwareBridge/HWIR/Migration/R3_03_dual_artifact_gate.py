@@ -192,6 +192,10 @@ def compare_bytes(review_raw, source_raw, legacy_hwir_raw, core_hwir_raw,
     require(legacy_hwir_raw != core_hwir_raw, 'R303_LEGACY_AS_CORE_ALIAS')
     expected = {key: source[key] for key in ('commit', 'sha256', 'path', 'method')}
     try:
+        for artifact in (legacy_hwir_raw, core_hwir_raw):
+            module = parity.top(parity.parse_json(artifact), expected, 'scalar')
+            require({'kind', 'ports', 'timing', 'overflow', 'reset', 'memory', 'faults'} <=
+                    set(module['contract']), 'R303_MISSING_EXPLICIT_CONTRACT_ROLE')
         structural = parity.compare(source_raw, legacy_hwir_raw, core_hwir_raw,
                                     legacy_obs_raw, core_obs_raw, expected, 'scalar',
                                     native_receipt_raw)
