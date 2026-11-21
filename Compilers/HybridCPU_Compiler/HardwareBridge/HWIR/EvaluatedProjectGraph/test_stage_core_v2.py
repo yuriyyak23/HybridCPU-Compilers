@@ -457,7 +457,7 @@ class CoreV2StagingTests(unittest.TestCase):
         lines = chunk.read_bytes().splitlines(keepends=True)
         first = json.loads(lines[0])
         lines[0] = stage.json_bytes({"Role": first["Role"], "Path": first["Path"],
-                                     "Sha256": first["Sha256"], "Bytes": first["Bytes"]}) + b"\\n"
+                                     "Sha256": first["Sha256"], "Bytes": first["Bytes"]}) + b"\n"
         chunk.write_bytes(b"".join(lines))
         desc["Bytes"], desc["Sha256"] = chunk.stat().st_size, stage.sha(chunk.read_bytes())
         index["ClosureSha256"] = stage.sha(b"".join(
@@ -478,7 +478,7 @@ class CoreV2StagingTests(unittest.TestCase):
             "executionGate": "Blocked: R1-01 executed Csc provenance not independently attested",
             "clean": {"closureRootSha256": self.pin},
             "dirty": {"closureRootSha256": "0" * 64}}
-        receipt_path.write_bytes(c.canonical(receipt) + b"\\n")
+        receipt_path.write_bytes(c.canonical(receipt) + b"\n")
         reviewed = c.sha(receipt_path.read_bytes())
         with self.assertRaisesRegex(ValueError, "R2_01_EXECUTION_ARGUMENTS"):
             self.run_stage(paired_receipt=receipt_path, reviewed_receipt_sha=reviewed)
@@ -489,13 +489,13 @@ class CoreV2StagingTests(unittest.TestCase):
             self.run_stage(require_executed_csc=True,
                            paired_receipt=receipt_path, reviewed_receipt_sha="0" * 64)
         receipt["executionGate"] = "ExecutedCscQualified"
-        receipt_path.write_bytes(c.canonical(receipt) + b"\\n")
+        receipt_path.write_bytes(c.canonical(receipt) + b"\n")
         reviewed = c.sha(receipt_path.read_bytes())
         with self.assertRaisesRegex(ValueError, "R2_01_EXECUTION_BLOCKED"):
             self.run_stage(require_executed_csc=True,
                            paired_receipt=receipt_path, reviewed_receipt_sha=reviewed)
         receipt["clean"]["closureRootSha256"] = "1" * 64
-        receipt_path.write_bytes(c.canonical(receipt) + b"\\n")
+        receipt_path.write_bytes(c.canonical(receipt) + b"\n")
         reviewed = c.sha(receipt_path.read_bytes())
         with self.assertRaisesRegex(ValueError, "R2_01_EXECUTION_CAPTURE_MISMATCH"):
             self.run_stage(require_executed_csc=True,
