@@ -148,7 +148,7 @@ def _parse_trace(trace_dir):
                     all_events.append((stamp, pid, "chdir", name))
                 elif payload.endswith("= 0"):
                     refuse("ambiguous successful chdir")
-            elif any(x in payload for x in ("clone(", "clone3(", "fork(", "vfork(")):
+            elif payload.startswith(("clone(", "clone3(", "fork(", "vfork(")):
                 child = FORK.search(payload)
                 if child:
                     all_events.append((stamp, pid, "fork", (int(child.group(1)), "CLONE_FS" in payload)))
