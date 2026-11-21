@@ -67,6 +67,14 @@ jobs:
           dotnet --info
           sha256sum "$(command -v dotnet)"
           test "$(dotnet --version)" = '11.0.100-rc.2.26504.105'
+          # Hash the pinned Roslyn compiler actually selected by this SDK.
+          sdk_base="$(dotnet --info | sed -n 's/^[[:space:]]*Base Path:[[:space:]]*//p' | head -n 1 | tr -d '\r')"
+          test -n "$sdk_base"
+          if command -v cygpath >/dev/null 2>&1; then
+            sdk_base="$(cygpath -u "$sdk_base")"
+          fi
+          test -f "$sdk_base/Roslyn/bincore/csc.dll"
+          sha256sum "$sdk_base/Roslyn/bincore/csc.dll"
           project="$GITHUB_WORKSPACE/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/HardwareBridge.V2.ContractTests.csproj"
           output="$RUNNER_TEMP/hb-v2-artifacts"
           logged() {
