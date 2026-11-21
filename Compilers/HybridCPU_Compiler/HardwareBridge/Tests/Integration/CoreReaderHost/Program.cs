@@ -15,7 +15,9 @@ var receipt = new {
     state = result.State.ToString(), code = result.Diagnostic.Code,
     indexSha256 = result.IndexSha256, closureSha256 = result.ClosureSha256,
     workspaceCaptureSha256 = result.WorkspaceCaptureSha256,
-    rows = result.Inputs?.Count, roots = result.Roots?.Count
+    rows = result.Inputs?.Count,
+    sourceRows = result.Inputs?.Count(input => input.Role == "source"),
+    roots = result.Roots?.Count
 };
 // Create-new prevents a stale or forged prior result being mistaken for this invocation.
 string path = Path.Combine(Path.GetDirectoryName(workspace)!, "core-reader-result.json");
