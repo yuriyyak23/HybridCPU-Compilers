@@ -99,7 +99,13 @@ def source_inventory(path, expected_commit=None):
                 reject("read-only git status/HEAD unavailable (exit=%d)" % process.returncode)
             return process.stdout
         top = git("rev-parse", "--show-toplevel").decode("utf-8", "strict").strip()
-        if Path(top) != root:
+        # Windows Git emits a differently spelled/normalized absolute path.
+        # File identity (not spelling) proves the snapshot is the Git root.
+        try:
+            same_root = os.path.samefile(top, root)
+        except (ValueError, OSError):
+            same_root = False
+        if not same_root:
             reject("snapshot path is not exact Git root")
         commit = git("rev-parse", "HEAD").decode("ascii", "strict").strip()
         status_sha = hb.sha(git("-c", "core.fsmonitor=false", "status", "--porcelain=v1", "-uall"))
