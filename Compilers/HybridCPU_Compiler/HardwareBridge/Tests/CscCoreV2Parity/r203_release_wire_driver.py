@@ -45,10 +45,15 @@ def execute(label, argv, expected=0):
     merged = proc.stdout + proc.stderr
     print("R203_STEP %s exit=%d duration=%.3fs stdoutSHA=%s stderrSHA=%s" %
           (label, proc.returncode, duration, sha(proc.stdout), sha(proc.stderr)), flush=True)
-    if (expected == 0 and proc.returncode != 0) or (
-            expected == "refuse" and proc.returncode == 0):
+    valid_code = proc.returncode == expected if isinstance(expected, int) else (
+        expected == "refuse" and proc.returncode != 0)
+    valid_diagnostic = (
+        expected != 2 or b"HB-INT-02/03 Blocked:" in proc.stderr)
+    if expected == 1 and label.startswith("dotnet-refuse-"):
+        valid_diagnostic = b"FAIL: HB-INT-02/03 production codec parity:" in proc.stderr
+    if not valid_code or not valid_diagnostic:
         # Only synthetic test diagnostics; do not dump a private Golden source.
-        raise RuntimeError("%s expected %s, received %d; detail=%s" %
+        raise RuntimeError("%s expected %s with typed refusal, received %d; detail=%s" %
                            (label, expected, proc.returncode,
                             merged.decode("utf-8", errors="replace")[-500:]))
     return proc.stdout.decode("utf-8", errors="strict")
@@ -142,7 +147,7 @@ def main():
     execute("production-dotnet-matrix", [dotnet, str(dll), "--r203-wire-matrix"])
     # This refusal must happen before invoking a fictitious managed codec.
     missing = Path(tempfile.gettempdir()) / ("R2_03_missing-host-" + uuid.uuid4().hex + ".dll")
-    execute("missing-output-dll", [sys.executable, str(__file__), str(missing)], "refuse")
+    execute("missing-output-dll", [sys.executable, str(__file__), str(missing)], 1)
     for count in CASES:
         out = Path(tempfile.gettempdir()) / ("hb-r203-stage-" + uuid.uuid4().hex)
         if out.exists():
@@ -185,8 +190,8 @@ def main():
                             target.unlink()
                         else:
                             target.write_bytes(changed)
-                        execute("python-refuse-" + label, verify_argv, "refuse")
-                        execute("dotnet-refuse-" + label, managed_argv, "refuse")
+                        execute("python-refuse-" + label, verify_argv, 2)
+                        execute("dotnet-refuse-" + label, managed_argv, 1)
                     finally:
                         target.write_bytes(original)
                     if inventory(out) != before:
