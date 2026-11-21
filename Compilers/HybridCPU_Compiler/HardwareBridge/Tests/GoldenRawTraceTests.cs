@@ -2,6 +2,7 @@
 #if HARDWAREBRIDGE_TESTS
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using HybridCPU.Compiler.HardwareBridge.SourceSnapshot;
 using HybridCPU.Compiler.HardwareBridge.GoldenOracle;
 
@@ -184,6 +185,100 @@ internal static class GoldenRawTraceTests
             source, new ReadOnlyMemory<byte>[] { sourceBytes },
             compiledFixture, 0, "host.step", 2, 4, initial, steps,
             cancellationToken: cancelled.Token), "Cancellation.");
+
+        // R3-01 strict raw HOST replay, using an independently held (synthetic test-only)
+        // expectation rather than learning clock/contexts/lane order from the supplied JSON.
+        R301RawHostStepPinV1 StepPin(GoldenTraceStepV1 row) => new(
+            row.Index, row.LogicalClock, row.Context, row.Lane,
+            Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(row))));
+        var independentPin = new R301RawHostReplayPinV1(
+            R301RawHostReplayPinV1.RawHostOnlyPurpose,
+            0, "host.step", 2, 4, initial, steps.Select(StepPin).ToArray());
+        GoldenRawTraceV1 pinnedReplay = GoldenRawTraceCodecV1.ReadAndValidatePinnedHostReplay(
+            encoded, source, assemblyHash, independentPin);
+        Require(pinnedReplay.ReplayIdentity == observed.ReplayIdentity,
+            "Independent raw-host step/clock/context/lane/source replay.");
+
+        Throws<ArgumentException>(() => GoldenRawTraceCodecV1.ReadAndValidatePinnedHostReplay(
+            encoded, source, assemblyHash,
+            independentPin with { Purpose = "cpu-physical-cycles" }),
+            "Unapproved CPU physical-clock role cannot use raw replay.");
+        Throws<ArgumentException>(() => GoldenRawTraceCodecV1.ReadAndValidatePinnedHostReplay(
+            encoded, source, assemblyHash,
+            independentPin with { RootIndex = 1 }), "Cross-root replay.");
+        Throws<ArgumentException>(() => GoldenRawTraceCodecV1.ReadAndValidatePinnedHostReplay(
+            encoded, source, assemblyHash,
+            independentPin with { ExpectedInitialState = Array.Empty<GoldenTraceCellV1>() }),
+            "Missing independent reset/initial-state pin.");
+        Throws<ArgumentException>(() => GoldenRawTraceCodecV1.ReadAndValidatePinnedHostReplay(
+            encoded, source, assemblyHash,
+            independentPin with { ExpectedSteps = Array.Empty<R301RawHostStepPinV1>() }),
+            "Missing independent step schedule.");
+        Throws<ArgumentException>(() => GoldenRawTraceCodecV1.ReadAndValidatePinnedHostReplay(
+            encoded, source, assemblyHash,
+            independentPin with { ExpectedSteps = new[] { independentPin.ExpectedSteps[0],
+                independentPin.ExpectedSteps[0] } }),
+            "Duplicate independent step index.");
+        Throws<ArgumentException>(() => GoldenRawTraceCodecV1.ReadAndValidatePinnedHostReplay(
+            encoded, source, assemblyHash,
+            independentPin with { ExpectedSteps = independentPin.ExpectedSteps
+                .Select((s, i) => i == 1 ? s with { LogicalClock = 13 } : s).ToArray() }),
+            "Clock timebase expectation drift.");
+        Throws<ArgumentException>(() => GoldenRawTraceCodecV1.ReadAndValidatePinnedHostReplay(
+            encoded, source, assemblyHash,
+            independentPin with { ExpectedSteps = independentPin.ExpectedSteps
+                .Select((s, i) => i == 0 ? s with { Lane = 0 } : s).ToArray() }),
+            "Lane expectation drift.");
+        Throws<ArgumentException>(() => GoldenRawTraceCodecV1.ReadAndValidatePinnedHostReplay(
+            encoded, source, assemblyHash,
+            independentPin with { ExpectedSteps = independentPin.ExpectedSteps
+                .Select((s, i) => i == 1 ? s with { Context = 0 } : s).ToArray() }),
+            "Context expectation drift.");
+        Throws<ArgumentException>(() => GoldenRawTraceCodecV1.ReadAndValidatePinnedHostReplay(
+            encoded, source, assemblyHash,
+            independentPin with { ExpectedSteps = independentPin.ExpectedSteps
+                .Select((s, i) => i == 0 ? s with { CanonicalStepSha256 = new string('0', 64) } : s).ToArray() }),
+            "Changed independent canonical row hash.");
+
+        GoldenRawTraceV1 rehashedRow = Make(new[] {
+            first with { Outputs = new[] {
+                new GoldenTraceCellV1("value", new(32, true, 7)) } }, second });
+        Require(rehashedRow.Status == "Observed", "Rehashed fixture row must be syntactically valid.");
+        Throws<ArgumentException>(() => GoldenRawTraceCodecV1.ReadAndValidatePinnedHostReplay(
+            rehashedRow.ToJsonUtf8(), source, assemblyHash, independentPin),
+            "Fully rehashed post-hoc output mutation escaped independent row pin.");
+        GoldenRawTraceV1 hiddenStep = Make(new[] { first });
+        Require(hiddenStep.Status == "Observed", "Short host fixture is valid in base v1.");
+        Throws<ArgumentException>(() => GoldenRawTraceCodecV1.ReadAndValidatePinnedHostReplay(
+            hiddenStep.ToJsonUtf8(), source, assemblyHash, independentPin),
+            "Rehashed trace with hidden second step.");
+        GoldenRawTraceV1 driftedClock = Make(new[] {
+            first, second with { LogicalClock = 11 } });
+        Require(driftedClock.Status == "Observed", "Changed monotonic host timebase is allowed in v1.");
+        Throws<ArgumentException>(() => GoldenRawTraceCodecV1.ReadAndValidatePinnedHostReplay(
+            driftedClock.ToJsonUtf8(), source, assemblyHash, independentPin),
+            "Rehashed host timebase drift.");
+        var wrongContextEvents = effects0.Select(e => e with { Context = 1, Lane = 0 }).ToArray();
+        GoldenRawTraceV1 crossContext = Make(new[] {
+            first with {
+                Context = 1, Lane = 0, Events = wrongContextEvents,
+                ExpectedEventsSha256 = GoldenRawTraceCodecV1.ComputeEventsSha256(wrongContextEvents)
+            }, second });
+        Require(crossContext.Status == "Observed", "Mutated context/lane host trace is valid in v1.");
+        Throws<ArgumentException>(() => GoldenRawTraceCodecV1.ReadAndValidatePinnedHostReplay(
+            crossContext.ToJsonUtf8(), source, assemblyHash, independentPin),
+            "Rehashed cross-context and cross-lane replay.");
+        Throws<ArgumentException>(() => GoldenRawTraceCodecV1.ReadAndValidatePinnedHostReplay(
+            Make(scope: "cpu-cycle").ToJsonUtf8(), source, assemblyHash, independentPin),
+            "Raw host replay must never promote Blocked CPU cycles to Observed.");
+        Throws<ArgumentException>(() => GoldenRawTraceCodecV1.ReadAndValidatePinnedHostReplay(
+            encoded, source, new string('0', 64), independentPin),
+            "Missing independently qualified compiled assembly identity.");
+        using var replayCancelled = new CancellationTokenSource();
+        replayCancelled.Cancel();
+        Throws<OperationCanceledException>(() => GoldenRawTraceCodecV1.ReadAndValidatePinnedHostReplay(
+            encoded, source, assemblyHash, independentPin, replayCancelled.Token),
+            "Cancelled independent raw-host replay.");
 
         // Synthetic fixture checks only structural integrity; no independent oracle is executed.
         Console.WriteLine("HB-INT-04 fixture replay identity SHA256: " + observed.ReplayIdentity);
