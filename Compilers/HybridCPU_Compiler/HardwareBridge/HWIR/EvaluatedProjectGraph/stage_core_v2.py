@@ -44,7 +44,11 @@ def check_roots(path, reviewed_sha):
     raw = f.read_bytes()
     if not re.fullmatch(r"[0-9a-f]{64}", reviewed_sha) or capture.sha(raw) != reviewed_sha:
         refuse("wrong/missing independently reviewed root manifest SHA")
-    roots = load(f, 65536)
+    # Parse the *same pinned raw bytes*. Loading the path again previously allowed
+    # a concurrent edit to swap the selectors between hashing and parsing.
+    if not raw or len(raw) > 65536:
+        refuse("oversized/empty root manifest")
+    roots = json.loads(raw, object_pairs_hook=capture.pairs_unique)
     if not isinstance(roots, dict) or set(roots) != {"Schema", "Roots"} or roots["Schema"] != ROOTS:
         refuse("unknown root contract")
     selectors = roots["Roots"]
@@ -89,6 +93,44 @@ def check_roots(path, reviewed_sha):
                    "MethodArguments": x["MethodArguments"]} for x in selectors]
     return normalized, raw
 
+PAIRED = "hybridcpu.hardwarebridge.paired-csc-capture-receipt/v1"
+
+def require_execution_receipt(path, reviewed_sha, captured_root):
+    """Bounded negative gate: current R1-02 receipts explicitly lack Csc attestation.
+
+    This never interprets hash equality or zero Csc exit as executable provenance.
+    A future qualified receipt needs a *new*, independently approved versioned
+    contract and a Core-owned acceptance path, not a flag on the existing v1.
+    """
+    if not isinstance(reviewed_sha, str) or not re.fullmatch(r"[0-9a-f]{64}", reviewed_sha) or not path:
+        refuse("R2_01_EXECUTION_PIN_MISSING")
+    receipt_path = capture.safe_path(os.path.abspath(path))
+    if receipt_path.stat().st_size > 131072:
+        refuse("R2_01_EXECUTION_RECEIPT_SIZE")
+    raw = receipt_path.read_bytes()
+    if not raw or len(raw) > 131072 or capture.sha(raw) != reviewed_sha:
+        refuse("R2_01_EXECUTION_RECEIPT_SHA")
+    receipt = json.loads(raw, object_pairs_hook=capture.pairs_unique)
+    if not isinstance(receipt, dict) or set(receipt) != {
+        "schema", "disposition", "executionGate", "clean", "dirty"
+    } or receipt["schema"] != PAIRED or receipt["disposition"] != "unqualified-software-observation":
+        refuse("R2_01_EXECUTION_RECEIPT_SCHEMA")
+    closures = []
+    for label in ("clean", "dirty"):
+        item = receipt[label]
+        if not isinstance(item, dict) or not isinstance(item.get("closureRootSha256"), str):
+            refuse("R2_01_EXECUTION_CLOSURE_MISSING")
+        value = item["closureRootSha256"]
+        if not re.fullmatch(r"[0-9a-f]{64}", value):
+            refuse("R2_01_EXECUTION_CLOSURE_INVALID")
+        closures.append(value)
+    if captured_root not in closures:
+        refuse("R2_01_EXECUTION_CAPTURE_MISMATCH")
+    # R1-02 v1 always records an unqualified/Blocked executionGate.
+    # Neither a rewritten gate field nor a freshly recomputed SHA grants proof.
+    refuse("R2_01_EXECUTION_BLOCKED: no independently approved task-time Csc + "
+           "response-file read witness for this versioned source closure")
+
 def role(row):
     kind, ownership = row["kind"], row["role"]
     if kind not in ("csc-source", "generator-source", "reference", "analyzer",
@@ -119,6 +161,14 @@ def verify(output, reviewed_capture, reviewed_roots, capture_bundle=None):
         index["Schema"] != CORE or index["Roots"] != roots or json_bytes(index) != raw
     ):
         refuse("mutated/noncanonical Core index")
+    # Core's Shape() requires exact JSON property order, not merely a canonical
+    # serialization of whichever insertion order an attacker supplied.
+    if list(index) != ["Schema", "Roots", "Chunks", "ClosureSha256"] or any(
+        not isinstance(r, dict) or list(r) != [
+            "TypeName", "MethodName", "MetadataToken", "TypeArguments", "MethodArguments"
+        ] for r in index["Roots"]
+    ):
+        refuse("R2_01_INDEX_PROPERTY_ORDER")
     mapping_file = capture.safe_path(str(base / "capture-map.json"))
     if mapping_file.stat().st_size > 4 * 1048576:
         refuse("oversized source provenance mapping")
@@ -134,6 +184,9 @@ def verify(output, reviewed_capture, reviewed_roots, capture_bundle=None):
         or mapping["CoreClosureSha256"] != index["ClosureSha256"]
     ):
         refuse("invalid source provenance mapping")
+    if list(mapping) != ["Schema", "Disposition", "Hb02ClosureRootSha256",
+                         "RootManifestSha256", "CoreClosureSha256", "Rows"]:
+        refuse("R2_01_MAPPING_PROPERTY_ORDER")
     descriptors = index["Chunks"]
     if not isinstance(descriptors, list) or not 1 <= len(descriptors) <= 256:
         refuse("invalid chunk list")
@@ -144,6 +197,8 @@ def verify(output, reviewed_capture, reviewed_roots, capture_bundle=None):
             item["Path"] != "bridge-index/chunk-%04d.jsonl" % i
         ):
             refuse("changed chunk descriptor")
+        if list(item) != ["Path", "Sha256", "Bytes", "Rows"]:
+            refuse("R2_01_CHUNK_PROPERTY_ORDER")
         chunk_file = capture.safe_path(str(base / item["Path"]))
         if type(item["Bytes"]) is not int or not 0 < item["Bytes"] <= 4194304 or (
             chunk_file.stat().st_size != item["Bytes"]
@@ -180,6 +235,10 @@ def verify(output, reviewed_capture, reviewed_roots, capture_bundle=None):
             }
         ):
             refuse("invalid row contract")
+        if list(row) != ["Path", "Role", "Sha256", "Bytes"] or list(original) != [
+            "NodeId", "Kind", "SourceRole", "LogicalPath", "Path", "Sha256", "Bytes"
+        ]:
+            refuse("R2_01_ROW_PROPERTY_ORDER")
         category = role({"kind": original["Kind"], "role": original["SourceRole"]})
         expected_path = "inputs/%05d%s" % (i, ".cs" if category in ("source", "owned-body") else ".bin")
         if row != {"Path": expected_path, "Role": category,
@@ -208,6 +267,8 @@ def verify(output, reviewed_capture, reviewed_roots, capture_bundle=None):
                     decode.decode(b"", final=True)
             except UnicodeDecodeError:
                 refuse("Core source must be UTF-8")
+    if not any(x["Role"] == "source" for x in rows):
+        refuse("R2_01_NO_PRIMARY_SOURCE")
     if [x["Path"] for x in rows] != sorted(x["Path"] for x in rows):
         refuse("reordered Core source list")
     if len(descriptors) != (len(rows) + 63) // 64:
@@ -270,9 +331,14 @@ def _publish_new_directory(work, target):
 
 
 def stage(bundle, reviewed_capture, roots_file, reviewed_roots, output, timeout_seconds=300,
-          after_copy=None):
+          after_copy=None, *, require_executed_csc=False, paired_receipt=None,
+          reviewed_receipt_sha=None):
     if not isinstance(reviewed_capture, str) or not re.fullmatch(r"[0-9a-f]{64}", reviewed_capture):
         refuse("explicit reviewed HB-INT-02 SHA required")
+    if (paired_receipt is not None or reviewed_receipt_sha is not None) and not require_executed_csc:
+        refuse("R2_01_EXECUTION_ARGUMENTS_REQUIRE_EXPLICIT_GATE")
+    if require_executed_csc:
+        require_execution_receipt(paired_receipt, reviewed_receipt_sha, reviewed_capture)
     if type(timeout_seconds) not in (int, float) or not 0 < timeout_seconds <= 3600:
         refuse("invalid capture staging timeout")
     started = time.monotonic()
@@ -401,13 +467,20 @@ def main():
     for name in ("bundle", "reviewed-capture", "roots", "reviewed-roots", "output"):
         command.add_argument("--" + name, required=True)
     command.add_argument("--timeout", type=float, default=300)
+    command.add_argument("--require-executed-csc", action="store_true",
+                         help="fail-closed real-execution gate; R1-02 v1 is not qualified")
+    command.add_argument("--paired-receipt")
+    command.add_argument("--reviewed-receipt-sha")
     command = commands.add_parser("verify")
     for name in ("output", "reviewed-capture", "reviewed-roots"):
         command.add_argument("--" + name, required=True)
     command.add_argument("--bundle", help="optional reviewed HB02 capture for exact crosswalk replay")
     args = parser.parse_args()
     result = (stage(args.bundle, args.reviewed_capture, args.roots, args.reviewed_roots,
-                    args.output, args.timeout) if args.command == "stage" else
+                    args.output, args.timeout,
+                    require_executed_csc=args.require_executed_csc,
+                    paired_receipt=args.paired_receipt,
+                    reviewed_receipt_sha=args.reviewed_receipt_sha) if args.command == "stage" else
               verify(args.output, args.reviewed_capture, args.reviewed_roots, args.bundle))
     print("Unqualified Core v2 ClosureSha256=" + result)
 
