@@ -35,13 +35,14 @@ Baseline observed 2026-11-20: Bridge master `797b6dd4fc1c7a44f958ebb22d43e745d0e
 
 **Actual paired-fixture call:** after the trusted dispatch and token gate, `PrepareFixtureReplay.py --count 1001` produces a *synthetic* fixture; `Run-CrossRepoReplay.py --scope fixture` checks immutable original checkout SHAs, Git status and full-file byte inventories. The real pre-existing HB-INT-02 producer captures the input closure, the real R2-01 stage produces canonical Core-v2 JSONL, and the disposable `CoreReaderHost` is compiled against an isolated copy of exactly pinned Core. The host calls `BridgeSegmentIndexImporterV2.Import` (not a Python importer), returning only `Candidate / CWINT03_V2_UNQUALIFIED_CLOSURE` on a positive match, with >=1001 imported inputs. The host executable DLL SHA and the raw stage index SHA/closure, captured chunk manifests, process argv/executable SHA/rc/stdout/stderr SHA and pre/post staged byte-tree digest enter `receipt.json`. The original Bridge/Core/Golden trees are re-inventoried in `finally` and any drift overrides success to **Blocked**.
 
-**Actual pinned-Core negative matrix:** only *after* Core Candidate on the unmodified stage, seven fresh copies of that stage are each submitted to **the same compiled Core importer**. A negative counts as passed only if Core returns `exit=1` **and** the exact expected diagnostic, not merely a process crash or wrong SDK. Inputs and expectations:
+**Actual pinned-Core negative matrix:** only *after* Core Candidate on the unmodified stage, eight fresh copies of that stage (seven required corruption classes plus retained raw-chunk SHA mutation) are each submitted to **the same compiled Core importer**. A negative counts as passed only if Core returns `exit=1` **and** the exact expected diagnostic, not merely a process crash or wrong SDK. Inputs and expectations:
 
 | Fixture-only mutation | Expected Core diagnostic |
 |---|---|
 | staged input byte flip, unchanged source SHA pin | `CWINT03_STALE_BYTES` |
 | mutated JSONL chunk, unchanged chunk SHA pin | `CWINT03_V2_CHUNK_SHA` |
 | omitted JSONL chunk | `CWINT03_V2_IO` |
+| duplicate chunk descriptor/path in a re-pinned index | `CWINT03_V2_CHUNK_ORDER` |
 | intentionally wrong caller index pin | `CWINT03_V2_INDEX_SHA` |
 | duplicate selector in re-hashed canonical index | `CWINT03_V2_ROOT` |
 | duplicate JSON property in independently re-hashed index | `CWINT03_V2_SCHEMA` |
@@ -62,3 +63,25 @@ For real paired Core QA, after owner installs the read-only token and the review
 **Golden-real:** deliberately a **separate Blocked branch** even when `approved_golden=true` until genuine task-time R1-01 Csc observation, R1-02 source/no-write closure, R1-03 executed PE/PDB and method map, Companion and their reviewed binary/argv SHA receipts exist and are supplied by their respective owners. Neither a synthetic compiler PE fixture, an exit-zero command, nor a Core Candidate proves full Golden closure, verified hardware, or accepted RTL. No private Golden source/stdout/PDB or raw Core snapshots belong in public Actions artifacts. Missing prerequisites are **Blocked**, not silently substituted with fake/fixture results.
 
 **External dependency:** on a witnessed real Bridge producer -> pinned Core diagnostic mismatch, preserve the *smallest* synthetic failing stage, expected/actual diagnostic and both exact SHAs, then ask the CW-INT-03 Core owner to correct its importer in a **separate Core PR**. This R2-02 package never patches private Core, Golden, the SDK pin or other R0–R3 ownership paths. If paired CI has no private token, report Core execution **NotRun/Blocked by owner-provisioned access**, not TestedInCI.
+
+## R2-02 residual closure: November 21, 2026 (post-PR #39)
+
+**Pinned inspection:** Bridge master `d243dd7ecce243cc08a13303cf01247ba7a65024` (the prior `b06cd1d42e88d53f35bd8054e06fcfab6f07bff4` is historical); private Core master `b5c44685197a40df99a4d48891120b12475c6ca5`. PR #39 is merged. [Run 44837963823](https://github.com/yuriyyak23/HybridCPU-Compilers/actions/runs/44837963823) reported `fixture-refusals=success`; `paired-fixture-core`, `dispatch-policy`, and `golden-real-approved` were all **skipped**. That run did not execute the private Core importer.
+
+**Incremental code changes:** The trusted paired fixture job relocates its separately checked-out private Core to a fresh `RUNNER_TEMP/R2_02_core_<run>_<attempt>` directory before using it. The original private Core checkout remains read-only; the existing runner builds a Core-dependent disposable host only from a separate TEMP copy, and calls Core-owned `BridgeSegmentIndexImporterV2.Import` without cloning the parser. Core credentials remain checkout-scoped with `persist-credentials: false`. Current positive reader contract remains `Candidate / CWINT03_V2_UNQUALIFIED_CLOSURE`, at least 1001 rows, **not** independent verification.
+
+All seven existing corruption tests are retained. An eighth variant duplicates the first JSONL chunk manifest descriptor while retaining raw input bytes. It independently re-pins its test-only index to reach the genuine Core chunk-order validator and requires `CWINT03_V2_CHUNK_ORDER`, exit=1, from the same host DLL. Unlike replacing a test, this preserves the earlier `CWINT03_V2_CHUNK_SHA` coverage.
+
+**New receipt fail-closed boundary:** `Tests/Integration/R2_02_ReceiptGate.py` independently checks the *shape* of the allowed fixture `receipt.json`: exact Bridge/Core pins and SDK `11.0.100-rc.2.26504.105`; SHA and exit evidence for the SDK probe, producer, R2-01 stage, host build and all Core invocations; >=1001 source rows and exact Core diagnostic; eight specific error codes and `exit=1` for all mutations; unmodified original Bridge/Core/synthetic fixture Golden checkouts and staged workspace. Skipped/partial stages, wrong SDK, duplicated JSON properties, altered host binary pins, dishonest negative `exit=0`, stale positive output, missing inventory or source drift cause nonzero refusal. Gate output never includes private paths or raw diagnostics.
+
+**Scope:** this validator does **not** execute Core by itself, verify software source provenance or promote Candidate to Verified/AcceptedRTL. A local synthetic unit-test PASS proves only receipt policy behavior. Even a successful future paired fixture dispatch proves only actual Core importer *transport* behavior, not real Golden Csc/PE/PDB or hardware correctness.
+
+**Remaining blocked owner work:** owner-provisioned `HB_INT_06_CORE_READ_TOKEN` with private CircuitWeave `contents:read`; explicit approved exact Bridge/Core SHA via master `workflow_dispatch`, and review of the resulting run/job receipt. Golden remains blocked until separate R0-01 Companion, R1-01 true task-time Csc witness, R1-02 no-write closure, R1-03 executed PE/PDB method mapping, independently reviewed Golden SHA and `HB_REAL_GOLDEN_READ_TOKEN` plus independent Core admissibility. No unreviewed build and no private byte payload uploaded. On an actual mismatch create a precise separate CW-INT-03 Core-owner dependency; do not patch Core from Bridge.
+
+**Local bounded tests** (do not run private Core):
+
+```bash
+cd Compilers/HybridCPU_Compiler/HardwareBridge
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -v -s Tests/Integration -p 'test_*.py'
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -v -s HWIR/EvaluatedProjectGraph -p 'test_*.py'
+```
