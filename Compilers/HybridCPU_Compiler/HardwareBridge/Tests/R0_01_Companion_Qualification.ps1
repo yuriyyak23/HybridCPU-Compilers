@@ -176,6 +176,7 @@ function CheckGraph([string]$project, [string]$config, [string]$artifact) {
     $graph = $response.Stdout | ConvertFrom-Json
     # The SDK's evaluated intermediate and binary paths must be outside the source checkout.
     # Project references can have their own Directory.Build.props; inspect each independently.
+    $evaluatedPaths = @{}
     foreach ($propertyName in @('BaseIntermediateOutputPath', 'OutputPath')) {
         $evaluatedPath = [string]$graph.Properties.$propertyName
         if ([string]::IsNullOrWhiteSpace($evaluatedPath)) {
@@ -184,7 +185,7 @@ function CheckGraph([string]$project, [string]$config, [string]$artifact) {
         if (-not [IO.Path]::IsPathFullyQualified($evaluatedPath)) {
             $evaluatedPath = Join-Path (Split-Path $project -Parent) $evaluatedPath
         }
-        RequireWithin $evaluatedPath $artifact | Out-Null
+        $evaluatedPaths[$propertyName] = RequireWithin $evaluatedPath $artifact
     }
     $items = @($graph.Items.Compile)
     if ($items.Count -lt 1 -or $items.Count -gt 20000) { throw 'Unbounded or empty evaluated Compile graph.' }
@@ -197,6 +198,7 @@ function CheckGraph([string]$project, [string]$config, [string]$artifact) {
     $refs = @($graph.Items.ProjectReference | ForEach-Object { ([string]$_.Identity).Replace('\', '/') })
     return [pscustomobject]@{
         Count = $items.Count
+        OutputDirectory = $evaluatedPaths['OutputPath']
         References = $refs
         ItemSha256 = HashText $response.Stdout
         # Configuration-specific paths/defines are excluded from the source-closure identity.
@@ -289,10 +291,10 @@ try {
         # An actual Core->Cil->Roslyn->Companion progression, not a restore-only PASS.
         # Each build runs the *unchanged* production project, never a trimmed copy.
         $projects = @(
-            @{ Name = 'Core'; Project = $core; Assembly = 'HybridCPU.Compiler.Core' },
-            @{ Name = 'Cil'; Project = $cil; Assembly = 'HybridCPU.Compiler.Cil' },
-            @{ Name = 'Roslyn'; Project = $roslyn; Assembly = 'HybridCPU.Compiler.Roslyn' },
-            @{ Name = 'Companion'; Project = $companion; Assembly = 'HardwareBridge.Companion' }
+            @{ Name = 'Core'; Project = $core; Assembly = 'HybridCPU.Compiler.Core'; Graph = $coreGraph },
+            @{ Name = 'Cil'; Project = $cil; Assembly = 'HybridCPU.Compiler.Cil'; Graph = $cilGraph },
+            @{ Name = 'Roslyn'; Project = $roslyn; Assembly = 'HybridCPU.Compiler.Roslyn'; Graph = $roslynGraph },
+            @{ Name = 'Companion'; Project = $companion; Assembly = 'HardwareBridge.Companion'; Graph = $companionGraph }
         )
         $builtAll = $true
         foreach ($entry in $projects) {
@@ -302,7 +304,10 @@ try {
             if ($build.Exit -ne 0) {
                 $mode.Build = 'Failed'
                 $mode.FirstFailedProject = $entry.Name
-                $mode.FailureKind = if ($entry.Name -eq 'Core' -and $report.ProductionArtifactTrackedFiles -eq 0) {
+                $unresolvedArtifacts = $report.ProductionArtifactTrackedFiles -eq 0 -and
+                    ($build.Stdout -match 'CS0234|CS0246') -and
+                    ($build.Stdout -match 'Core[.]IR[.]Artifacts|CompilerEmissionPackage|CompilerSidebandEnvelope|DescriptorEnvelope|TypedSlotFactsEnvelope|CompilerEvidenceEnvelope')
+                $mode.FailureKind = if ($entry.Name -eq 'Core' -and $unresolvedArtifacts) {
                     'SourceDependencyMissing'
                 } else { 'BuildFailed' }
                 $builtAll = $false
@@ -313,15 +318,24 @@ try {
         $mode.Build = 'Passed'
         $peFiles = @{}
         foreach ($entry in $projects) {
-            $candidates = @(Get-ChildItem -LiteralPath $artifacts -Recurse -File -Filter ($entry.Assembly + '.dll') |
-                Where-Object { $_.FullName -notmatch '[/\\]ref(int)?[/\\]' })
+            $projectOutput = $entry.Graph.OutputDirectory
+            $candidates = @(
+                if ([IO.Directory]::Exists($projectOutput)) {
+                    Get-ChildItem -LiteralPath $projectOutput -Recurse -File -Filter ($entry.Assembly + '.dll') |
+                        Where-Object { $_.FullName -notmatch '[/\\]ref(int)?[/\\]' }
+                }
+            )
             if ($candidates.Count -ne 1) {
                 $mode.FailureKind = 'RealPEMissing'
                 break
             }
             $dll = RequireWithin $candidates[0].FullName $artifacts
             $peFiles[$entry.Name] = [ordered]@{ Path = $dll; Sha256 = (FileSha $dll) }
-            $mode.AssemblySha256 += [ordered]@{ Name = $entry.Name; Sha256 = $peFiles[$entry.Name].Sha256 }
+            $assembledPdb = [IO.Path]::ChangeExtension($dll, '.pdb')
+            $mode.AssemblySha256 += [ordered]@{
+                Name = $entry.Name; Sha256 = $peFiles[$entry.Name].Sha256
+                PdbSha256 = if ([IO.File]::Exists($assembledPdb)) { FileSha $assembledPdb } else { $null }
+            }
         }
         if ($mode.FailureKind -eq 'RealPEMissing') { continue }
         $mode.DllSha256 = $peFiles['Companion'].Sha256
