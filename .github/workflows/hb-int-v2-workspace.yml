@@ -21,11 +21,15 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '11.0.100-rc.2.26504.105'
       - name: Exact SDK, actual compile and filesystem regressions
         shell: bash
+        env:
+          EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           set -Eeuo pipefail
           export TMPDIR="$RUNNER_TEMP" TMP="$RUNNER_TEMP" TEMP="$RUNNER_TEMP"
@@ -34,7 +38,7 @@ jobs:
           }
           checkout_head="$(git -C "$GITHUB_WORKSPACE" rev-parse HEAD)"
           echo "checkout_head_sha=$checkout_head"
-          test "$checkout_head" = "$GITHUB_SHA"
+          test "$checkout_head" = "$EXPECTED_HEAD_SHA"
           git -C "$GITHUB_WORKSPACE" diff --exit-code
           before="$(inventory)"
           echo "tracked_sha_inventory_before=$before"
