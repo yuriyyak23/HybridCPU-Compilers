@@ -129,6 +129,15 @@ jobs:
           token: ${{ secrets.HB_INT_06_CORE_READ_TOKEN }}
           path: core
           persist-credentials: false
+      - name: Isolate private Core checkout under disposable runner TEMP
+        shell: bash
+        run: |
+          set -euo pipefail
+          destination="$RUNNER_TEMP/R2_02_core_${GITHUB_RUN_ID}_${GITHUB_RUN_ATTEMPT}"
+          test ! -e "$destination"
+          test -d core/.git
+          mv core "$destination"
+          echo "CORE_CHECKOUT_DIR=$destination" >> "$GITHUB_ENV"
       - name: Verify exact Bridge/Core commits, clean checkouts, no trusted-token persistence
         shell: bash
         env:
@@ -136,9 +145,9 @@ jobs:
         run: |
           set -euo pipefail
           test "$(git -C bridge rev-parse HEAD)" = "$GITHUB_SHA"
-          test "$(git -C core rev-parse HEAD)" = "$CORE_SHA"
+          test "$(git -C "$CORE_CHECKOUT_DIR" rev-parse HEAD)" = "$CORE_SHA"
           test -z "$(git -C bridge status --porcelain=v1 --untracked-files=all)"
-          test -z "$(git -C core status --porcelain=v1 --untracked-files=all)"
+          test -z "$(git -C "$CORE_CHECKOUT_DIR" status --porcelain=v1 --untracked-files=all)"
           echo "Bridge/Core exact checkout pins verified (no private source in log)"
       - uses: actions/setup-dotnet@v4
         with:
@@ -162,12 +171,18 @@ jobs:
           )
           python3 bridge/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/Integration/Run-CrossRepoReplay.py \
             --scope fixture --bridge "$GITHUB_WORKSPACE/bridge" --bridge-sha "$BRIDGE_SHA" \
-            --core "$GITHUB_WORKSPACE/core" --core-sha "$CORE_SHA" \
+            --core "$CORE_CHECKOUT_DIR" --core-sha "$CORE_SHA" \
             --golden "${data[0]}" --golden-sha "${data[1]}" \
             --graph "${data[2]}" --observation "${data[3]}" --roots "${data[4]}" \
             --roots-sha "${data[5]}" --closure-sha "${data[6]}" \
             --sdk '11.0.100-rc.2.26504.105' --dotnet "$(command -v dotnet)" \
             --output "$RUNNER_TEMP/hb-cross-repo-${GITHUB_RUN_ID}"
+          # Structural attestation must refuse skipped, partial, or forged receipt
+          # evidence, even if the upstream runner exits 0. This does not verify RTL.
+          python3 bridge/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/Integration/R2_02_ReceiptGate.py \
+            --receipt "$RUNNER_TEMP/hb-cross-repo-${GITHUB_RUN_ID}/receipt.json" \
+            --bridge-sha "$BRIDGE_SHA" --core-sha "$CORE_SHA" \
+            --sdk '11.0.100-rc.2.26504.105'
       - name: Upload fixture verdict only, NEVER raw source
         if: always()
         uses: actions/upload-artifact@v4
