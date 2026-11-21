@@ -81,8 +81,12 @@ internal static class BridgeV2OwnedWorkspaceTests
                     .SequenceEqual(entry.Bytes.ToArray()), "source/reference bytes changed");
             Check(Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(sourcePath))) ==
                 initialSha, "test Golden source was modified");
-            Check((File.GetAttributes(staged.IndexPath) & FileAttributes.ReadOnly) != 0,
-                "published index not marked read-only");
+            foreach (string relative in new[] { BridgeV2OwnedWorkspacePublisher.IndexFileName }
+                .Concat(index.Chunks.Select(x => x.Path))
+                .Concat(inputs.Select(x => x.Path)))
+                Check((File.GetAttributes(Path.Combine(staged.Root, relative)) &
+                    FileAttributes.ReadOnly) != 0,
+                    "published file missing read-only seal: " + relative);
             if (!OperatingSystem.IsWindows())
                 Check((File.GetUnixFileMode(staged.Root) & UnixFileMode.UserWrite) == 0,
                     "published root should be write-restricted on Unix");
@@ -129,18 +133,37 @@ internal static class BridgeV2OwnedWorkspaceTests
                 BridgeV2OwnedWorkspacePublisher.Publish(index, inputs, roots,
                     new[] { live[0] with { AbsolutePath = missingPath } }, golden));
 
-            // Symlink/reparse test is only executable when the host supports symlink creation.
-            if (!OperatingSystem.IsWindows())
+            // Both pinned CI runners must exercise a real symlink and symlink
+            // ancestor. If a Windows runner lacks the required privilege the job
+            // must fail, not silently qualify an untested reparse boundary.
+            string link = Path.Combine(golden, "symlink.cs");
+            try
             {
-                string link = Path.Combine(golden, "symlink.cs");
                 File.CreateSymbolicLink(link, sourcePath);
                 Refuse(BridgeV2Refusal.InvalidRole, () =>
                     BridgeV2OwnedWorkspacePublisher.Publish(index, inputs, roots,
                         new[] { live[0] with { AbsolutePath = link } }, golden));
-                File.Delete(link);
             }
-            else
-                Console.WriteLine("NOTRUN: symlink creation test requires non-Windows host permissions.");
+            finally { if (File.Exists(link)) File.Delete(link); }
+
+            string realAncestor = Path.Combine(golden, "real-ancestor");
+            string linkedAncestor = Path.Combine(golden, "linked-ancestor");
+            Directory.CreateDirectory(realAncestor);
+            File.WriteAllBytes(Path.Combine(realAncestor, "Fixture.cs"), current);
+            try
+            {
+                Directory.CreateSymbolicLink(linkedAncestor, realAncestor);
+                Refuse(BridgeV2Refusal.InvalidRole, () =>
+                    BridgeV2OwnedWorkspacePublisher.Publish(index, inputs, roots,
+                        new[] { live[0] with {
+                            AbsolutePath = Path.Combine(linkedAncestor, "Fixture.cs")
+                        } }, golden));
+            }
+            finally
+            {
+                if (Directory.Exists(linkedAncestor)) Directory.Delete(linkedAncestor);
+                Directory.Delete(realAncestor, true);
+            }
 
             // Actual on-disk mutations strictly between the first source rehash
             // and the output rehash, not merely mutation of in-memory DTOs.
@@ -225,6 +248,54 @@ internal static class BridgeV2OwnedWorkspaceTests
                         "partially copied owned TEMP output was not cleaned");
                 }
                 finally { BridgeV2OwnedWorkspacePublisher.AfterCopyBlockForTests = null; }
+            }
+
+            // A real I/O exception after the first copy block must still be
+            // converted to a typed refusal and leave no partial owned TEMP.
+            {
+                var rootsBefore = Directory.GetDirectories(Path.GetTempPath(),
+                    "hb-int-v2-*").ToHashSet(StringComparer.OrdinalIgnoreCase);
+                int injected = 0;
+                try
+                {
+                    BridgeV2OwnedWorkspacePublisher.AfterCopyBlockForTests =
+                        (relative, count) => {
+                            if (relative == "references/metadata.bin" && count == 64 * 1024)
+                            {
+                                injected++;
+                                throw new IOException("R3_02_InjectedCopyFailure");
+                            }
+                        };
+                    Refuse(BridgeV2Refusal.InvalidPin, () =>
+                        BridgeV2OwnedWorkspacePublisher.Publish(index, inputs, roots,
+                            live, golden));
+                    Check(injected == 1, "copy I/O injection was not exercised");
+                    Check(Directory.GetDirectories(Path.GetTempPath(), "hb-int-v2-*")
+                        .ToHashSet(StringComparer.OrdinalIgnoreCase).SetEquals(rootsBefore),
+                        "copy exception left an owned TEMP output");
+                }
+                finally { BridgeV2OwnedWorkspacePublisher.AfterCopyBlockForTests = null; }
+            }
+
+            // A discretionary read-only seal is rechecked after the seal stage.
+            // Clearing it without changing bytes must not be published.
+            failed = null;
+            try
+            {
+                BridgeV2OwnedWorkspacePublisher.AfterSealForTests = path => {
+                    failed = path;
+                    File.SetAttributes(Path.Combine(path, "source", "Fixture.cs"),
+                        FileAttributes.Normal);
+                };
+                Refuse(BridgeV2Refusal.InvalidPin, () =>
+                    BridgeV2OwnedWorkspacePublisher.Publish(index, inputs, roots, live, golden));
+                Check(failed is not null && !Directory.Exists(failed),
+                    "removed file seal left an owned TEMP output");
+            }
+            finally
+            {
+                BridgeV2OwnedWorkspacePublisher.AfterSealForTests = null;
+                RemoveSyntheticOutput(failed);
             }
 
             // No untracked path may be reported to Core. Unowned files must not be
@@ -313,6 +384,8 @@ internal static class BridgeV2OwnedWorkspaceTests
                 {
                     BridgeV2OwnedWorkspacePublisher.AfterStageWriteForTests = path => {
                         failed = path;
+                        if (OperatingSystem.IsWindows())
+                            throw new InvalidOperationException("Unix-only chmod fixture on Windows");
                         File.SetUnixFileMode(Path.Combine(path, "source", "Fixture.cs"),
                             UnixFileMode.None);
                     };
@@ -370,27 +443,25 @@ internal static class BridgeV2OwnedWorkspaceTests
             Refuse(BridgeV2Refusal.InvalidRole, () =>
                 BridgeV2OwnedWorkspacePublisher.Publish(conflictTransport, conflictInputs,
                     roots, new[] { live[0] with { Path = "references" } }, golden));
-            // A swapped file symlink is refused even when its target has identical bytes.
-            if (!OperatingSystem.IsWindows())
+            // Preflight-to-stage source replacement is a mandatory negative
+            // on both OS runners, even when target bytes match the original.
+            string external = Path.Combine(golden, "identical.cs");
+            File.WriteAllBytes(external, current);
+            try
             {
-                string external = Path.Combine(golden, "identical.cs");
-                File.WriteAllBytes(external, current);
-                try
-                {
-                    BridgeV2OwnedWorkspacePublisher.AfterSourcePreflightForTests = () => {
-                        File.Delete(sourcePath);
-                        File.CreateSymbolicLink(sourcePath, external);
-                    };
-                    Refuse(BridgeV2Refusal.InvalidRole, () =>
-                        BridgeV2OwnedWorkspacePublisher.Publish(index, inputs, roots, live, golden));
-                }
-                finally
-                {
-                    BridgeV2OwnedWorkspacePublisher.AfterSourcePreflightForTests = null;
-                    if (File.Exists(sourcePath)) File.Delete(sourcePath);
-                    File.WriteAllBytes(sourcePath, current);
-                    File.Delete(external);
-                }
+                BridgeV2OwnedWorkspacePublisher.AfterSourcePreflightForTests = () => {
+                    File.Delete(sourcePath);
+                    File.CreateSymbolicLink(sourcePath, external);
+                };
+                Refuse(BridgeV2Refusal.InvalidRole, () =>
+                    BridgeV2OwnedWorkspacePublisher.Publish(index, inputs, roots, live, golden));
+            }
+            finally
+            {
+                BridgeV2OwnedWorkspacePublisher.AfterSourcePreflightForTests = null;
+                if (File.Exists(sourcePath)) File.Delete(sourcePath);
+                File.WriteAllBytes(sourcePath, current);
+                File.Delete(external);
             }
 
             Check(Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(sourcePath))) ==
@@ -402,6 +473,7 @@ internal static class BridgeV2OwnedWorkspaceTests
             BridgeV2OwnedWorkspacePublisher.AfterSourcePreflightForTests = null;
             BridgeV2OwnedWorkspacePublisher.AfterStageWriteForTests = null;
             BridgeV2OwnedWorkspacePublisher.AfterCopyBlockForTests = null;
+            BridgeV2OwnedWorkspacePublisher.AfterSealForTests = null;
             RemoveSyntheticOutput(published);
             if (Directory.Exists(golden))
                 Directory.Delete(golden, true);

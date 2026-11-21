@@ -29,6 +29,7 @@ public static class BridgeV2OwnedWorkspacePublisher
     internal static Action? AfterSourcePreflightForTests;
     internal static Action<string>? AfterStageWriteForTests;
     internal static Action<string, int>? AfterCopyBlockForTests;
+    internal static Action<string>? AfterSealForTests;
 #endif
 
     public static BridgeV2PublishedWorkspace Publish(
@@ -160,8 +161,12 @@ public static class BridgeV2OwnedWorkspacePublisher
                 CheckFileBytes(pin.Full, pin.Hash, pin.Length, cancellationToken);
             ThrowIfCancelled(cancellationToken);
             SealStaged(output, occupied, expectedDirs);
+#if HARDWAREBRIDGE_TESTS
+            AfterSealForTests?.Invoke(output);
+#endif
             VerifyStaged(output, occupied, expectedDirs, index, chunks, canonical.Inputs,
                 cancellationToken);
+            VerifySealed(output, occupied, expectedDirs);
             foreach (var pin in pins)
                 CheckFileBytes(pin.Full, pin.Hash, pin.Length, cancellationToken);
             ThrowIfCancelled(cancellationToken);
@@ -171,12 +176,14 @@ public static class BridgeV2OwnedWorkspacePublisher
         catch (UnauthorizedAccessException)
         {
             CleanupOwned(output, occupied, expectedDirs);
-            Refuse(BridgeV2Refusal.InvalidPin, "Unreadable staged workspace.");
+            throw new BridgeV2RefusalException(BridgeV2Refusal.InvalidPin,
+                "Unreadable staged workspace.");
         }
         catch (IOException)
         {
             CleanupOwned(output, occupied, expectedDirs);
-            Refuse(BridgeV2Refusal.InvalidPin, "Staged workspace I/O failure.");
+            throw new BridgeV2RefusalException(BridgeV2Refusal.InvalidPin,
+                "Staged workspace I/O failure.");
         }
         catch
         {
@@ -258,6 +265,32 @@ public static class BridgeV2OwnedWorkspacePublisher
             }
             AssertNoReparse(output);
             File.SetUnixFileMode(output, UnixFileMode.UserRead | UnixFileMode.UserExecute);
+        }
+    }
+
+    // Verify the sealing contract rather than inferring it from SetAttributes success.
+    // These modes are discretionary protections only; Core must rehash independently.
+    private static void VerifySealed(string output, HashSet<string> expectedFiles,
+        HashSet<string> expectedDirs)
+    {
+        AssertNoReparse(output);
+        foreach (string relative in expectedFiles)
+        {
+            string path = StagedPath(output, relative);
+            AssertNoReparse(path);
+            if ((File.GetAttributes(path) & FileAttributes.ReadOnly) == 0)
+                Refuse(BridgeV2Refusal.InvalidPin, "Staged file lost its read-only seal.");
+        }
+        if (!OperatingSystem.IsWindows())
+        {
+            foreach (string directory in expectedDirs.Select(x => StagedPath(output, x))
+                .Append(output))
+            {
+                AssertNoReparse(directory);
+                if ((File.GetUnixFileMode(directory) & UnixFileMode.UserWrite) != 0)
+                    Refuse(BridgeV2Refusal.InvalidPin,
+                        "Owned Unix workspace directory remains writable.");
+            }
         }
     }
 
