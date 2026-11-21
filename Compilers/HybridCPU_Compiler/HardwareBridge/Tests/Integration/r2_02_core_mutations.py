@@ -13,6 +13,7 @@ MUTATIONS = {
     'input-bytes': 'CWINT03_STALE_BYTES',
     'chunk-bytes': 'CWINT03_V2_CHUNK_SHA',
     'omitted-chunk': 'CWINT03_V2_IO',
+    'duplicate-chunk': 'CWINT03_V2_CHUNK_ORDER',
     'wrong-index-pin': 'CWINT03_V2_INDEX_SHA',
     'duplicate-root': 'CWINT03_V2_ROOT',
     'duplicate-json-key': 'CWINT03_V2_SCHEMA',
@@ -79,6 +80,12 @@ def prepare_fixture_mutation(workspace, kind):
         # Keep staged bytes intact: only the caller-owned expected index SHA is wrong.
         return ('0' * 64 if digest(original) != '0' * 64 else 'F' * 64,
                 closure, MUTATIONS[kind])
+    elif kind == 'duplicate-chunk':
+        # Repeat the first descriptor without changing the original chunk bytes.
+        # The pinned independent Core reader must refuse the duplicate path,
+        # not merely a forged SHA or noncanonical record.
+        index['Chunks'].insert(1, dict(index['Chunks'][0]))
+        index_path.write_bytes(canonical(index))
     elif kind == 'duplicate-root':
         index['Roots'].append(dict(index['Roots'][0]))
         index_path.write_bytes(canonical(index))
