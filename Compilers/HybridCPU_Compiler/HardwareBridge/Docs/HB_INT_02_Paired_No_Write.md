@@ -182,3 +182,15 @@ before/after comparisons remain mandatory. Synthetic mutation tests shrink
 the budgets instead of generating resource-intensive hostile trees. The
 real Golden gate is still Blocked/NotRun without a separately approved,
 immutable source/worktree identity and actual R1-01 OS witness.
+
+### Windows Git root identity follow-up
+
+[R1-02 run 44854556176](https://github.com/yuriyyak23/HybridCPU-Compilers/actions/runs/44854556176)
+removed the original `file replaced between check and open` cascade,
+but left 1 failure / 3 errors in synthetic Git clean/dirty fixtures:
+`snapshot path is not exact Git root`. On Windows `git rev-parse
+--show-toplevel` may return a different spelling of the same OS directory.
+The read-only Git guard now uses `os.path.samefile` to establish actual
+directory identity, refusing on mismatch or unavailable identity, rather
+than comparing spelled path objects. This does not relax the requirement
+to pin the exact 40-hex HEAD and full porcelain+source-byte inventories.
