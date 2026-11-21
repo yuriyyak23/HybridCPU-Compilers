@@ -346,6 +346,14 @@ def main(args):
              "sha256": r["sha256"], "bytes": r["bytes"],
              "chunks": [{"sha256": ch["sha256"], "bytes": ch["bytes"]} for ch in r["chunks"]]}
             for i, r in enumerate(index["entries"])]
+        # A thousand *total* metadata/reference rows cannot impersonate
+        # one thousand actual Csc source entries in the positive fixture.
+        receipt["captureSourceRows"] = sum(
+            1 for r in index["entries"]
+            if r["kind"] in ("csc-source", "generator-source") and r["role"] == "primary")
+        if args.scope == "fixture":
+            require(receipt["captureSourceRows"] >= 1001,
+                    "fixture producer captured fewer than 1001 primary source entries")
         if args.scope == "golden":
             for p, digest in ((args.pe, args.pe_sha), (args.pdb, args.pdb_sha)):
                 check_sha(digest, "PE/PDB SHA")
@@ -421,8 +429,9 @@ def main(args):
                 response.get("indexSha256") == digest and response.get("closureSha256") == closure,
                 "Core reader did not return pinned unqualified candidate receipt")
         if args.scope == "fixture":
-            require(isinstance(response.get("rows"), int) and response["rows"] >= 1001,
-                    "Core reader did not import all 1001+ staged fixture rows")
+            require(type(response.get("sourceRows")) is int and response["sourceRows"] >= 1001 and
+                    type(response.get("rows")) is int and response["rows"] >= response["sourceRows"],
+                    "Core importer did not confirm 1001+ primary source entries")
         receipt["coreReader"] = response
         receipt["negativeCoreMatrix"] = []
         if args.scope == "fixture":
