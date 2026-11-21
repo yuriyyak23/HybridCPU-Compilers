@@ -248,6 +248,21 @@ class ClosureTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "hardlink/alias"):
             c.build_inputs(str(self.graph_path), str(self.observation_path), str(self.golden))
 
+    def test_r1_02_fd_path_stat_contract_probe(self):
+        # Synthetic-file-only platform diagnostics: never include source/path bytes.
+        import os
+        with self.source.open("rb") as stream:
+            descriptor = os.fstat(stream.fileno())
+            path_state = self.source.lstat()
+            fields = ("st_dev", "st_ino", "st_mode", "st_size",
+                      "st_mtime_ns", "st_ctime_ns")
+            matches = {name: getattr(descriptor, name) == getattr(path_state, name)
+                       for name in fields}
+            print("R1_02_SYNTHETIC_FD_PATH_STAT_FIELD_MATCH=" +
+                  ",".join(name + ":" + str(matches[name]) for name in fields))
+            self.assertEqual(descriptor.st_size, path_state.st_size)
+            self.assertEqual(descriptor.st_mtime_ns, path_state.st_mtime_ns)
+
     def test_full_byte_identity_not_filename(self):
         other = self.copy / "DifferentName.cs"
         other.write_bytes(self.source.read_bytes())
