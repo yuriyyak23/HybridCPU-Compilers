@@ -48,7 +48,11 @@ jobs:
           $props = @("-p:BaseIntermediateOutputPath=$sdk/obj/", "-p:MSBuildProjectExtensionsPath=$sdk/obj/", "-p:OutputPath=$artifactPath/")
           $audit = Join-Path $env:GITHUB_WORKSPACE 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CscCoreV2Parity/R2_03_checkout_inventory.py'
           $auditFile = Join-Path $sdk 'before-inventory.json'
+          $guard = Join-Path $env:GITHUB_WORKSPACE 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CscCoreV2Parity/R2_03_workflow_guard.py'
+          $workflow = Join-Path $env:GITHUB_WORKSPACE '.github/workflows/hb-int-02-csc-dotnet-parity.yml'
           try {
+            & python $guard $workflow
+            if ($LASTEXITCODE -ne 0) { throw 'R2-03 workflow source malformed' }
             & python $audit --root $env:GITHUB_WORKSPACE --record $auditFile
             if ($LASTEXITCODE -ne 0) { throw 'Full checkout before-inventory failed' }
             & python $fixture $output
@@ -142,6 +146,8 @@ jobs:
           $driver = Join-Path $env:GITHUB_WORKSPACE 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CscCoreV2Parity/r203_release_wire_driver.py'
           $audit = Join-Path $env:GITHUB_WORKSPACE 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CscCoreV2Parity/R2_03_checkout_inventory.py'
           $auditFile = Join-Path $work 'before-inventory.json'
+          $guard = Join-Path $env:GITHUB_WORKSPACE 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CscCoreV2Parity/R2_03_workflow_guard.py'
+          $workflow = Join-Path $env:GITHUB_WORKSPACE '.github/workflows/hb-int-02-csc-dotnet-parity.yml'
           $obj = Join-Path $work 'obj'
           $bin = Join-Path $work 'bin'
           $logs = Join-Path $work 'logs'
@@ -177,6 +183,8 @@ jobs:
           $beforeSha = (& git rev-parse HEAD).Trim()
           $before = (& git status --porcelain=v1 --untracked-files=all) -join [Environment]::NewLine
           if ($LASTEXITCODE -ne 0 -or $before) { throw 'Checkout must start clean' }
+          & python $guard $workflow
+          if ($LASTEXITCODE -ne 0) { throw 'R2-03 workflow source malformed' }
           & python $audit --root $env:GITHUB_WORKSPACE --record $auditFile
           if ($LASTEXITCODE -ne 0) { throw 'R2-03 checkout inventory failed' }
           Push-Location $work
