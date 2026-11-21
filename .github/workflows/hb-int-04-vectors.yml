@@ -6,8 +6,10 @@ on:
     paths:
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/GoldenOracle/GoldenBoundVectorsV1.cs'
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/GoldenOracle/R301ScalarSessionV2.cs'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/GoldenOracle/GoldenRawTraceV1.cs'
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/GoldenOracle/r301-scalar-session-v2.md'
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/GoldenBoundVectors*'
+      - 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/GoldenRawTraceTests.cs'
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/GoldenOracle/bound-vectors-v1.md'
       - '.github/workflows/hb-int-04-vectors.yml'
   workflow_dispatch:
@@ -27,27 +29,35 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '11.0.x'
+          dotnet-version: '11.0.100' # fixture toolchain ONLY; historical Core RC2 is distinct
       - name: SDK and checkout SHA
         shell: bash
         run: |
           set -euo pipefail
           git rev-parse HEAD
+          mkdir -p "$RUNNER_TEMP/hb-r301-sdk"
+          printf '%s\\n' '{"sdk":{"version":"11.0.100","rollForward":"disable"}}' > "$RUNNER_TEMP/hb-r301-sdk/global.json"
+          cd "$RUNNER_TEMP/hb-r301-sdk"
+          echo 'R3-01 toolchain: fixture SDK 11.0.100; NOT historical Core 11.0.100-rc.2.26504.105'
+          dotnet --version
           dotnet --info
+          sha256sum "$(command -v dotnet)"
       - name: Source-bound vector codec actual managed test
         shell: bash
         run: |
           set -euo pipefail
-          dotnet run --project Compilers/HybridCPU_Compiler/HardwareBridge/Tests/GoldenBoundVectors.ContractTests.csproj -c Release 2>&1 | tee "$RUNNER_TEMP/hb-int-04-bound-vectors.log"
+          cd "$RUNNER_TEMP/hb-r301-sdk"
+          dotnet run --project "$GITHUB_WORKSPACE/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/GoldenBoundVectors.ContractTests.csproj" -c Release -p:UseArtifactsOutput=true -p:ArtifactsPath="$RUNNER_TEMP/hb-r301-artifacts" 2>&1 | tee "$RUNNER_TEMP/hb-int-04-bound-vectors.log"
           sha256sum "$RUNNER_TEMP/hb-int-04-bound-vectors.log"
 
       - name: R3-01 execute actual compiled fixture delegate and refuse mutations
         shell: bash
         run: |
           set -euo pipefail
+          cd "$RUNNER_TEMP/hb-r301-sdk"
           begin=$(date +%s)
           set +e
-          dotnet run --project Compilers/HybridCPU_Compiler/HardwareBridge/Tests/GoldenBoundVectorsR301.ContractTests.csproj -c Release >"$RUNNER_TEMP/hb-r301-stdout.log" 2>"$RUNNER_TEMP/hb-r301-stderr.log"
+          dotnet run --project "$GITHUB_WORKSPACE/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/GoldenBoundVectorsR301.ContractTests.csproj" -c Release -p:UseArtifactsOutput=true -p:ArtifactsPath="$RUNNER_TEMP/hb-r301-artifacts" >"$RUNNER_TEMP/hb-r301-stdout.log" 2>"$RUNNER_TEMP/hb-r301-stderr.log"
           rc=$?
           set -e
           cat "$RUNNER_TEMP/hb-r301-stdout.log"
@@ -55,4 +65,21 @@ jobs:
           echo "R3-01 exit=$rc elapsed_seconds=$(($(date +%s)-begin))"
           sha256sum "$RUNNER_TEMP/hb-r301-stdout.log" "$RUNNER_TEMP/hb-r301-stderr.log"
           echo 'Golden actual: NotRun; stateful CPU/RAM/retire: Blocked; Core authority: Blocked'
+          exit "$rc"
+
+      - name: R3-01 pinned raw HOST replay mutations (synthetic fixture only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/hb-r301-sdk"
+          begin=$(date +%s)
+          set +e
+          dotnet run --project "$GITHUB_WORKSPACE/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/GoldenRawTrace.ContractTests.csproj" -c Release -p:UseArtifactsOutput=true -p:ArtifactsPath="$RUNNER_TEMP/hb-r301-artifacts" >"$RUNNER_TEMP/hb-r301-raw-stdout.log" 2>"$RUNNER_TEMP/hb-r301-raw-stderr.log"
+          rc=$?
+          set -e
+          cat "$RUNNER_TEMP/hb-r301-raw-stdout.log"
+          if test -s "$RUNNER_TEMP/hb-r301-raw-stderr.log"; then cat "$RUNNER_TEMP/hb-r301-raw-stderr.log" >&2; fi
+          echo "R3-01 raw host fixture exit=$rc elapsed_seconds=$(($(date +%s)-begin))"
+          sha256sum "$RUNNER_TEMP/hb-r301-raw-stdout.log" "$RUNNER_TEMP/hb-r301-raw-stderr.log"
+          echo 'Actual Golden Processor: NotRun; physical CPU/PE-PDB/Companion/Core equivalence: Blocked'
           exit "$rc"
