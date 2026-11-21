@@ -5,6 +5,7 @@
 param(
     [ValidateSet('Preflight','Checkout','Downstream','SelfTest')][string]$Mode = 'Preflight',
     [string]$ExpectedBridgeSha = '',
+    [string]$BridgeRoot = '',
     [string]$ExpectedCoreSha = '',
     [string]$CoreRoot = '',
     [string]$CheckoutOutcome = 'failure',
@@ -63,6 +64,7 @@ function Write-R002Receipt([string]$Stage, [string]$State, [string]$Reason,
         Schema = 'hybridcpu.hardwarebridge.r0-02-core-gate/v1'
         Stage = $Stage; State = $State; Reason = $Reason
         ReviewedCoreSha = $script:R002ReviewedCoreSha
+        BridgeHead = $(if ($env:GITHUB_SHA -cmatch '^[0-9a-f]{40}$') { $env:GITHUB_SHA } else { 'Invalid' })
         RequestedCoreSha = $(if ($RequestedSha -cmatch '^[0-9a-f]{40}$') { $RequestedSha } else { 'Invalid' })
         EventClass = $(if ($env:GITHUB_EVENT_NAME -cin @('push','workflow_dispatch','pull_request')) { $env:GITHUB_EVENT_NAME } else { 'Unknown' })
         CoreImporter = $(if ($Stage -eq 'Downstream' -and $State -eq 'Passed') { 'PassedUnqualifiedContractOnly' } elseif ($Stage -eq 'Downstream') { 'Failed' } else { 'NotRun' })
@@ -276,8 +278,9 @@ function Assert-HbCoreSelfTests {
         if (Test-Path -LiteralPath $parent) { Remove-Item -LiteralPath $parent -Recurse -Force }
     }
 }
+. (Join-Path $PSScriptRoot 'R0_02_TrustExtension.ps1')
 if ($Mode -eq 'SelfTest') {
-    try { Assert-HbCoreSelfTests; exit 0 }
+    try { Assert-HbCoreSelfTests; Invoke-R0_02SyntheticNegatives; exit 0 }
     catch { Write-Host '::error title=R0-02 synthetic tests::SyntheticTestsFailed'; exit 1 }
 }
 $state = 'Blocked'
@@ -287,15 +290,21 @@ try {
         'Preflight' {
             Assert-R002ReviewedCoreSha $ExpectedCoreSha
             Assert-R002Event $env:GITHUB_EVENT_NAME $env:GITHUB_REF $env:GITHUB_REPOSITORY $env:GITHUB_SHA $ExpectedBridgeSha $env:GITHUB_REF_PROTECTED
+            Assert-R0_02DispatchTrust
+            Assert-R0_02BridgeCheckout $BridgeRoot $ExpectedBridgeSha
             Assert-HbCoreCredential $env:HB_CORE_READ_TOKEN
+            Assert-R0_02FineGrainedToken $env:HB_CORE_READ_TOKEN
             $state = 'Passed'
             $reason = 'TrustedAndCredentialPresent'
         }
         'Checkout' {
             Assert-R002ReviewedCoreSha $ExpectedCoreSha
             Assert-R002PriorReceipt 'Preflight'
+            Assert-R0_02PriorReceipt 'Preflight' $env:GITHUB_SHA
+            Assert-R0_02DispatchTrust
+            Assert-R0_02BridgeCheckout $BridgeRoot $env:GITHUB_SHA
             Assert-HbCoreCheckoutOutcome $CheckoutOutcome
-            Assert-HbCoreCheckout $CoreRoot $ExpectedCoreSha $CoreImporterProject
+            Assert-R0_02CoreCheckout $CoreRoot $ExpectedCoreSha $CoreImporterProject
             $state = 'Passed'
             $reason = 'ExactCleanCoreCheckout'
         }
@@ -303,9 +312,15 @@ try {
             Assert-R002ReviewedCoreSha $ExpectedCoreSha
             Assert-R002PriorReceipt 'Preflight'
             Assert-R002PriorReceipt 'Checkout'
+            Assert-R0_02PriorReceipt 'Preflight' $env:GITHUB_SHA
+            Assert-R0_02PriorReceipt 'Checkout' $env:GITHUB_SHA
+            Assert-R0_02DispatchTrust
+            Assert-R0_02BridgeCheckout $BridgeRoot $env:GITHUB_SHA
+            Assert-R0_02CoreCheckout $CoreRoot $ExpectedCoreSha $CoreImporterProject
             if ($DownstreamExitCode -lt 0) { throw 'DownstreamNotRun' }
             if ($DownstreamExitCode -ne 0) { throw 'DownstreamValidatorFailed' }
             Assert-R002PairedReceipt $PairedReceiptPath $ExpectedCoreSha
+            Assert-R0_02PairedReceipt $PairedReceiptPath $ExpectedCoreSha $env:GITHUB_SHA $CoreRoot
             $state = 'Passed'
             $reason = 'PairedCoreReaderPassedUnqualified'
         }
