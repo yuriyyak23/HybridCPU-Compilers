@@ -25,6 +25,7 @@ jobs:
         with:
           path: bridge
           ref: '${{ github.event.pull_request.head.sha || github.sha }}'
+          fetch-depth: 0
           persist-credentials: false
           submodules: false
           lfs: false
@@ -81,12 +82,17 @@ jobs:
     # Keep this job visible and non-green for PR/absent secret; no implicit skip-as-pass.
     permissions:
       contents: read
+    env:
+      # Owner-managed repository settings, never manual dispatch inputs.
+      HB_R0_02_APPROVED_CORE_SHA: '${{ vars.HB_R0_02_APPROVED_CORE_SHA }}'
+      HB_R0_02_APPROVED_GOLDEN_SHA: '${{ vars.HB_R0_02_APPROVED_GOLDEN_SHA }}'
     steps:
       - name: Checkout Bridge from immutable event SHA
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           path: bridge
           ref: '${{ github.event.pull_request.head.sha || github.sha }}'
+          fetch-depth: 0
           persist-credentials: false
           submodules: false
           lfs: false
@@ -96,10 +102,10 @@ jobs:
         env:
           HB_BRIDGE_SHA: '${{ github.event.pull_request.head.sha || github.sha }}'
           # No credential is even evaluated on PR runs.
-          HB_CORE_READ_TOKEN: "${{ ((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/master' && github.ref_protected && github.repository == 'yuriyyak23/HybridCPU-Compilers') && secrets.HB_INT_06_CORE_READ_TOKEN || '' }}"
+          HB_CORE_READ_TOKEN: "${{ (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master' && github.ref_protected && github.repository == 'yuriyyak23/HybridCPU-Compilers' && vars.HB_R0_02_APPROVED_CORE_SHA == 'b5c44685197a40df99a4d48891120b12475c6ca5' && vars.HB_R0_02_APPROVED_GOLDEN_SHA == '6946ccab9d888f7dae0a4d8e18480f436138acd9') && secrets.HB_INT_06_CORE_READ_TOKEN || '' }}"
         run: |
           $gate = Join-Path $env:GITHUB_WORKSPACE 'bridge/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/HbInt06.CoreGate.ps1'
-          & $gate -Mode Preflight -ExpectedBridgeSha $env:HB_BRIDGE_SHA -ExpectedCoreSha 'b5c44685197a40df99a4d48891120b12475c6ca5'
+          & $gate -Mode Preflight -BridgeRoot (Join-Path $env:GITHUB_WORKSPACE 'bridge') -ExpectedBridgeSha $env:HB_BRIDGE_SHA -ExpectedCoreSha 'b5c44685197a40df99a4d48891120b12475c6ca5'
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Checkout private Core at exact pinned commit with read-only credential
         # Only the checkout action may receive a token; PR never reaches this step.
@@ -111,7 +117,7 @@ jobs:
         with:
           repository: yuriyyak23/CircuitWeave
           ref: b5c44685197a40df99a4d48891120b12475c6ca5
-          token: "${{ ((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/master' && github.ref_protected && github.repository == 'yuriyyak23/HybridCPU-Compilers') && secrets.HB_INT_06_CORE_READ_TOKEN || '' }}"
+          token: "${{ (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master' && github.ref_protected && github.repository == 'yuriyyak23/HybridCPU-Compilers' && vars.HB_R0_02_APPROVED_CORE_SHA == 'b5c44685197a40df99a4d48891120b12475c6ca5' && vars.HB_R0_02_APPROVED_GOLDEN_SHA == '6946ccab9d888f7dae0a4d8e18480f436138acd9') && secrets.HB_INT_06_CORE_READ_TOKEN || '' }}"
           path: core
           fetch-depth: 0
           persist-credentials: false
@@ -123,7 +129,7 @@ jobs:
           HB_CORE_CHECKOUT_OUTCOME: '${{ steps.core_checkout.outcome }}'
         run: |
           $gate = Join-Path $env:GITHUB_WORKSPACE 'bridge/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/HbInt06.CoreGate.ps1'
-          & $gate -Mode Checkout -CheckoutOutcome $env:HB_CORE_CHECKOUT_OUTCOME -CoreRoot (Join-Path $env:GITHUB_WORKSPACE 'core') -ExpectedCoreSha 'b5c44685197a40df99a4d48891120b12475c6ca5'
+          & $gate -Mode Checkout -BridgeRoot (Join-Path $env:GITHUB_WORKSPACE 'bridge') -CheckoutOutcome $env:HB_CORE_CHECKOUT_OUTCOME -CoreRoot (Join-Path $env:GITHUB_WORKSPACE 'core') -ExpectedCoreSha 'b5c44685197a40df99a4d48891120b12475c6ca5'
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Checkout independent pinned Golden source (no compiler/build in checkout)
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -168,7 +174,7 @@ jobs:
           $privateConsoleHash = (Get-FileHash -LiteralPath $privateConsole -Algorithm SHA256).Hash
           Write-Host "Paired parent exit=$runExit durationMs=$($pairedClock.ElapsedMilliseconds) combinedConsoleSHA256=$privateConsoleHash (contents withheld)"
           $gate = Join-Path $env:GITHUB_WORKSPACE 'bridge/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/HbInt06.CoreGate.ps1'
-          & $gate -Mode Downstream -ExpectedCoreSha 'b5c44685197a40df99a4d48891120b12475c6ca5' -DownstreamExitCode $runExit -PairedReceiptPath (Join-Path $env:RUNNER_TEMP 'hb-int-06-paired/hb-int-06-qa-receipt.json')
+          & $gate -Mode Downstream -BridgeRoot (Join-Path $env:GITHUB_WORKSPACE 'bridge') -CoreRoot (Join-Path $env:GITHUB_WORKSPACE 'core') -ExpectedCoreSha 'b5c44685197a40df99a4d48891120b12475c6ca5' -DownstreamExitCode $runExit -PairedReceiptPath (Join-Path $env:RUNNER_TEMP 'hb-int-06-paired/hb-int-06-qa-receipt.json')
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Emit allowlisted no-source/no-secret paired QA summary
         if: always()
@@ -178,7 +184,8 @@ jobs:
           New-Item -Path $dest -ItemType Directory -Force | Out-Null
           $receipt = Join-Path $env:RUNNER_TEMP 'hb-int-06-paired/hb-int-06-qa-receipt.json'
           if (Test-Path -LiteralPath $receipt -PathType Leaf) {
-            $r = Get-Content -LiteralPath $receipt -Raw | ConvertFrom-Json
+            . (Join-Path $env:GITHUB_WORKSPACE 'bridge/Compilers/HybridCPU_Compiler/HardwareBridge/Tests/R0_02_TrustExtension.ps1')
+            $r = Read-R0_02StrictJson $receipt 4194304
             $commands = @($r.Commands | ForEach-Object {
               [ordered]@{
                 Name = $_.Name; Status = $_.Status; ExitCode = $_.ExitCode
