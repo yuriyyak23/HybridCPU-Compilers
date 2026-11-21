@@ -137,6 +137,17 @@ class PairTests(unittest.TestCase):
         with mock.patch.object(paired, "CORE_MAX_ROWS", 1):
             self.assert_refused("Core transition exceeds")
 
+    def test_r1_02_empty_directory_fanout_is_bounded(self):
+        self.modify_dirty()
+        (self.clean.golden / "EmptyDirectoryOnly").mkdir()
+        with mock.patch.object(paired, "INVENTORY_MAX_DIRS", 1):
+            self.assert_refused("bounded directory budget")
+
+    def test_r1_02_inventory_deadline_is_fail_closed(self):
+        self.modify_dirty()
+        with mock.patch.object(paired, "INVENTORY_MAX_SECONDS", -1):
+            self.assert_refused("inventory time budget exceeded")
+
     def test_8gib_source_inventory_budget_is_typed_refusal(self):
         self.modify_dirty()
         # Simulate a tiny ceiling rather than allocating 8 GiB in CI.
