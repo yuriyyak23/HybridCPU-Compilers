@@ -43,6 +43,22 @@ public sealed record GoldenRawTraceV1(
 /// Strict codec for explicitly supplied host observations. Never resolves/loads assemblies or invokes
 /// delegates; a Core-owned trusted host and independent provenance/equivalence gates are prerequisites.
 /// </summary>
+/// <summary>
+/// Independently acquired, exact host-raw replay expectation; NOT a physical CPU cycle
+/// contract, Golden execution attestation, or proof. Do not derive from the receipt under
+/// validation. There is deliberately no general Golden process or delegate activation.
+/// </summary>
+public sealed record R301RawHostStepPinV1(
+    int Index, long LogicalClock, int Context, int Lane, string CanonicalStepSha256);
+
+public sealed record R301RawHostReplayPinV1(
+    string Purpose, int RootIndex, string ClockDomain, int ContextCount, int LaneCount,
+    IReadOnlyList<GoldenTraceCellV1> ExpectedInitialState,
+    IReadOnlyList<R301RawHostStepPinV1> ExpectedSteps)
+{
+    public const string RawHostOnlyPurpose = "independent-raw-host-replay-only";
+}
+
 public static class GoldenRawTraceCodecV1
 {
     public const int MaxTraceBytes = 4 * 1024 * 1024;
@@ -178,6 +194,80 @@ public static class GoldenRawTraceCodecV1
             json, expectedSource, expectedCompiledAssemblySha256, cancellationToken);
         if (trace.RootIndex != expectedRootIndex)
             throw new ArgumentException("HB-R301: Raw trace root does not match independent request.");
+        cancellationToken.ThrowIfCancellationRequested();
+        return trace;
+    }
+
+    /// <summary>
+    /// R3-01 opt-in *raw host* replay: checks a separate, immutable expectation for every
+    /// recorded row, step ordinal, logical clock, context/lane, and initial state. The pin
+    /// must be acquired outside the untrusted trace; deriving it from the trace is unsafe.
+    /// A validated raw host replay is NOT a qualified stateful Golden Processor observation.
+    /// V1 wire and all historical readers remain unchanged.
+    /// </summary>
+    public static GoldenRawTraceV1 ReadAndValidatePinnedHostReplay(
+        ReadOnlyMemory<byte> json,
+        BridgeSourceSnapshotV1 expectedSource,
+        string expectedCompiledAssemblySha256,
+        R301RawHostReplayPinV1 independentPin,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (independentPin is null ||
+            independentPin.Purpose != R301RawHostReplayPinV1.RawHostOnlyPurpose ||
+            !IsLabel(independentPin.ClockDomain) ||
+            independentPin.ContextCount is < 1 or > 64 ||
+            independentPin.LaneCount is < 1 or > 64 ||
+            !ValidCells(independentPin.ExpectedInitialState, requireNonempty: true) ||
+            independentPin.ExpectedSteps is null ||
+            independentPin.ExpectedSteps.Count is < 1 or > MaxSteps)
+            throw new ArgumentException("HB-R301-PIN-001: Missing or unsupported independent raw-host replay contract.");
+
+        // Freeze untrusted caller collections before reading the receipt.
+        // Never infer a physical clock, reset, memory schedule, SMT rank or lane order.
+        GoldenTraceCellV1[] initial = independentPin.ExpectedInitialState.ToArray();
+        R301RawHostStepPinV1[] expectedSteps = independentPin.ExpectedSteps.ToArray();
+        if (!ValidCells(initial, requireNonempty: true) ||
+            expectedSteps.Length != independentPin.ExpectedSteps.Count)
+            throw new ArgumentException("HB-R301-PIN-001: Mutated independent replay contract.");
+
+        long previousClock = -1;
+        for (int i = 0; i < expectedSteps.Length; i++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            R301RawHostStepPinV1 step = expectedSteps[i];
+            if (step is null || step.Index != i || step.LogicalClock <= previousClock ||
+                step.Context < 0 || step.Context >= independentPin.ContextCount ||
+                step.Lane < 0 || step.Lane >= independentPin.LaneCount ||
+                !IsHash(step.CanonicalStepSha256))
+                throw new ArgumentException("HB-R301-PIN-002: Invalid or missing independent step/timebase/context/lane pin.");
+            previousClock = step.LogicalClock;
+        }
+
+        // The existing v1 strict reader provides independent source/assembly/root checks.
+        GoldenRawTraceV1 trace = ReadAndValidate(
+            json, expectedSource, expectedCompiledAssemblySha256,
+            independentPin.RootIndex, cancellationToken);
+        if (trace.Status != "Observed" || trace.Diagnostic is not null ||
+            trace.Scope != GoldenRawTraceV1.RawScope ||
+            trace.ClockDomain != independentPin.ClockDomain ||
+            trace.ContextCount != independentPin.ContextCount ||
+            trace.LaneCount != independentPin.LaneCount ||
+            !trace.InitialState.SequenceEqual(initial) ||
+            trace.Steps.Count != expectedSteps.Length)
+            throw new ArgumentException("HB-R301-PIN-003: Blocked, incomplete, or cross-session raw trace.");
+
+        for (int i = 0; i < expectedSteps.Length; i++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            GoldenTraceStepV1 row = trace.Steps[i];
+            R301RawHostStepPinV1 pinned = expectedSteps[i];
+            if (row.Index != pinned.Index || row.LogicalClock != pinned.LogicalClock ||
+                row.Context != pinned.Context || row.Lane != pinned.Lane)
+                throw new ArgumentException("HB-R301-PIN-004: Step/timebase/context/lane differs from independent pin.");
+            if (Hash(JsonSerializer.SerializeToUtf8Bytes(row)) != pinned.CanonicalStepSha256)
+                throw new ArgumentException("HB-R301-PIN-005: Canonical trace row differs from independent pin.");
+        }
         cancellationToken.ThrowIfCancellationRequested();
         return trace;
     }
