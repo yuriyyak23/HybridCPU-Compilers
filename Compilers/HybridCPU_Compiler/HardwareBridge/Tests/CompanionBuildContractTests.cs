@@ -29,15 +29,48 @@ internal static class CompanionBuildContractTests
             [typeof(ManagedSourceCompanionV1)]);
         RequireRealPe(typeof(CompanionBridgeProjectionV1).Assembly, "HardwareBridge.Companion",
             [typeof(CompanionBridgeProjectionV1)]);
+
+        // Mutations exercise the very same on-disk metadata gate used for production.
+        Reject(() => RequireRealPe(core, "Wrong.Module", requiredCompilerTypes), "wrong-module-name");
+        Reject(() => RequireRealPe(core, "HybridCPU.Compiler.Core",
+            [typeof(ManagedSourceCompanionV1)]), "wrong-type-assembly");
+        Reject(() => RequireRealPe(core, "HybridCPU.Compiler.Core", requiredCompilerTypes,
+            typeof(ManagedSourceCompanionV1).Assembly.Location), "swapped-valid-DLL");
+
+        string bogusPath = Path.Combine(AppContext.BaseDirectory, "R0_01_non_pe_mutation.dll");
+        using (var fake = new FileStream(bogusPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+        {
+            fake.Write(new byte[64]);
+            fake.Flush(true);
+        }
+        try
+        {
+            Reject(() => RequireRealPe(core, "HybridCPU.Compiler.Core", requiredCompilerTypes, bogusPath),
+                "fake-PE");
+        }
+        finally
+        {
+            File.Delete(bogusPath);
+        }
     }
 
-    private static void RequireRealPe(Assembly assembly, string expectedName, Type[] requiredTypes)
+    private static void Reject(Action probe, string label)
+    {
+        try { probe(); }
+        catch (InvalidOperationException) { return; }
+        catch (BadImageFormatException) { return; }
+        throw new InvalidOperationException("R0_01 mutation unexpectedly accepted: " + label);
+    }
+
+    private static void RequireRealPe(Assembly assembly, string expectedName, Type[] requiredTypes,
+        string? fileOverride = null)
     {
         if (assembly.IsDynamic || assembly.GetName().Name != expectedName ||
             string.IsNullOrWhiteSpace(assembly.Location) || !File.Exists(assembly.Location))
             throw new InvalidOperationException("Required real compiled assembly is missing: " + expectedName);
 
-        using var input = new FileStream(assembly.Location, FileMode.Open, FileAccess.Read, FileShare.Read);
+        string file = fileOverride ?? assembly.Location;
+        using var input = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read);
         if (input.Length == 0)
             throw new InvalidOperationException("Empty compiled PE: " + expectedName);
 
@@ -47,6 +80,11 @@ internal static class CompanionBuildContractTests
             throw new InvalidOperationException("Not a managed DLL PE: " + expectedName);
 
         MetadataReader metadata = pe.GetMetadataReader();
+        if (!metadata.IsAssembly ||
+            metadata.GetString(metadata.GetAssemblyDefinition().Name) != expectedName ||
+            metadata.GetString(metadata.GetModuleDefinition().Name) != Path.GetFileName(assembly.Location) ||
+            metadata.GetGuid(metadata.GetModuleDefinition().Mvid) != assembly.ManifestModule.ModuleVersionId)
+            throw new InvalidOperationException("Swapped DLL or wrong module/MVID origin: " + expectedName);
         foreach (Type type in requiredTypes)
         {
             if (!type.IsPublic || type.Assembly != assembly)
