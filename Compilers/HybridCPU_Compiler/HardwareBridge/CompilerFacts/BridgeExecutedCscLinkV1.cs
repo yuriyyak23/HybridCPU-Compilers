@@ -514,7 +514,7 @@ public static class BridgeExecutedCscLinkV1
             .GroupBy(op => (int)unchecked((ushort)op.Value))
             .ToDictionary(group => group.Key, group => group.First().OperandType);
 
-    private static List<(int Offset, int Token)> ParseIlCalls(byte[] il)
+    internal static List<(int Offset, int Token)> ParseIlCalls(byte[] il)
     {
         var result = new List<(int Offset, int Token)>();
         int offset = 0;
@@ -547,6 +547,24 @@ public static class BridgeExecutedCscLinkV1
             };
             if (bytes > il.Length - offset)
                 throw Refuse(BridgeCscLinkRefusal.StaleMethodGraph, "Truncated IL operand.");
+            // The v1 graph models only direct call/callvirt/newobj MethodDef edges.
+            // Indirect transfers and method-pointer construction are NOT a proof
+            // of a closed owned-body graph. Refuse them even if no graph edge
+            // was asserted by Companion; never silently drop an executable edge.
+            if (op is 0x27 or 0x29 or 0xFE06 or 0xFE07)
+                throw Refuse(BridgeCscLinkRefusal.StaleMethodGraph,
+                    "jmp/calli/ldftn/ldvirtftn require a separately qualified call graph.");
+            // ldtoken can manufacture an executable MethodDef/MemberRef/MethodSpec
+            // handle without an immediate call opcode. Type/field tokens alone
+            // are not method edges and remain outside this narrow refusal.
+            if (op == 0xD0)
+            {
+                int tokenTable = (int)((uint)BinaryPrimitives.ReadInt32LittleEndian(
+                    il.AsSpan(offset, 4)) >> 24);
+                if (tokenTable is 0x06 or 0x0A or 0x2B)
+                    throw Refuse(BridgeCscLinkRefusal.StaleMethodGraph,
+                        "Unresolved ldtoken method handle has no v1 owned-body edge.");
+            }
             if (op is 0x28 or 0x6F or 0x73)
                 result.Add((instructionOffset, BinaryPrimitives.ReadInt32LittleEndian(
                     il.AsSpan(offset, 4))));

@@ -70,6 +70,53 @@ jobs:
           sha256sum "$work/fixture.log"
           echo "fixture-exit=$fixture_exit"
           test "$fixture_exit" -eq 0
+      - name: R1-03 production prerequisites remain fail-closed
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          
+          path = (Path(os.environ["GITHUB_WORKSPACE"]) /
+              "Compilers/HybridCPU_Compiler/HardwareBridge/Tests/CscLinkFixture/"
+              "R1_03_ProductionEvidenceContract.json")
+          data = path.read_bytes()
+          if not 0 < len(data) <= 16384:
+              raise SystemExit("R1_03_CONTRACT_BOUNDS: invalid receipt prerequisite byte count")
+          def unique(pairs):
+              value = {}
+              for key, entry in pairs:
+                  if key in value:
+                      raise ValueError("R1_03_CONTRACT_DUPLICATE: " + key)
+                  value[key] = entry
+              return value
+          contract = json.loads(data, object_pairs_hook=unique)
+          expected = {"R1-01", "R1-02", "R0-01", "CW-INT-04"}
+          roles = contract.get("RequiredExternalReceipts")
+          if (contract.get("Schema") !=
+                  "hybridcpu.hardwarebridge.r1-03-production-prerequisites/v1"
+                  or contract.get("SdkPin") != "11.0.100-rc.2.26504.105"
+                  or contract.get("Disposition") != "Blocked"
+                  or contract.get("PositiveGolden") != "NotRun"
+                  or contract.get("PairedCore") != "NotRun"
+                  or contract.get("Rtl") != "NotRun"
+                  or contract.get("SyntheticReceiptMaySatisfy") is not False
+                  or not isinstance(roles, list) or len(roles) != 4
+                  or {row.get("Owner") for row in roles} != expected
+                  or any(row.get("Status") not in ("Blocked", "NotRun") for row in roles)
+                  or any(not row.get("Schema") or not row.get("Evidence") for row in roles)):
+              raise SystemExit("R1_03_CONTRACT_PROMOTION: missing or promoted production gate")
+          domains = contract.get("IndependentDigestDomains", [])
+          if len(domains) != 7 or len(set(domains)) != 7:
+              raise SystemExit("R1_03_CONTRACT_DIGESTS: provenance identity domains conflated")
+          if contract.get("RejectPromotionStatuses") != [
+                  "Verified", "AcceptedRTL", "HardwareQualified"]:
+              raise SystemExit("R1_03_CONTRACT_PROMOTION: hardware authority claimed")
+          print("Toy: executed Csc fixture separately tested; no Golden provenance")
+          print("Golden: Blocked/NotRun — missing qualified external receipts")
+          print("Paired Core: NotRun; RTL: NotRun")
+          PY
       - name: Confirm Golden and tracked source no-write
         shell: bash
         run: |

@@ -193,3 +193,92 @@ and `1D1499A16D707393A5FC6B3B994A408A3A8D84DDC292E557023B395E6EF6B540`.
 This first run captured only the two-source toy: **no Golden or Core checkout**.
 Subsequent CI runs must be evaluated by their own head SHA and job results,
 not by the earlier run's success.
+
+## R1-03 residual package — opaque IL method dispatch and production evidence preflight (2026-11-21)
+
+Base re-audit: Bridge `master@d243dd7ecce243cc08a13303cf01247ba7a65024`;
+private Core `master@b5c44685197a40df99a4d48891120b12475c6ca5`.
+PR #32 was already merged; its [CI run 44836606012](https://github.com/yuriyyak23/HybridCPU-Compilers/actions/runs/44836606012)
+passed the **actual two-source toy Csc fixture only**. No Golden execution approval
+or external software facts were inferred from that success. The current
+R1-01 Linux witness `hybridcpu.hardwarebridge.csc-os-execution-receipt/v1`
+reconstructs Csc cwd, execve ancestry and argv from a separate trace; its
+own header expressly restricts the collector to a disposable two-project
+fixture and does not authenticate Golden. R1-02's external task crosswalk
+remains an *assertion* without separately approved task and raw observation
+bytes. R0-01's recorded production Companion build fails due to missing
+Core-owned production source types; no successful Companion graph/roots are
+available for Golden. These dependencies cannot be resolved from R1-03
+ownership.
+
+### Bounded additional IL refusal
+
+The existing v1 checks `call`, `callvirt`, `newobj` MethodDef tokens
+against the claimed graph. A body could nevertheless contain `jmp`,
+`calli`, `ldftn`, `ldvirtftn` or `ldtoken` of a method handle, which the
+previous direct-edge enumeration did not claim or resolve. The narrow
+v1 verifier now rejects those **opaque executable method-transfer paths**
+as `StaleMethodGraph`. `ldtoken` for TypeDef alone is not a method
+edge and remains admissible. It does not guess a target from an untrusted
+Companion DTO and does not rewrite v1 wire bytes, schemas or property order.
+
+`CscLinkFixtureProgram.cs` adds typed negative probes for all four
+indirect control/handle forms, three method-handle token tables and a
+truncated token, plus direct MethodDef and TypeDef-token regression
+checks. These parser-level mutation tests run in the existing pinned
+two-source Csc toy CI; **they are not production method evidence**.
+The existing independent recompiled replacement PE/PDB checks remain
+in place. Any real Golden method that needs these constructs requires a
+separately reviewed qualification strategy with the actual compiler
+and Companion receipts, not a best-effort v1 acceptance.
+
+### Exact inter-owner crosswalk — required before positive Golden
+
+| Stage | Link and independent origin | State at this head |
+| --- | --- | --- |
+| Effective Csc options | R1-01 actual task event + independently replayed ordered OS argv, compiler image hash, cwd, exit, stdout/stderr hashes | **Blocked** for Golden |
+| Source/reference/generator bytes | R1-02 immutable captured inputs + role, exact path, SHA-256, before/after Golden no-write; source digest is not the invocation digest | **Blocked** |
+| Executed outputs | Exact PE/PDB bytes, SHA-256 and output-pair digest bound to the Csc invocation, not merely supplied as a self-consistent event DTO | **Blocked** |
+| PE/Portable PDB | Actual PE module MVID, one CodeView GUID+stamp/age=1, matching 20-byte portable PDB ID | Implemented in v1; toy-tested |
+| Method identity | Actual MethodDef token/type/name/primitive signature/IL byte digest and bounded direct intra-module call-edge tokens | Implemented in v1; toy-tested; opaque IL refused |
+| Debug ownership | PDB documents with SHA-256, visible sequence points at the exact IL offsets, captured owned source bytes | Implemented in v1; hidden-only mapping refused |
+| Companion roots/graph | **R0-01** successful real opt-in Companion producer binding distinct source input digest, method identities, roots, edges and source maps | **Blocked** |
+| Independent method qualification | **CW-INT-04** Core-owned Roslyn/source rederivation; **CW-INT-03** independent reader, separate Core PR | **NotRun** |
+| RTL/formal/physical | Core-only acceptance and downstream qualification | **NotRun** |
+
+`Tests/CscLinkFixture/R1_03_ProductionEvidenceContract.json`
+is a *machine-readable missing-prerequisite manifest*, **not a receipt**.
+It intentionally has `Disposition=Blocked`, `PositiveGolden=NotRun`,
+`PairedCore=NotRun`, and separate SHA identity domains. A separate
+GitHub Actions step strictly checks that the required external owners
+and the pinned historic SDK are present in that manifest, and fails if
+a synthetic fixture is promoted to a production status. The step
+does **not** check trust in an arbitrarily supplied OS witness; R1-01 must
+rederive the actual process from owned raw traces, and Core must
+independently requalify its source/method identity before acceptance.
+
+### Negative checks and scope
+
+| Negative/mutation | Exact expected refusal/status |
+| --- | --- |
+| `jmp`, `calli`, `ldftn`, `ldvirtftn` | `StaleMethodGraph` |
+| `ldtoken` MethodDef / MemberRef / MethodSpec | `StaleMethodGraph` |
+| Truncated `ldtoken` operand | `StaleMethodGraph` |
+| Direct MethodDef `call` and type-only `ldtoken` | Parser regression must remain admitted |
+| Swapped/changed PE/PDB and recompiled source replacement | `WrongPePdb`, existing real toy mutations |
+| Wrong PDB ID/stamp, missing/forged/duplicate document | `WrongPePdb` or `WrongSourceMap` (strict v1) |
+| Hidden-only PDB map; wrong/out-of-body source point | `WrongSourceMap` (strict v1) |
+| Stale token, signature, mis-bound root | `WrongMethodToken` or `DuplicateMethod` |
+| Missing Companion graph/edges; foreign or generic calls | `UnsupportedFacts` or `StaleMethodGraph` |
+| Missing trusted R1-01 OS witness or R0-01 Companion facts | **Blocked** — v1 event alone is not execution proof |
+| Unknown SDK / changed reviewed toolchain | `InvalidPin` at strict reader; Golden **Blocked** |
+| Missing reviewed Golden source approval | **NotRun** — no checkout, restore, build, invocation |
+| Candidate/toy result promoted to Verified/AcceptedRTL | CI preflight `R1_03_CONTRACT_PROMOTION` |
+
+**No Golden checkout or original source write** is performed by this
+R1-03 CI. Local `dotnet restore/build` is unavailable in the authoring
+environment, so the new code's actual execution is judged only from the
+new PR CI job at its own head SHA, not from PR #32's historical green.
+All production inputs and private diagnostic bytes remain outside
+public artifacts. Software output can only be *Candidate/Observed*
+until a separate Core-owned acceptance.

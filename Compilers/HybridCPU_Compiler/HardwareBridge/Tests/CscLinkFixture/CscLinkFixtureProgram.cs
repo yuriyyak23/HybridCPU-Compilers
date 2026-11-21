@@ -277,11 +277,43 @@ internal static class Program
         }
     }
 
+    private static void RunOpaqueDispatchMutations()
+    {
+        // A self-consistent Companion graph with zero direct edges cannot
+        // certify these opaque execution transfers. These are synthetic IL
+        // parser negatives, separate from the actual two-source Csc positive.
+        static void Opaque(string label, params byte[] il)
+        {
+            Refuse(BridgeCscLinkRefusal.StaleMethodGraph, () =>
+            {
+                _ = BridgeExecutedCscLinkV1.ParseIlCalls(il);
+            });
+            Console.WriteLine("PASS: R1-03 IL refusal " + label);
+        }
+        Opaque("jmp MethodDef", 0x27, 0x01, 0x00, 0x00, 0x06);
+        Opaque("calli StandAloneSig", 0x29, 0x01, 0x00, 0x00, 0x11);
+        Opaque("ldftn MethodDef", 0xFE, 0x06, 0x01, 0x00, 0x00, 0x06);
+        Opaque("ldvirtftn MemberRef", 0xFE, 0x07, 0x01, 0x00, 0x00, 0x0A);
+        Opaque("ldtoken MethodDef", 0xD0, 0x01, 0x00, 0x00, 0x06);
+        Opaque("ldtoken MemberRef", 0xD0, 0x01, 0x00, 0x00, 0x0A);
+        Opaque("ldtoken MethodSpec", 0xD0, 0x01, 0x00, 0x00, 0x2B);
+        Opaque("truncated ldtoken", 0xD0, 0x01);
+        // Preserve the existing admitted direct MethodDef subset.
+        var direct = BridgeExecutedCscLinkV1.ParseIlCalls(
+            new byte[] { 0x00, 0x28, 0x02, 0x00, 0x00, 0x06 });
+        Check(direct.Count == 1 && direct[0].Offset == 1 &&
+            direct[0].Token == 0x06000002, "direct MethodDef IL regression");
+        Check(BridgeExecutedCscLinkV1.ParseIlCalls(
+            new byte[] { 0xD0, 0x01, 0x00, 0x00, 0x02 }).Count == 0,
+            "type-only ldtoken incorrectly treated as a method edge");
+    }
+
     private static int RunMutations(BridgeSourceSnapshotV1 snapshot, BridgeCompilerFactsV1 facts,
         BridgeCscExecutedEventV1 e, byte[] written,
         (string[] Args, byte[] Pe, byte[] Pdb) result, string sourcesDir,
         string referencePath, int token, byte[] originalSource)
     {
+        RunOpaqueDispatchMutations();
         BridgeMethodFactV1 original = facts.Methods[0];
         // Change declared assembly identity while keeping the original *actual* PE/PDB.
         // An internally consistent source snapshot/facts pair must not rename the PE.
