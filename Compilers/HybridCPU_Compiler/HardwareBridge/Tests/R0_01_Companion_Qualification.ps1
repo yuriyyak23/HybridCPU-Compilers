@@ -263,6 +263,7 @@ try {
         $artifacts = Join-Path $work ('artifacts-' + $config)
         [IO.Directory]::CreateDirectory($artifacts) | Out-Null
         $properties = @('-p:UseArtifactsOutput=true', ('-p:ArtifactsPath=' + $artifacts),
+            ('-p:Configuration=' + $config),
             ('-p:RestorePackagesPath=' + (Join-Path $work 'packages')))
         $mode = [ordered]@{
             Configuration = $config; Restore = 'NotRun'; Build = 'NotRun'
