@@ -81,10 +81,13 @@ def validate(doc, *, bridge_sha, core_sha, sdk):
             SHA.fullmatch(doc["coreClosureSha256"].lower()) and
             type(doc.get("coreIndexSha256")) is str and
             SHA.fullmatch(doc["coreIndexSha256"].lower()), "INDEX_PIN")
+    require(type(doc.get("captureSourceRows")) is int and
+            doc["captureSourceRows"] >= 1001, "CAPTURE_SOURCE_COUNT")
     positive = doc.get("coreReader")
     require(type(positive) is dict and positive.get("state") == "Candidate" and
             positive.get("code") == CORE_DIAGNOSTIC and
-            type(positive.get("rows")) is int and positive["rows"] >= 1001 and
+            type(positive.get("sourceRows")) is int and positive["sourceRows"] >= 1001 and
+            type(positive.get("rows")) is int and positive["rows"] >= positive["sourceRows"] and
             positive.get("indexSha256") == doc["coreIndexSha256"] and
             positive.get("closureSha256") == doc["coreClosureSha256"], "CORE_IMPORT")
     matrix = doc.get("negativeCoreMatrix")
