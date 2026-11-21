@@ -169,3 +169,16 @@ provided in this R1-02 PR. The new refusal JSON
 `hybridcpu.hardwarebridge.r1-02-refusal/v1` exposes a stable
 `reasonCode` and `reasonDigestSha256`, without dumping private paths,
 source bytes, tokens or PDBs to CI logs.
+
+## R1-02 residual inventory DoS guard after merge #29
+
+The complete Git clean/dirty byte inventory now caps **directories as well
+as files**, with 20,000 visited directories maximum (including root) and a
+300-second monotonic wall clock limit per inventory. A folder-only tree used
+to evade the file-count cap is refused, as is a capture that expires while
+enumerating files. No partial inventory digest is accepted. Existing 20,000
+files / 8 GiB, per-file descriptor byte hashing, Git HEAD/porcelain and
+before/after comparisons remain mandatory. Synthetic mutation tests shrink
+the budgets instead of generating resource-intensive hostile trees. The
+real Golden gate is still Blocked/NotRun without a separately approved,
+immutable source/worktree identity and actual R1-01 OS witness.
