@@ -50,6 +50,16 @@ function Assert-R0_02SafeRoot([string]$Root) {
     if (((Get-Item -LiteralPath $gitDir -Force).Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
         throw 'R002LinkedGitDirectory'
     }
+    # checkout@persist-credentials:false must actually remove authorization headers.
+    $configPath = Join-Path $gitDir 'config'
+    if (-not (Test-Path -LiteralPath $configPath -PathType Leaf)) { throw 'R002GitConfigMissing' }
+    $configItem = Get-Item -LiteralPath $configPath -Force
+    if (($configItem.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0 -or
+        $configItem.Length -gt 65536) { throw 'R002GitConfigUnsafe' }
+    $config = [IO.File]::ReadAllText($configPath)
+    if ($config -match '(?i)extraheader|authorization|credential[.]helper|github_pat_|ghp_') {
+        throw 'R002PersistedCheckoutCredential'
+    }
     return $full
 }
 function Assert-R0_02BridgeCheckout([string]$BridgeRoot, [string]$BridgeSha) {
@@ -244,6 +254,17 @@ function Invoke-R0_02SyntheticNegatives {
             '{"Schema":"hybridcpu.hardwarebridge.qa-receipt/v1","Scope":"unqualified-software-facts-only","Matrix":{"StrictCoreImporter":"Passed","CompanionBuild":"Passed"},"Commands":[]}')
         Denied { Assert-R0_02PairedReceipt $forged ('0' * 40) ('a' * 40) $parent } 'forged-passed-without-execution'
         Denied { $null = Read-R0_02StrictJson (Join-Path $parent 'missing.json') 65536 } 'missing-prior-receipt'
+        $clean = [pscustomobject]@{
+            Head = ('a' * 40); GitStatus = ''
+            TreeSha256 = ('B' * 64); GitStatusSha256 = ('C' * 64)
+            FileCount = 2; TotalBytes = 100
+        }
+        $changed = [pscustomobject]@{
+            Head = ('a' * 40); GitStatus = ''
+            TreeSha256 = ('D' * 64); GitStatusSha256 = ('C' * 64)
+            FileCount = 2; TotalBytes = 100
+        }
+        Denied { Assert-R0_02SnapshotPair $clean $changed ('a' * 40) } 'replayed-source-content-changed'
     }
     finally { Remove-Item -LiteralPath $parent -Force -Recurse }
 }
