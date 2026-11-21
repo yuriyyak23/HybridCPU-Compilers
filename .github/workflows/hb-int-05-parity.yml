@@ -33,6 +33,9 @@ jobs:
           sha256sum "$RUNNER_TEMP/r3-03-source-inventory.log"
           python3 -m unittest discover -v -s Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/Tests -p 'test_*.py' 2>&1 | tee "$RUNNER_TEMP/hb-int-05-unit.log"
           sha256sum "$RUNNER_TEMP/hb-int-05-unit.log"
+          # R3-03: synthetic dual-artifact and external-claim mutation tests only.
+          python3 -m unittest discover -v -s Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/Migration -p 'R3_03_*test.py' 2>&1 | tee "$RUNNER_TEMP/r3-03-dual-evidence-tests.log"
+          sha256sum "$RUNNER_TEMP/r3-03-dual-evidence-tests.log"
       - name: Verify tests did not mutate checked-in Bridge source bytes
         shell: bash
         run: |
