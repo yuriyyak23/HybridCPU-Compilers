@@ -18,6 +18,10 @@ if ($work.StartsWith($repo.TrimEnd($sep) + $sep, $comparison) -or
     throw 'R0-01 output root must be inside RUNNER_TEMP, never inside checkout.'
 }
 [IO.Directory]::CreateDirectory($work) | Out-Null
+# A reused cache can carry counterfeit/stale outputs into an otherwise clean run.
+if (@(Get-ChildItem -LiteralPath $work -Force).Count -ne 0) {
+    throw 'R0-01 output root must be new and empty; shared/stale caches are forbidden.'
+}
 $receiptPath = Join-Path $work 'r0-01-qualification.json'
 if ([IO.File]::Exists($receiptPath)) { throw 'Refuse to overwrite existing immutable receipt.' }
 # A temporary global.json is the actual SDK resolver pin; a repo-root global.json is absent.
@@ -31,7 +35,7 @@ $stages = [Collections.Generic.List[object]]::new()
 $builds = [Collections.Generic.List[object]]::new()
 $negativeTests = [Collections.Generic.List[object]]::new()
 $report = [ordered]@{
-    Schema = 'hybridcpu.hardwarebridge.r0-01-companion-build-receipt/v1'
+    Schema = 'hybridcpu.hardwarebridge.r0-01-companion-build-receipt/v2'
     BridgeHeadSha = $ExpectedSha
     Scope = 'BridgeOnly_NoGolden_NoCircuitWeave'
     Qualification = 'Blocked'
@@ -44,6 +48,7 @@ $report = [ordered]@{
     NoSourceWrite = 'NotRun'
     Graph = @()
     ProductionArtifactTrackedFiles = $null
+    FailureKind = 'NotRun'
     Stages = @()
     Builds = @()
     NegativeTests = @()
@@ -61,6 +66,18 @@ function RequireWithin([string]$candidate, [string]$root) {
     $full = [IO.Path]::GetFullPath($candidate)
     if (-not $full.StartsWith(([IO.Path]::GetFullPath($root)).TrimEnd($sep) + $sep, $comparison)) {
         throw 'Wrong-root output or unsafe path.'
+    }
+    # Lexical containment alone accepts a junction/reparse ancestor that escapes TEMP.
+    $cursor = $full
+    while ($cursor -and $cursor -ne [IO.Path]::GetPathRoot($cursor)) {
+        if ([IO.File]::Exists($cursor) -or [IO.Directory]::Exists($cursor)) {
+            if (([IO.File]::GetAttributes($cursor) -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
+                throw 'Reparse/symlink path component refused.'
+            }
+        }
+        $parent = [IO.Path]::GetDirectoryName($cursor)
+        if (-not $parent -or $parent -eq $cursor) { break }
+        $cursor = $parent
     }
     return $full
 }
@@ -159,6 +176,7 @@ function CheckGraph([string]$project, [string]$config, [string]$artifact) {
     $graph = $response.Stdout | ConvertFrom-Json
     # The SDK's evaluated intermediate and binary paths must be outside the source checkout.
     # Project references can have their own Directory.Build.props; inspect each independently.
+    $evaluatedPaths = @{}
     foreach ($propertyName in @('BaseIntermediateOutputPath', 'OutputPath')) {
         $evaluatedPath = [string]$graph.Properties.$propertyName
         if ([string]::IsNullOrWhiteSpace($evaluatedPath)) {
@@ -167,7 +185,7 @@ function CheckGraph([string]$project, [string]$config, [string]$artifact) {
         if (-not [IO.Path]::IsPathFullyQualified($evaluatedPath)) {
             $evaluatedPath = Join-Path (Split-Path $project -Parent) $evaluatedPath
         }
-        RequireWithin $evaluatedPath $artifact | Out-Null
+        $evaluatedPaths[$propertyName] = RequireWithin $evaluatedPath $artifact
     }
     $items = @($graph.Items.Compile)
     if ($items.Count -lt 1 -or $items.Count -gt 20000) { throw 'Unbounded or empty evaluated Compile graph.' }
@@ -180,8 +198,12 @@ function CheckGraph([string]$project, [string]$config, [string]$artifact) {
     $refs = @($graph.Items.ProjectReference | ForEach-Object { ([string]$_.Identity).Replace('\', '/') })
     return [pscustomobject]@{
         Count = $items.Count
+        OutputDirectory = $evaluatedPaths['OutputPath']
         References = $refs
         ItemSha256 = HashText $response.Stdout
+        # Configuration-specific paths/defines are excluded from the source-closure identity.
+        SourceSha256 = HashText ((@($items | ForEach-Object { ([string]$_.Identity).Replace('\\','/') } |
+            Sort-Object -CaseSensitive) -join "`n") + "`n")
         DefineConstantsSha256 = HashText ([string]$graph.Properties.DefineConstants)
     }
 }
@@ -224,6 +246,8 @@ try {
     Reject 'outside-temp-output' { RequireWithin (Join-Path $repo 'unsafe.dll') $work }
     Reject 'wrong-production-project-reference' { RequireReference @('../Fake/Stub.csproj') '../Cil/HybridCPU.Compiler.Cil.csproj' }
     Reject 'modified-tracked-source' { RequireCleanInventory $initial.Digest ('0' * 64) }
+    Reject 'debug-release-source-drift' { RequireCleanInventory ('a' * 64) ('b' * 64) }
+    Reject 'short-lived-cache-drift' { RequireCleanInventory ('1' * 64) ('2' * 64) }
     Reject 'stale-generated-compile-item' {
         $injected = 'obj/Stale.Generator.g.cs'
         if ($injected -match '(^|[/\\])(obj|bin|\.artifacts)([/\\]|$)') { throw 'Generated item is not an owned source.' }
@@ -234,12 +258,19 @@ try {
     $roslyn = Join-Path $repo 'Compilers/HybridCPU_Compiler/Roslyn/HybridCPU.Compiler.Roslyn.csproj'
     $companion = Join-Path $repo 'Compilers/HybridCPU_Compiler/HardwareBridge/HardwareBridge.Companion.csproj'
     $selfTests = Join-Path $repo 'Compilers/HybridCPU_Compiler/HardwareBridge/Tests/HardwareBridge.SelfTests.csproj'
+    $qualifiedSources = @{}
     foreach ($config in @('Debug','Release')) {
         $artifacts = Join-Path $work ('artifacts-' + $config)
         [IO.Directory]::CreateDirectory($artifacts) | Out-Null
         $properties = @('-p:UseArtifactsOutput=true', ('-p:ArtifactsPath=' + $artifacts),
+            ('-p:Configuration=' + $config),
             ('-p:RestorePackagesPath=' + (Join-Path $work 'packages')))
-        $mode = [ordered]@{ Configuration = $config; Restore = 'NotRun'; Build = 'NotRun'; PeCheck = 'NotRun'; SelfTests = 'NotRun'; DllSha256 = $null; PdbSha256 = $null }
+        $mode = [ordered]@{
+            Configuration = $config; Restore = 'NotRun'; Build = 'NotRun'
+            PeCheck = 'NotRun'; SelfTests = 'NotRun'; DllSha256 = $null; PdbSha256 = $null
+            FailureKind = 'NotRun'; FirstFailedProject = $null
+            ProjectBuilds = @(); AssemblySha256 = @()
+        }
         $builds.Add($mode)
         $coreGraph = CheckGraph $core $config $artifacts
         $cilGraph = CheckGraph $cil $config $artifacts
@@ -248,21 +279,69 @@ try {
         RequireReference $cilGraph.References '../Core/HybridCPU.Compiler.Core.csproj'
         RequireReference $roslynGraph.References '../Cil/HybridCPU.Compiler.Cil.csproj'
         RequireReference $companionGraph.References '../Roslyn/HybridCPU.Compiler.Roslyn.csproj'
+        $sourceClosure = @($coreGraph.SourceSha256, $cilGraph.SourceSha256,
+            $roslynGraph.SourceSha256, $companionGraph.SourceSha256) -join ':'
+        if ($qualifiedSources.ContainsKey('Debug') -and $config -eq 'Release') {
+            RequireCleanInventory $qualifiedSources['Debug'] $sourceClosure
+        }
+        $qualifiedSources[$config] = $sourceClosure
         $report.Graph += [ordered]@{ Configuration = $config; CoreItems = $coreGraph.Count; CilItems = $cilGraph.Count; RoslynItems = $roslynGraph.Count; CompanionItems = $companionGraph.Count; CoreItemSha256 = $coreGraph.ItemSha256; CompanionItemSha256 = $companionGraph.ItemSha256; CoreDefinesSha256 = $coreGraph.DefineConstantsSha256; CompanionDefinesSha256 = $companionGraph.DefineConstantsSha256; GraphValid = $true }
         $restore = InvokeCaptured ('restore-' + $config) $dotnet (@('restore', $companion, '-v:q') + $properties) 600
         $mode.Restore = if ($restore.Exit -eq 0) { 'Passed' } else { 'Failed' }
         if ($restore.Exit -ne 0) { continue }
-        $build = InvokeCaptured ('build-' + $config) $dotnet (@('build', $companion, '--no-restore', '-c', $config, '-v:q') + $properties) 600
-        $mode.Build = if ($build.Exit -eq 0) { 'Passed' } else { 'Failed' }
-        if ($build.Exit -ne 0) { continue }
-        $candidates = @(Get-ChildItem -LiteralPath $artifacts -Recurse -File -Filter 'HardwareBridge.Companion.dll' |
-            Where-Object { $_.FullName -notmatch '[/\\]ref(int)?[/\\]' })
-        if ($candidates.Count -ne 1) { throw 'A unique real Companion output DLL was not produced.' }
-        $dll = RequireWithin $candidates[0].FullName $artifacts
-        $mode.DllSha256 = FileSha $dll
-        $pdb = [IO.Path]::ChangeExtension($dll, '.pdb')
+        # An actual Core->Cil->Roslyn->Companion progression, not a restore-only PASS.
+        # Each build runs the *unchanged* production project, never a trimmed copy.
+        $projects = @(
+            @{ Name = 'Core'; Project = $core; Assembly = 'HybridCPU.Compiler.Core'; Graph = $coreGraph },
+            @{ Name = 'Cil'; Project = $cil; Assembly = 'HybridCPU.Compiler.Cil'; Graph = $cilGraph },
+            @{ Name = 'Roslyn'; Project = $roslyn; Assembly = 'HybridCPU.Compiler.Roslyn'; Graph = $roslynGraph },
+            @{ Name = 'Companion'; Project = $companion; Assembly = 'HardwareBridge.Companion'; Graph = $companionGraph }
+        )
+        $builtAll = $true
+        foreach ($entry in $projects) {
+            $build = InvokeCaptured ('build-' + $config + '-' + $entry.Name) $dotnet (
+                @('build', $entry.Project, '--no-restore', '-c', $config, '-v:q') + $properties) 600
+            $mode.ProjectBuilds += [ordered]@{ Name = $entry.Name; Exit = $build.Exit }
+            if ($build.Exit -ne 0) {
+                $mode.Build = 'Failed'
+                $mode.FirstFailedProject = $entry.Name
+                $unresolvedArtifacts = $report.ProductionArtifactTrackedFiles -eq 0 -and
+                    ($build.Stdout -match 'CS0234|CS0246') -and
+                    ($build.Stdout -match 'Core[.]IR[.]Artifacts|CompilerEmissionPackage|CompilerSidebandEnvelope|DescriptorEnvelope|TypedSlotFactsEnvelope|CompilerEvidenceEnvelope')
+                $mode.FailureKind = if ($entry.Name -eq 'Core' -and $unresolvedArtifacts) {
+                    'SourceDependencyMissing'
+                } else { 'BuildFailed' }
+                $builtAll = $false
+                break
+            }
+        }
+        if (-not $builtAll) { continue }
+        $mode.Build = 'Passed'
+        $peFiles = @{}
+        foreach ($entry in $projects) {
+            $projectOutput = $entry.Graph.OutputDirectory
+            $candidates = @(
+                if ([IO.Directory]::Exists($projectOutput)) {
+                    Get-ChildItem -LiteralPath $projectOutput -Recurse -File -Filter ($entry.Assembly + '.dll') |
+                        Where-Object { $_.FullName -notmatch '[/\\]ref(int)?[/\\]' }
+                }
+            )
+            if ($candidates.Count -ne 1) {
+                $mode.FailureKind = 'RealPEMissing'
+                break
+            }
+            $dll = RequireWithin $candidates[0].FullName $artifacts
+            $peFiles[$entry.Name] = [ordered]@{ Path = $dll; Sha256 = (FileSha $dll) }
+            $assembledPdb = [IO.Path]::ChangeExtension($dll, '.pdb')
+            $mode.AssemblySha256 += [ordered]@{
+                Name = $entry.Name; Sha256 = $peFiles[$entry.Name].Sha256
+                PdbSha256 = if ([IO.File]::Exists($assembledPdb)) { FileSha $assembledPdb } else { $null }
+            }
+        }
+        if ($mode.FailureKind -eq 'RealPEMissing') { continue }
+        $mode.DllSha256 = $peFiles['Companion'].Sha256
+        $pdb = [IO.Path]::ChangeExtension($peFiles['Companion'].Path, '.pdb')
         if ([IO.File]::Exists($pdb)) { $mode.PdbSha256 = FileSha $pdb }
-        $mode.PeCheck = 'Passed'
         # Existing real-assembly selftest references Core, Cil, Roslyn and Companion; no test doubles.
         $testRestore = InvokeCaptured ('selftest-restore-' + $config) $dotnet (@('restore', $selfTests, '-v:q') + $properties) 600
         if ($testRestore.Exit -ne 0) { $mode.SelfTests = 'Failed'; continue }
@@ -274,12 +353,30 @@ try {
         $testDll = RequireWithin $testDlls[0].FullName $artifacts
         $testRun = InvokeCaptured ('selftest-run-' + $config) $dotnet @($testDll) 600
         $mode.SelfTests = if ($testRun.Exit -eq 0) { 'Passed' } else { 'Failed' }
+        if ($mode.SelfTests -ne 'Passed') { $mode.FailureKind = 'BuildFailed'; continue }
+        foreach ($entry in $projects) {
+            if ((FileSha $peFiles[$entry.Name].Path) -cne $peFiles[$entry.Name].Sha256) {
+                $mode.FailureKind = 'RealPEMissing'
+                break
+            }
+        }
+        if ($mode.FailureKind -ne 'RealPEMissing') {
+            $mode.PeCheck = 'Passed'
+            $mode.FailureKind = 'Passed'
+        }
     }
     if (@($builds | Where-Object { $_.Build -ne 'Passed' -or $_.PeCheck -ne 'Passed' -or $_.SelfTests -ne 'Passed' }).Count -eq 0) {
         $report.Qualification = 'Passed'
+        $report.FailureKind = 'Passed'
     } else {
         $report.Qualification = 'Blocked'
-        $report.Blocker = if ($report.ProductionArtifactTrackedFiles -eq 0) {
+        $failures = @($builds | Where-Object { $_.FailureKind -ne 'Passed' })
+        $report.FailureKind = if (@($failures | Where-Object { $_.FailureKind -eq 'SourceDependencyMissing' }).Count -gt 0) {
+            'SourceDependencyMissing'
+        } elseif (@($failures | Where-Object { $_.FailureKind -eq 'RealPEMissing' }).Count -gt 0) {
+            'RealPEMissing'
+        } else { 'BuildFailed' }
+        $report.Blocker = if ($report.FailureKind -eq 'SourceDependencyMissing') {
             'MissingTrackedCompilerCoreArtifactsProductionContracts'
         } else { 'RealCompanionBuildOrRuntimeTestFailed' }
     }
@@ -287,6 +384,7 @@ try {
 catch {
     $report.Qualification = 'Blocked'
     $report.Blocker = 'PreflightGraphSourceOrQualificationGuardFailed'
+    $report.FailureKind = 'BuildFailed'
 }
 finally {
     try {
@@ -305,6 +403,7 @@ finally {
         $report.NoSourceWrite = 'Failed'
         $report.Qualification = 'Blocked'
         $report.Blocker = 'NoSourceWriteInvariantFailed'
+        $report.FailureKind = 'BuildFailed'
     }
     $report.Stages = @($stages.ToArray())
     $report.Builds = @($builds.ToArray())
