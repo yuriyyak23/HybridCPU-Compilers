@@ -17,6 +17,7 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))
 import task_csc_observation as observer
 import R1_01_LinuxExecutionWitness as r1
+import R1_01_ResponseReadWitness as rsp_read
 import segmented_csc_capture_v2 as v2
 
 SDK = "11.0.100"
@@ -236,6 +237,24 @@ def run():
                               compiler=compiler, event_argv=task_vectors,
                               expected_compiler_sha=compiler_sha_before)
             r1.gate_receipt(os_receipt, trace_dir, **proof_args)
+            # Independent read-time RSP receipt; existing v1 OS/Bridge wires stay
+            # byte-for-byte schema-compatible. Never re-open vanished .rsp.
+            response_rows = []
+            for task_id, task_argv in sorted(task_vectors.items()):
+                actual = os_receipt["processes"][task_id]
+                witness = rsp_read.proof(
+                    trace_dir, pid=actual["pid"], exec_time=actual["time"],
+                    exit_time=actual["exitTime"], raw_argv=actual["argv"],
+                    task_argv=task_argv)
+                response_rows.append({"taskId": task_id, **witness})
+                print("toy rsp PID=" + str(actual["pid"]) +
+                      " readBytes=" + str(witness["responseBytes"]) +
+                      " sha256=" + witness["responseSha256"], flush=True)
+            (receipts / "R1_01_response_read_receipt.json").write_bytes(
+                v2.canonical({"schema": "hybridcpu.hardwarebridge.r1-01-task-response-set/v1",
+                              "disposition": "unqualified-software-observation",
+                              "source": "independently traced syscalls; toy only",
+                              "responses": response_rows}))
             mutated = copy.deepcopy(os_receipt)
             first = next(iter(mutated["processes"].values()))
             first["cwd"] = str(temp)

@@ -12,10 +12,11 @@ from pathlib import Path
 import re
 import stat
 import tempfile
+import R1_01_ResponseReadWitness as response_read
 
 SCHEMA = "hybridcpu.hardwarebridge.csc-os-execution-receipt/v1"
 MAX_TRACE_FILES = 2048
-MAX_TRACE_BYTES = 32 * 1024 * 1024
+MAX_TRACE_BYTES = 256 * 1024 * 1024
 MAX_ARGV_BYTES = 262144
 MAX_ARGS = 8192
 MAX_EVENTS = 200000
@@ -73,8 +74,8 @@ def strace_args(trace_prefix, command):
     """Use exactly this immutable syscall subset, no environment/secret dumps."""
     if not command or any(not x or '\x00' in x for x in command):
         refuse("invalid launcher argv")
-    return ["-f", "-ff", "-ttt", "-s", "262144", "-o", str(trace_prefix),
-            "-e", "trace=execve,execveat,chdir,fchdir,clone,clone3,fork,vfork",
+    return ["-f", "-ff", "-ttt", "-x", "-s", "262144", "-o", str(trace_prefix),
+            "-e", "trace=execve,execveat,chdir,fchdir,clone,clone3,fork,vfork,open,openat,openat2,read,readv,pread64,preadv,preadv2,close,lseek,dup,dup2,dup3,fcntl,write,rename,unlink,link,symlink",
             "--", *command]
 
 
@@ -147,7 +148,7 @@ def _parse_trace(trace_dir):
                     all_events.append((stamp, pid, "chdir", name))
                 elif payload.endswith("= 0"):
                     refuse("ambiguous successful chdir")
-            elif any(x in payload for x in ("clone(", "clone3(", "fork(", "vfork(")):
+            elif payload.startswith(("clone(", "clone3(", "fork(", "vfork(")):
                 child = FORK.search(payload)
                 if child:
                     all_events.append((stamp, pid, "fork", (int(child.group(1)), "CLONE_FS" in payload)))
@@ -254,8 +255,6 @@ def verify(trace_dir, *, launch_cwd, launch_argv, compiler, event_argv, expected
                 continue
             if pid not in exits or exits[pid][1] != 0:
                 refuse("actual Csc process failed or has no successful exit")
-            if any(x.startswith("@") for x in argv):
-                refuse("response-file bytes were not captured at open/read time")
             if argv[0] != exe:
                 refuse("unexpected execve argv[0] for Csc")
             actual_cwd = witnessed_cwd.get((pid, stamp))
@@ -269,9 +268,26 @@ def verify(trace_dir, *, launch_cwd, launch_argv, compiler, event_argv, expected
     matched = {}
     used = set()
     for identity, expected in event_argv.items():
-        candidates = [row for row in csc if row["argv"] == expected and row["pid"] not in used]
+        candidates = []
+        blocked_reasons = []
+        for row in csc:
+            if row["pid"] in used:
+                continue
+            if any(x.startswith("@") for x in row["argv"]):
+                try:
+                    response_read.proof(
+                        trace_dir, pid=row["pid"], exec_time=row["time"],
+                        exit_time=row["exitTime"], raw_argv=row["argv"],
+                        task_argv=expected)
+                except response_read.Blocked as error:
+                    blocked_reasons.append(str(error))
+                    continue
+                candidates.append(row)
+            elif row["argv"] == expected:
+                candidates.append(row)
         if len(candidates) != 1:
-            refuse("OS argv / MSBuild task mismatch, replay or duplicate child")
+            detail = blocked_reasons[0] if blocked_reasons else "no exact process candidate"
+            refuse("response-file/task OS argv mismatch or read-time proof Blocked: " + detail)
         matched[identity] = candidates[0]
         used.add(candidates[0]["pid"])
     if len(used) != len(csc):

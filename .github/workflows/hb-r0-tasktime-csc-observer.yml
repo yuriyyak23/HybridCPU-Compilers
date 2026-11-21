@@ -8,6 +8,7 @@ on:
     branches:
       - 'feat/hb-r0-tasktime-csc-observer-*'
       - 'feat/hb-r1-01-os-csc-witness-*'
+      - 'feat/hb-r1-01-rsp-read-proof-*'
     paths:
       - 'Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/TaskTimeObserver/**'
       - '.github/workflows/hb-r0-tasktime-csc-observer.yml'
@@ -49,7 +50,7 @@ jobs:
         working-directory: Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/TaskTimeObserver
         run: |
           set -euo pipefail
-          python -m unittest -v test_task_csc_observation test_R1_01_LinuxExecutionWitness
+          python -m unittest -v test_task_csc_observation test_R1_01_LinuxExecutionWitness test_R1_01_ResponseReadWitness
           python ../test_segmented_csc_capture_v2.py -v
       - name: Require independent Linux ptrace instrument (fail closed, no installation)
         shell: bash
