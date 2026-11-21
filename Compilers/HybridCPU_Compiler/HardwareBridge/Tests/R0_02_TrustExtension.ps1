@@ -265,6 +265,37 @@ function Invoke-R0_02SyntheticNegatives {
             FileCount = 2; TotalBytes = 100
         }
         Denied { Assert-R0_02SnapshotPair $clean $changed ('a' * 40) } 'replayed-source-content-changed'
+        # A synthetic Git tree is only used to prove refusal. Never treat a
+        # synthetic checkout as positive Core access or authorized source.
+        $fixture = Join-Path $parent 'synthetic-bridge'
+        New-Item -ItemType Directory -Path $fixture | Out-Null
+        [IO.File]::WriteAllText((Join-Path $fixture 'marker.txt'), 'R0_02_negative_only')
+        $null = Invoke-HbCoreGit $fixture @('init','-q')
+        $null = Invoke-HbCoreGit $fixture @('remote','add','origin',
+            'https://github.com/yuriyyak23/HybridCPU-Compilers.git')
+        $null = Invoke-HbCoreGit $fixture @('add','.')
+        $null = Invoke-HbCoreGit $fixture @('-c','user.name=R0_02_QA',
+            '-c','user.email=qa@example.invalid','commit','-q','-m','synthetic-negative')
+        $head = Invoke-HbCoreGit $fixture @('rev-parse','HEAD')
+        Denied { Assert-R0_02BridgeCheckout $fixture ('0' * 40) } 'wrong-bridge-physical-head'
+        $configPath = Join-Path $fixture '.git/config'
+        $originalConfig = [IO.File]::ReadAllText($configPath)
+        try {
+            [IO.File]::AppendAllText($configPath,
+                [Environment]::NewLine + '[http "https://github.com/"]' +
+                [Environment]::NewLine + 'extraheader = AUTHORIZATION: synthetic' + [Environment]::NewLine)
+            Denied { $null = Assert-R0_02SafeRoot $fixture } 'persisted-checkout-credential'
+        } finally { [IO.File]::WriteAllText($configPath, $originalConfig) }
+        $null = Invoke-HbCoreGit $fixture @('remote','set-url','origin',
+            'https://github.com/untrusted/other.git')
+        Denied { Assert-R0_02BridgeCheckout $fixture $head } 'wrong-bridge-origin'
+        $null = Invoke-HbCoreGit $fixture @('remote','set-url','origin',
+            'https://github.com/yuriyyak23/HybridCPU-Compilers.git')
+        [IO.File]::AppendAllText((Join-Path $fixture 'marker.txt'), 'dirty')
+        Denied { Assert-R0_02BridgeCheckout $fixture $head } 'dirty-bridge-checkout'
+        $null = Invoke-HbCoreGit $fixture @('checkout','--','marker.txt')
+        [IO.File]::WriteAllText((Join-Path $fixture '.git/shallow'), $head + [char]10)
+        Denied { Assert-R0_02BridgeCheckout $fixture $head } 'shallow-bridge-checkout'
     }
     finally { Remove-Item -LiteralPath $parent -Force -Recurse }
 }
