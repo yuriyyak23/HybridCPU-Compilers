@@ -287,7 +287,7 @@ def verify(trace_dir, *, launch_cwd, launch_argv, compiler, event_argv, expected
                 candidates.append(row)
         if len(candidates) != 1:
             detail = blocked_reasons[0] if blocked_reasons else "no exact process candidate"
-            refuse("OS argv / MSBuild task mismatch, replay or duplicate child: " + detail)
+            refuse("response-file/task OS argv mismatch or read-time proof Blocked: " + detail)
         matched[identity] = candidates[0]
         used.add(candidates[0]["pid"])
     if len(used) != len(csc):
