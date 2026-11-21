@@ -1,12 +1,13 @@
 # R0-02 — Private Core read-only CI gate
 
-Scope: .github/workflows/hb-int-06-no-write.yml, Tests/HbInt06.CoreGate.ps1 and this document only. R2-02 cross-repo replay workflow/harness, parent Run-HbInt06.ps1, Core, Golden and software compiler builds are NOT owned here. This gate does not qualify Golden, HWIR, RTL, or accepted hardware.
+Scope: .github/workflows/hb-int-06-no-write.yml, Tests/HbInt06.CoreGate.ps1, Tests/R0_02_TrustExtension.ps1 and this document only. R2-02 cross-repo replay workflow/harness, parent Run-HbInt06.ps1, Core, Golden and software compiler builds are NOT owned here. This gate does not qualify Golden, HWIR, RTL, or accepted hardware.
 
 ## Reviewed identities (2026-11-21)
 
 | Object | Reviewed identity |
 | --- | --- |
-| Bridge master rechecked | 9befee4f3971b4945c553cf3162ed84af94134e4 (one commit after 8d3453dcc02bfb63710727f4f602edd9bc31efad) |
+| Bridge master at original PR #30 review | 9befee4f3971b4945c553cf3162ed84af94134e4 |
+| Bridge master rechecked for residual R0-02 | d243dd7ecce243cc08a13303cf01247ba7a65024 (parent b06cd1d42e88d53f35bd8054e06fcfab6f07bff4) |
 | CircuitWeave Core master rechecked | b5c44685197a40df99a4d48891120b12475c6ca5 |
 | R0-02 exact Core review pin | b5c44685197a40df99a4d48891120b12475c6ca5, supplied as the exact reviewed commit in the task; fixed in workflow and gate |
 | Superseded Core pin | 18caf04768df6abf31f5517dbb489e7fea2e1c7e |
@@ -17,8 +18,8 @@ Prior evidence: [HB-INT-06 run 44740086741](https://github.com/yuriyyak23/Hybrid
 
 ## Owner actions and least privileges
 
-1. Protect the Bridge master branch via branch protection or ruleset. The private gate requires GITHUB_REF_PROTECTED=true and exact event/repo/ref/SHA. Push/dispatch is trusted only on protected refs/heads/master. Prevent unreviewed modifications to workflow code on master.
-2. In HybridCPU-Compilers repository Settings > Secrets and variables > Actions, the repository owner must create HB_INT_06_CORE_READ_TOKEN. Recommend a short-lived fine-grained PAT restricted to ONLY the private yuriyyak23/CircuitWeave repository with Contents: Read-only plus mandatory metadata. No write, admin, workflow or broad repository privileges. Owner handles expiry, SSO, approvals and rotation. Never put the token in a PR, dispatch input, job log, artifact or commit.
+1. Protect the Bridge master branch via branch protection or ruleset. The private gate requires GITHUB_REF_PROTECTED=true and exact event/repo/ref/SHA. **Only approved workflow_dispatch** may unlock private Core work; push and PR are Blocked/NotRun for the positive pairing. Prevent unreviewed modifications to workflow code on master.
+2. In HybridCPU-Compilers repository Settings > Secrets and variables > Actions, the owner must configure repository variables **HB_R0_02_APPROVED_CORE_SHA=b5c44685197a40df99a4d48891120b12475c6ca5** and **HB_R0_02_APPROVED_GOLDEN_SHA=6946ccab9d888f7dae0a4d8e18480f436138acd9** after independent explicit review. These must NOT be workflow_dispatch inputs, so an untrusted dispatcher cannot choose an arbitrary commit. The owner must separately create **HB_INT_06_CORE_READ_TOKEN** as a protected Actions secret. Require a short-lived fine-grained PAT (`github_pat_` syntax; prefix alone is not scope proof) restricted to ONLY the private yuriyyak23/CircuitWeave repository with Contents: Read-only plus mandatory metadata. No write, admin, workflow or broad repository privileges. Owner handles expiry, SSO, approvals and rotation. Never put the token in a PR, dispatch input, job log, artifact or commit.
 3. Bridge workflow GITHUB_TOKEN has contents: read, with all other permissions denied. Checkout uses persist-credentials: false, no submodules or LFS, and exact Core SHA with full history. GitHub checkout returning success is NOT independent qualification: gate checks origin, SHA, clean checkout, no shallow history, no linked project path, and approved Core test-host project.
 4. Do not use pull_request_target to execute untrusted code with secrets. Untrusted pull_request runs see no private credential and the paired Core gate visibly fails Blocked rather than green skipped. Presence of a token does not prove authorization. Private checkout and Core importer remain NotRun if preflight fails.
 5. Do not use a moving master ref or automatic SHA update. A later Core upgrade requires owner-reviewed exact 40-character lowercase commit ID, inspection of the pinned Core importer test project, and coordinated updates to the static gate allowlist and workflow exact checkout and runner arguments.
@@ -31,8 +32,9 @@ GitHub documentation: [workflow permissions](https://docs.github.com/en/actions/
 | --- | --- | --- | --- | --- |
 | PR, fake event, non-master event, wrong repository | Blocked | NotRun | NotRun | failure |
 | Master unprotected or event/Bridge SHA mismatch | Blocked | NotRun | NotRun | failure |
-| Protected master push/dispatch, token missing or malformed | Blocked | NotRun | NotRun | failure |
-| Token present and correct reviewed pin | Passed (presence only) | attempt | NotRun until checked | pending |
+| Protected master push, regardless of token | Blocked | NotRun | NotRun | failure |
+| Protected master dispatch, owner review variables missing/mismatched or token missing/malformed | Blocked | NotRun | NotRun | failure |
+| Approved dispatch, scoped token marker and exact reviewed pins | Passed (syntax and checkout identity only) | attempt | NotRun until checked | pending |
 | Wrong or uppercase Core pin | Blocked | NotRun | NotRun | failure |
 | Credential checkout denied, wrong origin/SHA, shallow, dirty, stale or linked test path | Passed | Blocked | NotRun | failure |
 | Checkout accepted, downstream exits nonzero | Passed | Passed | Failed | failure |
@@ -61,3 +63,16 @@ When the owner has installed a scoped read-only token and protected Bridge maste
 - R2-02 owner: paired Golden replay workflow/harness, separate from this workflow and script.
 
 No Core PR or Golden source change was made in R0-02. Golden/ Core before-and-after inventories are NotRun if the existing paired runner does not actually execute. PE/PDB and executable identities are recorded only by actual executed runner stages, not generated synthetically by this gate.
+
+
+## Residual hardening after merged PR #30 (2026-11-21)
+
+Checked [Bridge master commit d243dd7](https://github.com/yuriyyak23/HybridCPU-Compilers/commit/d243dd7ecce243cc08a13303cf01247ba7a65024) against the Core master pin above. [Bridge master branches API](https://api.github.com/repos/yuriyyak23/HybridCPU-Compilers/branches/master) returned protected=false; repository rulesets listing was empty; detailed branch-protection lookup returned 403 Resource not accessible by integration (not evidence of protection). [HB-INT-06 run 44838127596](https://github.com/yuriyyak23/HybridCPU-Compilers/actions/runs/44838127596) at b06cd1d42e88d53f35bd8054e06fcfab6f07bff4 reported UnprotectedMasterRef and did not execute private Core checkout or importer. A GitHub account connection with private Core read access is **not** an Actions runner secret.
+
+R0-02 adds a dedicated `R0_02_TrustExtension.ps1` and wires it to the existing gate. The bounded contract insists on: protected master workflow_dispatch, exact owner-reviewed Core+Golden variables, fine-grained token marker, unlinked clean full-history Bridge and Core checkouts, correct detached HEAD/origin, and an exact Core test-host path. The prior preflight/checkout receipts are checked with strict UTF-8 JSON, nested duplicate-field rejection, size/depth bounds, exact Core and Bridge SHA linkage, and no skipped stage admitted as Passed.
+
+The final downstream stage now requires the existing parent receipt to cite the approved Core/Bridge/Golden heads and pinned SDK, unchanged clean before/after source inventories, and every one of the ten required actual software contract command records (including `paired-core-importer`) with Started=true, ExitCode=0, exact Core csproj argument graph, executable SHA256 and bounded stdout/stderr SHA256 rechecked against the ephemeral files in RUNNER_TEMP. A forged `Matrix.StrictCoreImporter=Passed` alone fails. All these checks are **receipt consistency and actual command-observation checks**, not independent Core source qualification. The Core owner must decide admission/verification; Bridge only records unqualified software facts.
+
+**Gate release remains externally Blocked** until an owner enables master protection/ruleset, approves the exact SHA variables, provisions the fine-grained Core-only credential, and manually dispatches from the trusted master. The owner must also independently review that the Golden historical source SHA is safe to use; source checkout does not authorize Golden build/restore or an actual Golden model run. Separate R0-01 compiler and R2-02 replay failures are not reclassified as R0-02 successes. No workflow outside R0-02 ownership is changed.
+
+Synthetic tests can assert that malformed trust contexts/receipts are rejected; they do not establish a positive Core-import execution. The downstream command log hashes and actual SDK executable hashes exist only if the owner-approved runner actually executes them. Until then they remain NotRun. No original Golden inventory or private Core worktree has been changed by this R0-02 hardening.
