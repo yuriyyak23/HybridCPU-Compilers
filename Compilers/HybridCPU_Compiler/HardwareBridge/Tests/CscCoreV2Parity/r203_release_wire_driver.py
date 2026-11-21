@@ -45,10 +45,15 @@ def execute(label, argv, expected=0):
     merged = proc.stdout + proc.stderr
     print("R203_STEP %s exit=%d duration=%.3fs stdoutSHA=%s stderrSHA=%s" %
           (label, proc.returncode, duration, sha(proc.stdout), sha(proc.stderr)), flush=True)
-    if (expected == 0 and proc.returncode != 0) or (
-            expected == "refuse" and proc.returncode == 0):
+    valid_code = proc.returncode == expected if isinstance(expected, int) else (
+        expected == "refuse" and proc.returncode != 0)
+    valid_diagnostic = (
+        expected != 2 or b"HB-INT-02/03 Blocked:" in proc.stderr)
+    if expected == 1 and label.startswith("dotnet-refuse-"):
+        valid_diagnostic = b"FAIL: HB-INT-02/03 production codec parity:" in proc.stderr
+    if not valid_code or not valid_diagnostic:
         # Only synthetic test diagnostics; do not dump a private Golden source.
-        raise RuntimeError("%s expected %s, received %d; detail=%s" %
+        raise RuntimeError("%s expected %s with typed refusal, received %d; detail=%s" %
                            (label, expected, proc.returncode,
                             merged.decode("utf-8", errors="replace")[-500:]))
     return proc.stdout.decode("utf-8", errors="strict")
@@ -76,6 +81,13 @@ def mutations(out):
     mapped = out / "capture-map.json"
     roots = out / "roots-manifest.json"
     input_path = next(iter(sorted((out / "inputs").glob("*.cs"))))
+    map_bytes = mapped.read_bytes()
+    # Require two distinct primary paths before constructing a path collision.
+    sources = list(re.finditer(rb'"Path":"(inputs/[0-9]{5}\.cs)"', map_bytes))
+    if len(sources) < 2:
+        raise RuntimeError("expected at least two staged source paths")
+    second_path = b'"Path":"' + sources[1].group(1) + b'"'
+    first_path = b'"Path":"' + sources[0].group(1) + b'"'
     raw_chunk = chunk.read_bytes()
     lines = raw_chunk.splitlines(keepends=True)
     if len(lines) < 2:
@@ -99,10 +111,24 @@ def mutations(out):
         ("crlf", chunk, raw_chunk.replace(b"\n", b"\r\n")),
         ("duplicate-role", chunk, replace_exact(raw_chunk,
             b'"Role":', b'"Role":"source","Role":')),
-        ("unknown-map-field", mapped, replace_exact(mapped.read_bytes(),
+        ("missing-chunk", chunk, None),
+        ("unknown-map-field", mapped, replace_exact(map_bytes,
             b'{"Schema":', b'{"Extra":0,"Schema":')),
-        ("role-promotion", mapped, replace_exact(mapped.read_bytes(),
+        ("duplicate-map-property", mapped, replace_exact(map_bytes,
+            b'{"Schema":', b'{"Schema":"bad","Schema":')),
+        ("unknown-map-schema", mapped, replace_exact(map_bytes,
+            b'csc-to-core-map/v1', b'csc-to-core-map/v999')),
+        ("staged-path-collision", mapped, replace_exact(map_bytes, second_path, first_path)),
+        ("traversal-map", mapped, replace_exact(map_bytes,
+            b'"Path":"inputs/', b'"Path":"../inputs/')),
+        ("capture-oversize", mapped, re.sub(rb'(?<="Bytes":)[0-9]+',
+            b'999999999', map_bytes, count=1)),
+        ("pdb-role-promotion", mapped, replace_exact(map_bytes,
+            b'"SourceRole":"metadata-only"', b'"SourceRole":"compiler-pdb"')),
+        ("role-promotion", mapped, replace_exact(map_bytes,
             b'"SourceRole":"primary"', b'"SourceRole":"metadata-only"')),
+        ("duplicate-roots-property", roots, replace_exact(roots.read_bytes(),
+            b'{"Schema":', b'{"Schema":"bad","Schema":')),
         ("wrong-root", roots, replace_exact(roots.read_bytes(),
             b'"MethodName":"Step"', b'"MethodName":"Wrong"')),
         ("stale-original", input_path, input_path.read_bytes() + b"// changed\n"),
@@ -119,6 +145,9 @@ def main():
         raise RuntimeError("real Python release stager and fixture must exist")
     dotnet = os.environ.get("R203_DOTNET", "dotnet")
     execute("production-dotnet-matrix", [dotnet, str(dll), "--r203-wire-matrix"])
+    # This refusal must happen before invoking a fictitious managed codec.
+    missing = Path(tempfile.gettempdir()) / ("R2_03_missing-host-" + uuid.uuid4().hex + ".dll")
+    execute("missing-output-dll", [sys.executable, str(__file__), str(missing)], 1)
     for count in CASES:
         out = Path(tempfile.gettempdir()) / ("hb-r203-stage-" + uuid.uuid4().hex)
         if out.exists():
@@ -157,9 +186,12 @@ def main():
                     if changed == original:
                         raise RuntimeError("no-op mutation " + label)
                     try:
-                        target.write_bytes(changed)
-                        execute("python-refuse-" + label, verify_argv, "refuse")
-                        execute("dotnet-refuse-" + label, managed_argv, "refuse")
+                        if changed is None:
+                            target.unlink()
+                        else:
+                            target.write_bytes(changed)
+                        execute("python-refuse-" + label, verify_argv, 2)
+                        execute("dotnet-refuse-" + label, managed_argv, 1)
                     finally:
                         target.write_bytes(original)
                     if inventory(out) != before:

@@ -230,3 +230,24 @@ The later R2-03 PR head adds explicit hash reporting for the **test**
 PDB and the pinned SDK's Roslyn compiler DLL; these are distinct identities
 from any real executed Golden compiler PE/PDB and have not been substituted
 for such evidence.
+
+## R2-03 post-merge workflow repair PR #42 (2026-11-21)
+
+- Draft PR: https://github.com/yuriyyak23/HybridCPU-Compilers/pull/42
+- Base Bridge master: `d243dd7ecce243cc08a13303cf01247ba7a65024`; independent private Core reference: `b5c44685197a40df99a4d48891120b12475c6ca5`.
+- Feature branch: `fix/hb-r2-03-actions-wire-parity-20261121`. PR #34 was merged previously; this is residual CI repair and additional unqualified harness testing, not a wire-schema migration.
+- At the baseline run https://github.com/yuriyyak23/HybridCPU-Compilers/actions/runs/44838125677, GitHub returned `failure` with **zero jobs**. The confirmed file corruption was an unterminated `[regex]::Match` expression and a duplicated detached suffix after the workflow footer; that is a **workflow parse/job-discovery problem**, not evidence of a failed executed serializer.
+- The repaired workflow preserves the Windows production transport job and the 2-OS `ubuntu-24.04` / `windows-2025` release parity matrix. It pins SDK `11.0.100-rc.2.26504.105`, proves the actual `csc.dll` path/hash, keeps restore/build outputs in OS TEMP, checks a SHA-256 manifest for *all tracked checkout files* before/after and logs command argv, exit, elapsed duration, and separate stdout/stderr SHA-256.
+- `R2_03_workflow_guard.py` rejects a detached YAML suffix, duplicate footer/parity invocation, malformed SDK-parent regex, wrong SDK pin, missing OS/matrix jobs. It is a **targeted static guard only**; authoritative YAML/Actions parse requires an actual nonempty job list and runner execution.
+- `r203_release_wire_driver.py` retains frozen raw index and concatenated JSONL SHA values and the real compiled production codec host. Additional negative temporary-fixture mutations cover missing chunk, duplicate map/root JSON fields, unknown map schema, path collision/traversal, size lie, and PDB-role promotion. The driver separately refuses a nonexistent output DLL.
+- The existing .NET production codec high-water test includes 1, 64, 65, 1001, 8192 rows, 2 MiB source, 32 MiB metadata and 512 MiB aggregate limits. These are **not** claims of an actually executed 64 MiB Golden compiler closure.
+
+### Evidence and external boundary
+
+Earlier repaired workflow job discovery on run https://github.com/yuriyyak23/HybridCPU-Compilers/actions/runs/44854546807 returned three actual jobs, not zero. On that **intermediate** head (`d766f711a50bfb6958398078506f4c5f54a32a40`):
+- Ubuntu production codec build, `--wire-limits`, Python release stage and existing 15 negative pairs **passed**.
+- Windows pinned SDK restore/build, compiled managed DLL, Roslyn `csc.dll` attestation and `--wire-limits` **passed**, but the release stage refused with `BLOCKED release-stage synthetic fixture: file replaced between check and open`. This refusal originates in `segmented_csc_capture_v2.py::stable_open` during `stage_core_v2.py` input verification, within the **R1-02 / R2-01 upstream boundary**, not the R2-03 codec implementation. Do not suppress the refusal or alter another owner's capture code.
+- Final head acceptance remains **NotRun / pending final-head jobs** until both operating systems actually complete the expanded matrix. A queued workflow or static YAML check is **not** `WireParity=Passed`.
+- Real approved Golden Csc, OS execution witness, independent private Core reader and accepted RTL all remain **NotRun/Blocked** and are not promoted by synthetic fixture success.
+
+The workflow CI must stay red if Windows capture verification cannot establish identical before/open file identity. Record the actual head SHA, job URLs and failure diagnostic and send the issue to the R1-02/R2-01 owner separately; do not modify their files in this PR.
