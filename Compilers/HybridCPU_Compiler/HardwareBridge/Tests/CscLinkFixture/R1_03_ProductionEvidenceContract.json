@@ -1,0 +1,58 @@
+{
+  "Schema": "hybridcpu.hardwarebridge.r1-03-production-prerequisites/v1",
+  "Disposition": "Blocked",
+  "PositiveGolden": "NotRun",
+  "PairedCore": "NotRun",
+  "Rtl": "NotRun",
+  "SdkPin": "11.0.100-rc.2.26504.105",
+  "SyntheticReceiptMaySatisfy": false,
+  "RequiredExternalReceipts": [
+    {
+      "Owner": "R1-01",
+      "Schema": "hybridcpu.hardwarebridge.csc-os-execution-receipt/v1",
+      "Evidence": "raw traced execve/cwd/process ancestry plus actual task event, expanded argv, compiler image SHA and captured outputs",
+      "Status": "Blocked"
+    },
+    {
+      "Owner": "R1-02",
+      "Schema": "hybridcpu.hardwarebridge.r1-02-external-task-crosswalk/v1",
+      "Evidence": "approved immutable source/reference/generator closure and before-after no-write inventory",
+      "Status": "Blocked"
+    },
+    {
+      "Owner": "R0-01",
+      "Schema": "hybridcpu.hardwarebridge.compiler-facts/v1",
+      "Evidence": "successful production Companion invocation with owned body methods, roots, source maps and edges",
+      "Status": "Blocked"
+    },
+    {
+      "Owner": "CW-INT-04",
+      "Schema": "Core-owned independent method/source qualification",
+      "Evidence": "independent Roslyn/source/MethodDef rederivation in private Core",
+      "Status": "NotRun"
+    }
+  ],
+  "IndependentDigestDomains": [
+    "SourceSnapshotDigest",
+    "CompanionSourceInputDigest",
+    "CscInvocationDigest",
+    "CompilerOutputPairDigest",
+    "PeSha256",
+    "PdbSha256",
+    "CompanionFactsSha256"
+  ],
+  "RequiredMethodCrosswalk": [
+    "effective Csc options and ordered OS argv",
+    "source/reference/generator immutable SHA256",
+    "executed compiler image SHA256, exit and output hashes",
+    "actual PE MVID and full portable PDB CodeView GUID+stamp",
+    "MethodDef token, canonical signature and IL SHA256",
+    "PDB source documents, hashes and visible sequence points",
+    "Companion stable method identities, graph edges and root selector"
+  ],
+  "RejectPromotionStatuses": [
+    "Verified",
+    "AcceptedRTL",
+    "HardwareQualified"
+  ]
+}
