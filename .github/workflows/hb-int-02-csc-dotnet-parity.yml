@@ -180,35 +180,11 @@ jobs:
             Write-Host "Actual dotnet host SHA=$((Get-FileHash $dotnetHost -Algorithm SHA256).Hash)"
             $sdkLine = & dotnet --list-sdks | Where-Object { $_.StartsWith("$version [") } | Select-Object -First 1
             if (-not $sdkLine) { throw 'Pinned SDK location not found' }
-            $sdkParent = [regex]::Match($sdkLine, '\[(.*)\]
-            & dotnet $dll --wire-limits > $limitsLog 2>&1
-            $rc = $LASTEXITCODE
-            Write-Host "dotnet --wire-limits exit=$rc stdout/stderr SHA=$((Get-FileHash $limitsLog -Algorithm SHA256).Hash)"
-            if ($rc -ne 0) { Get-Content $limitsLog; throw 'Production codec high-water limits failed' }
-            $parityLog = Join-Path $logs 'release-parity.txt'
-            & python $driver $dll > $parityLog 2>&1
-            $rc = $LASTEXITCODE
-            Write-Host "Python release-stager + compiled DLL parity exit=$rc stdout/stderr SHA=$((Get-FileHash $parityLog -Algorithm SHA256).Hash)"
-            Get-Content -LiteralPath $parityLog -Tail 110
-            if ($rc -ne 0) { throw 'Cross-language binary fixture/negative matrix failed' }
-            Write-Host 'R2-03 fixture-only PASS. Real Golden Csc and Core-owned reader: NotRun.'
-          } finally {
-            Pop-Location
-            $afterSha = (& git rev-parse HEAD).Trim()
-            $after = (& git status --porcelain=v1 --untracked-files=all) -join [Environment]::NewLine
-            Write-Host "Checkout HEAD before=$beforeSha after=$afterSha; porcelain beforeLength=$($before.Length) afterLength=$($after.Length)"
-            if ($beforeSha -ne $afterSha -or $after -ne $before) {
-              throw 'R2-03 violated immutable Git checkout'
+            $sdkMatch = [regex]::Match($sdkLine, '^(\S+)\s+\[(?<parent>[^\]\r\n]+)\]$')
+            if (-not $sdkMatch.Success -or $sdkMatch.Groups[1].Value -cne $version) {
+              throw "Pinned SDK location malformed: $sdkLine"
             }
-            if (Test-Path -LiteralPath $work) {
-              Remove-Item -LiteralPath $work -Recurse -Force
-            }
-          }
-          exit 0
-
-# R2-03 synthetic transport-only checks; no Golden source or Core consumer access.
-).Groups[1].Value
-            if (-not $sdkParent) { throw 'Pinned SDK location malformed' }
+            $sdkParent = $sdkMatch.Groups['parent'].Value
             $roslyn = Join-Path (Join-Path $sdkParent $version) 'Roslyn/bincore/csc.dll'
             if (-not (Test-Path -LiteralPath $roslyn -PathType Leaf)) {
               throw 'Actual pinned Roslyn compiler image missing'
