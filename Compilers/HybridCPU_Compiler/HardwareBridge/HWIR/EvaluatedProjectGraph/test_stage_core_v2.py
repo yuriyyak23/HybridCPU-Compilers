@@ -8,6 +8,7 @@ import sys
 import tempfile
 import time
 import unittest
+from unittest import mock
 import uuid
 
 sys.path.insert(0, str(Path(__file__).parent))
@@ -49,6 +50,22 @@ class CoreV2StagingTests(unittest.TestCase):
         self.assertTrue(all(r["SourceRole"] == "metadata-only" for r in mapping["Rows"]
                             if r["Kind"] == "reference"))
         print("HB-INT-02/03 synthetic source only Core closure SHA256=" + result)
+
+    def test_csc_profile_sidecar_is_pinned_and_crosswalked(self):
+        self.run_stage()
+        sidecar_path = self.target / "csc-closure-profile.json"
+        sidecar = json.loads(sidecar_path.read_bytes())
+        self.assertEqual(sidecar["Disposition"], "candidate-only")
+        self.assertEqual(sidecar["CoreClosureSha256"].upper(), json.loads(
+            (self.target / "bridge-index.json").read_bytes())["ClosureSha256"])
+        self.assertEqual(len(sidecar["Files"]), len(json.loads(
+            (self.target / "capture-map.json").read_bytes())["Rows"]))
+        self.assertEqual(stage.verify(self.target, self.pin, self.roots_sha, self.bundle),
+                         json.loads((self.target / "bridge-index.json").read_bytes())["ClosureSha256"])
+        sidecar["Files"][0]["ObservedPath"] = str(self.fixture.original)
+        sidecar_path.write_bytes(stage.json_bytes(sidecar))
+        with self.assertRaisesRegex(ValueError, "crosswalk mismatch"):
+            stage.verify(self.target, self.pin, self.roots_sha, self.bundle)
 
     def test_wrong_independent_source_and_root_sha(self):
         with self.assertRaises(ValueError):
@@ -106,7 +123,7 @@ class CoreV2StagingTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             stage.verify(self.target, self.pin, self.roots_sha)
 
-    def test_timeout_and_interruption_remove_partial_staging(self):
+    def test_timeout_and_interruption_do_not_publish_target(self):
         def expire():
             time.sleep(.03)
         with self.assertRaisesRegex(ValueError, "timeout"):
@@ -116,6 +133,27 @@ class CoreV2StagingTests(unittest.TestCase):
             raise KeyboardInterrupt()
         with self.assertRaises(KeyboardInterrupt):
             self.run_stage(after_copy=cancel)
+        self.assertFalse(self.target.exists())
+
+    def test_failed_staging_does_not_remove_replaced_private_directory(self):
+        original_mkdtemp = tempfile.mkdtemp
+        created = []
+        def create(*args, **kwargs):
+            path = Path(original_mkdtemp(*args, **kwargs))
+            created.append(path)
+            self.addCleanup(lambda: shutil.rmtree(path, ignore_errors=True))
+            self.addCleanup(lambda: shutil.rmtree(str(path) + '-displaced', ignore_errors=True))
+            return str(path)
+        def replace_and_fail():
+            path = created[0]
+            path.rename(str(path) + '-displaced')
+            path.mkdir()
+            (path / 'sentinel').write_bytes(b'other owner')
+            raise ValueError('simulated failure after path replacement')
+        with mock.patch.object(stage.tempfile, 'mkdtemp', side_effect=create):
+            with self.assertRaisesRegex(ValueError, 'simulated failure'):
+                self.run_stage(after_copy=replace_and_fail)
+        self.assertEqual((created[0] / 'sentinel').read_bytes(), b'other owner')
         self.assertFalse(self.target.exists())
 
     def test_path_collision_symlink_and_added_files(self):

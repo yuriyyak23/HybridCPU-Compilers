@@ -6,10 +6,10 @@ module checks their bytes and structure; it does not attest an actual compiler r
 import argparse
 import hashlib
 import json
+import ntpath
 import os
 import re
 from pathlib import Path
-import shutil
 import stat
 import sys
 import tempfile
@@ -24,6 +24,9 @@ MAX_FILES = 20000
 MAX_BYTES = 8 * 1024 * CHUNK_SIZE
 MAX_INDEX = 16 * CHUNK_SIZE
 MAX_OBSERVATION = 8 * CHUNK_SIZE
+INPUT_KINDS = frozenset(("csc-source", "generator-source", "reference", "analyzer",
+                         "analyzer-config", "additional-file", "source-link", "app-config",
+                         "embedded", "csc-binary", "project", "assets"))
 
 
 def fail(message):
@@ -87,6 +90,79 @@ def safe_path(path, *, file=True):
     if file and not 0 <= info.st_size <= MAX_FILE:
         fail("oversized compiler input: " + str(p))
     return p
+
+
+def compiler_input_path(path, cwd, *, file=True):
+    """Resolve Csc input paths, allowing ordinary parent segments safely.
+
+    Csc response files emitted by the SDK use paths such as
+    ``targets\\..\\analyzers\\X.dll``. Keep safe_path strict for capture
+    manifests; here inspect each original component before collapsing ``..``
+    so traversal through a symlink/junction/reparse point remains refused.
+
+    Component lstat checks are not an atomic handle-relative walk. This is
+    suitable only for the sealed, non-concurrently-mutated capture snapshot
+    used by this producer; it does not claim resistance to a racing directory
+    replacement between component inspection and open.
+    """
+    if not isinstance(path, str) or not path or "\x00" in path:
+        fail("invalid compiler input path")
+    if os.name == "nt":
+        raw = path.replace("/", "\\")
+        if raw.startswith(("\\\\?\\", "\\\\.\\", "\\??\\")):
+            fail("device compiler input path")
+        drive, tail = ntpath.splitdrive(raw)
+        if not drive:
+            if raw.startswith("\\"):
+                fail("rooted compiler input path requires a drive/share")
+            if not isinstance(cwd, str) or not ntpath.isabs(cwd):
+                fail("absolute Csc working directory required")
+            cwd = cwd.replace("/", "\\")
+            raw = ntpath.join(cwd, raw)
+            drive, tail = ntpath.splitdrive(raw)
+        if drive.startswith("\\\\"):
+            unc = drive[2:].split("\\")
+            if len(unc) != 2 or not all(unc) or any(
+                    part in (".", "..") or part.endswith((" ", ".")) or ":" in part
+                    for part in unc):
+                fail("malformed UNC compiler input path")
+        elif not re.fullmatch(r"[A-Za-z]:", drive):
+            fail("unsupported compiler input drive")
+        if not tail.startswith("\\"):
+            fail("drive-relative compiler input path")
+        root = Path(drive + "\\")
+        components = [part for part in tail.split("\\") if part != ""]
+        for part in components:
+            if part not in (".", "..") and (part.endswith((" ", ".")) or ":" in part):
+                fail("ambiguous Windows compiler input component")
+    else:
+        if path.startswith("//") or (isinstance(cwd, str) and cwd.startswith("//")):
+            fail("ambiguous double-root POSIX compiler input path")
+        raw = path if os.path.isabs(path) else os.path.join(cwd, path)
+        if not os.path.isabs(raw):
+            fail("absolute Csc working directory required")
+        root = Path("/")
+        components = raw.split("/")[1:]
+
+    current = root
+    pending = [part for part in components if part != "."]
+    for index, part in enumerate(pending):
+        if part == "..":
+            if current == root:
+                fail("compiler input path escapes its root")
+            current = current.parent
+            continue
+        candidate = current / part
+        try:
+            info = candidate.lstat()
+        except (FileNotFoundError, NotADirectoryError):
+            fail("missing compiler input component: " + str(candidate))
+        if _is_reparse(info):
+            fail("symlink/reparse compiler input path: " + str(candidate))
+        if index < len(pending) - 1 and not stat.S_ISDIR(info.st_mode):
+            fail("non-directory compiler input component: " + str(candidate))
+        current = candidate
+    return safe_path(str(current), file=file)
 
 
 def _same_path_fd_identity(path_state, fd_state):
@@ -206,7 +282,7 @@ def command_files(argv, cwd):
     file_input = (("/reference:", "reference"), ("/r:", "reference"),
                   ("/analyzer:", "analyzer"), ("/analyzerconfig:", "analyzer-config"),
                   ("/additionalfile:", "additional-file"), ("/sourcelink:", "source-link"),
-                  ("/appconfig:", "app-config"))
+                  ("/appconfig:", "app-config"), ("/embed:", "embedded"))
     output_options = ("/out:", "/pdb:", "/refout:", "/doc:", "/errorlog:")
     scalar_prefixes = ("/langversion:", "/define:", "/nullable:", "/target:",
                        "/debug:", "/platform:", "/warn:", "/nowarn:", "/warnaserror:",
@@ -219,7 +295,7 @@ def command_files(argv, cwd):
                     "/unsafe+", "/unsafe-", "/optimize", "/optimize+", "/optimize-",
                     "/deterministic", "/deterministic+", "/deterministic-", "/parallel+",
                     "/parallel-", "/publicsign+", "/publicsign-", "/warnaserror+",
-                    "/warnaserror-", "/debug", "/debug+", "/highentropyva+", "/highentropyva-"}
+                    "/warnaserror-", "/debug", "/debug+", "/debug-", "/highentropyva+", "/highentropyva-"}
     sources = []
     artifacts = []
     generator_dir = None
@@ -228,20 +304,19 @@ def command_files(argv, cwd):
         # Paths have to be admitted as source tokens, including POSIX absolute /tmp/A.cs.
         if lower.endswith(".cs") and (not token.startswith(("/", "-")) or
                 (os.path.isabs(token) and not re.match(r"^/[a-z][a-z0-9+-]*:", lower))):
-            sources.append(str(safe_path(str(Path(token) if os.path.isabs(token) else cwd / token))))
+            sources.append(str(compiler_input_path(token, str(cwd))))
             continue
         kind = next((k for prefix, k in file_input if lower.startswith(prefix)), None)
         if kind:
             path = token.split(":", 1)[1]
             if kind == "reference" and "=" in path:
                 fail("reference aliases require a separate versioned contract")
-            p = str(Path(path) if os.path.isabs(path) else cwd / path)
-            artifacts.append((kind, str(safe_path(p))))
+            artifacts.append((kind, str(compiler_input_path(path, str(cwd)))))
         elif lower.startswith("/generatedfilesout:"):
             if generator_dir is not None:
                 fail("duplicate generatedfilesout")
             path = token.split(":", 1)[1]
-            generator_dir = str(safe_path(str(Path(path) if os.path.isabs(path) else cwd / path), file=False))
+            generator_dir = str(compiler_input_path(path, str(cwd), file=False))
         elif any(lower.startswith(prefix) for prefix in output_options):
             # Outgoing files are not read here; their destinations still must be isolated.
             path = token.split(":", 1)[1]
@@ -274,6 +349,9 @@ def build_inputs(graph_path, observation_path, golden_root):
     graph_nodes = {n["id"]: n for n in graph["nodes"]}
     if not graph_nodes or len(graph_nodes) != len(graph["nodes"]) or len(graph_nodes) > 100:
         fail("ambiguous/oversized evaluated graph")
+    projects_in_graph = [node["project"] for node in graph_nodes.values()]
+    if not any(path == graph["root"] for path in projects_in_graph):
+        fail("graph root project is missing")
     projects = obs.get("projects")
     if not isinstance(projects, list) or len(projects) != len(graph_nodes):
         fail("Csc observations do not cover the graph")
@@ -286,7 +364,7 @@ def build_inputs(graph_path, observation_path, golden_root):
         logical(logical_path)
         if role not in ("primary", "owned-body", "metadata-only"):
             fail("unknown ownership role")
-        if kind not in ("csc-source", "generator-source", "reference", "analyzer", "analyzer-config", "additional-file", "source-link", "app-config", "csc-binary", "project", "assets"):
+        if kind not in INPUT_KINDS:
             fail("unknown input kind")
         if kind not in ("csc-source", "generator-source") and role != "metadata-only":
             fail("metadata input promoted to executable body")
@@ -482,15 +560,17 @@ def capture(graph, observation, golden_root, out_dir, after_copy=None, *, timeou
         with (output / "index.json").open("xb") as stream:
             stream.write(index_bytes)
         check_timeout()
-        verify(output)
+        verify(output, graph_path=graph)
         check_timeout()
         return index["closureRootSha256"]
     except BaseException:
-        shutil.rmtree(output)
+        # Never delete an output by pathname here: another process can replace
+        # it between any ownership check and a recursive delete. The isolated
+        # TEMP directory is retained for operator inspection on failure.
         raise
 
 
-def verify(out_dir):
+def verify(out_dir, *, graph_path=None):
     base = safe_path(os.path.abspath(out_dir), file=False)
     index_path = base / "index.json"
     index = load(str(index_path), MAX_INDEX)
@@ -509,6 +589,30 @@ def verify(out_dir):
         if sha(canonical(command["argv"])) != command["argvSha256"]:
             fail("changed Csc option in segmented index")
     command_roles = {x["nodeId"]: x["projectRole"] for x in commands}
+    if (any(role not in ("primary", "owned-body", "metadata-only") for role in command_roles.values())
+            or "primary" not in command_roles.values()):
+        fail("invalid primary/project roles")
+    if graph_path is not None:
+        graph_bytes = read_bounded(graph_path, 4 * CHUNK_SIZE)
+        if sha(graph_bytes) != index["graphSha256"]:
+            fail("graph differs from captured graph SHA-256")
+        graph = strict_json(graph_bytes)
+        if not isinstance(graph, dict) or graph.get("schema") != GRAPH_SCHEMA:
+            fail("unsupported captured graph")
+        nodes = graph.get("nodes")
+        if not isinstance(nodes, list) or not 1 <= len(nodes) <= 100:
+            fail("invalid captured graph nodes")
+        graph_nodes = {node["id"]: node for node in nodes}
+        if len(graph_nodes) != len(nodes) or set(graph_nodes) != set(command_ids):
+            fail("captured graph node identities differ from commands")
+        root = graph["root"]
+        if not any(node["project"] == root for node in nodes):
+            fail("captured graph root is missing")
+        for command in commands:
+            node = graph_nodes[command["nodeId"]]
+            if ((node["project"] == root) != (command["projectRole"] == "primary")
+                    or node["globalProperties"] != command["globalProperties"]):
+                fail("captured graph root role or global properties differ")
     rows = index["entries"]
     if not isinstance(rows, list) or len(rows) > MAX_FILES:
         fail("invalid file inventory")
@@ -520,6 +624,8 @@ def verify(out_dir):
     total_bytes = 0
     for row in rows:
         logical(row["logicalPath"])
+        if row["kind"] not in INPUT_KINDS:
+            fail("unknown input kind")
         if row["nodeId"] not in command_roles or (row["kind"] in ("csc-source", "generator-source") and row["role"] != command_roles[row["nodeId"]]):
             fail("invalid project/source role link")
         if row["role"] not in ("primary", "owned-body", "metadata-only") or (row["kind"] not in ("csc-source", "generator-source") and row["role"] != "metadata-only"):
@@ -557,11 +663,12 @@ def main():
     cap.add_argument("--timeout-seconds", type=float, default=300)
     check = sub.add_parser("verify")
     check.add_argument("--output", required=True)
+    check.add_argument("--graph", help="Optional original graph bytes to check captured role and property links")
     args = parser.parse_args()
     if args.command == "capture":
         result = capture(args.graph, args.observation, args.golden_root, args.output, timeout_seconds=args.timeout_seconds)
     else:
-        result = verify(args.output)
+        result = verify(args.output, graph_path=args.graph)
     print("HB-INT-02 unqualified software closure SHA256=" + result)
 
 

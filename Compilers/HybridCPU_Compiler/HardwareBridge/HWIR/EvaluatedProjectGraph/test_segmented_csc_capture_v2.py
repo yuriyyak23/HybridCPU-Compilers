@@ -2,8 +2,10 @@
 import copy
 import hashlib
 import json
+import os
 from pathlib import Path
 import shutil
+import stat
 import sys
 import tempfile
 import time
@@ -22,6 +24,18 @@ def jsonwrite(path, obj):
     Path(path).write_bytes(c.canonical(obj))
 
 
+def remove_readonly_fixture_file(function, path, error):
+    # Git for Windows marks loose objects read-only. Change the attribute only
+    # during fixture teardown, after the no-write assertions have finished.
+    if function is not os.unlink or not isinstance(error, PermissionError):
+        raise error
+    attributes = os.lstat(path).st_file_attributes
+    if not attributes & stat.FILE_ATTRIBUTE_READONLY or attributes & stat.FILE_ATTRIBUTE_REPARSE_POINT:
+        raise error
+    os.chmod(path, stat.S_IWRITE)
+    function(path)
+
+
 class ClosureTests(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp(prefix="hb-int-02-fixture-"))
@@ -38,6 +52,8 @@ class ClosureTests(unittest.TestCase):
         self.project.write_bytes(b"<Project/>")
         self.reference = self.copy / "ref.dll"
         self.reference.write_bytes(b"metadata-only PE fixture, not real PE")
+        self.embedded = self.copy / "embedded.cs"
+        self.embedded.write_bytes(b"// embedded source fixture; file role only")
         self.compiler = self.copy / "csc.dll"
         self.compiler.write_bytes(b"test transport pin only, not csc executable")
         self.generated = self.generator / "Gen.cs"
@@ -51,18 +67,22 @@ class ClosureTests(unittest.TestCase):
             "nodeId": "P|Configuration=Debug", "role": "primary", "workingDirectory": str(self.copy),
             "compiler": {"path": str(self.compiler), "sha256": digest(self.compiler)},
             "projectSha256": digest(self.project),
-            "filePins": [{"kind": "reference", "path": str(self.reference), "sha256": digest(self.reference)}],
+            "filePins": [{"kind": "reference", "path": str(self.reference), "sha256": digest(self.reference)},
+                         {"kind": "embedded", "path": str(self.embedded), "sha256": digest(self.embedded)}],
             "argv": [], "argvSha256": "", "sources": [{"path": str(self.source),
                 "logicalPath": "project/A.cs", "sha256": digest(self.source), "origin": "evaluated", "originalPath": str(self.original)}],
             "generatorSources": [{"path": str(self.generated), "logicalPath": "generated/Gen.cs", "sha256": digest(self.generated)}]}]}
         self.observation["projects"][0]["argv"] = [
             "/target:library", "/langversion:preview", "/define:FEATURE", "/nullable:enable",
-            "/checked-", "/out:obj/P.dll", "/generatedfilesout:" + str(self.generator),
-            "/reference:" + str(self.reference), str(self.source)]
+            "/checked-", "/debug-", "/out:obj/P.dll", "/generatedfilesout:" + str(self.generator),
+            "/reference:" + str(self.reference), "/embed:" + str(self.embedded), str(self.source)]
         self.save()
 
     def tearDown(self):
-        shutil.rmtree(self.tmp)
+        if os.name == "nt":
+            shutil.rmtree(self.tmp, onexc=remove_readonly_fixture_file)
+        else:
+            shutil.rmtree(self.tmp)
 
     def save(self):
         jsonwrite(self.graph_path, self.graph)
@@ -169,28 +189,88 @@ class ClosureTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "symlink"):
             c.build_inputs(str(self.graph_path), str(self.observation_path), str(self.golden))
 
+    def test_compiler_path_parent_segments_are_checked_before_collapse(self):
+        sdk = self.copy / "Sdk"
+        targets = sdk / "targets"
+        analyzers = sdk / "analyzers"
+        targets.mkdir(parents=True)
+        analyzers.mkdir()
+        leaf = analyzers / "Analyzer.dll"
+        leaf.write_bytes(b"analyzer fixture")
+        raw = str(sdk / "targets" / ".." / "analyzers" / "Analyzer.dll")
+        self.assertEqual(c.compiler_input_path(raw, str(self.copy)), leaf)
+        with self.assertRaisesRegex(ValueError, "escapes its root"):
+            c.compiler_input_path(str(Path(os.path.splitdrive(str(self.copy))[0] + os.sep) / ".." / "Analyzer.dll"), str(self.copy))
+
+    @unittest.skipUnless(os.name == "nt", "Windows path grammar")
+    def test_compiler_path_windows_cwd_and_malformed_roots(self):
+        sdk = self.copy / "Sdk"
+        targets = sdk / "targets"
+        analyzers = sdk / "analyzers"
+        targets.mkdir(parents=True)
+        analyzers.mkdir()
+        leaf = analyzers / "Analyzer.dll"
+        leaf.write_bytes(b"analyzer fixture")
+        forward_cwd = str(self.copy).replace("\\", "/")
+        self.assertEqual(c.compiler_input_path("Sdk/targets/../analyzers/Analyzer.dll", forward_cwd), leaf)
+        for raw in ("C:relative.dll", "\\rooted.dll", "\\\\server\\..\\share\\x.dll",
+                    "\\\\?\\C:\\x.dll", "\\\\.\\C:\\x.dll", "C:\\dir\\stream:ads.dll"):
+            with self.subTest(path=raw), self.assertRaises(ValueError):
+                c.compiler_input_path(raw, str(self.copy))
+
+    @unittest.skipUnless(os.name != "nt", "POSIX path grammar")
+    def test_compiler_path_rejects_double_root_prefix(self):
+        with self.assertRaisesRegex(ValueError, "double-root"):
+            c.compiler_input_path("//tmp/input.cs", "/tmp")
+
+    def test_compiler_path_refuses_link_before_parent_collapse(self):
+        real = self.copy / "real-directory"
+        real.mkdir()
+        link = self.copy / "link-directory"
+        try:
+            link.symlink_to(real, target_is_directory=True)
+        except (OSError, NotImplementedError):
+            self.skipTest("directory symlinks unavailable")
+        with self.assertRaisesRegex(ValueError, "symlink/reparse"):
+            c.compiler_input_path(str(link / ".." / "A.cs"), str(self.copy))
+
+    @unittest.skipUnless(os.name == "nt", "Windows junction/reparse test")
+    def test_compiler_path_refuses_junction_before_parent_collapse(self):
+        import subprocess
+        real = self.copy / "real-junction-target"
+        real.mkdir()
+        junction = self.copy / "junction-component"
+        result = subprocess.run(["cmd.exe", "/d", "/c", "mklink", "/J",
+                                 str(junction), str(real)], capture_output=True, text=True)
+        if result.returncode != 0 or not junction.exists():
+            self.skipTest("junction creation unavailable: " + result.stdout[-160:])
+        with self.assertRaisesRegex(ValueError, "symlink/reparse"):
+            c.compiler_input_path(str(junction / ".." / "A.cs"), str(self.copy))
+
     def test_wrong_compiler_pin(self):
         self.observation["projects"][0]["compiler"]["sha256"] = "0" * 64
         self.save()
         with self.assertRaisesRegex(ValueError, "changed/stale"):
             c.build_inputs(str(self.graph_path), str(self.observation_path), str(self.golden))
 
-    def test_timeout_and_keyboard_cancellation_remove_partial_output(self):
+    def test_timeout_and_keyboard_cancellation_retain_partial_output(self):
         deadline_output = self.out()
+        self.addCleanup(lambda: shutil.rmtree(deadline_output, ignore_errors=True))
         with self.assertRaisesRegex(ValueError, "capture timeout"):
             c.capture(str(self.graph_path), str(self.observation_path), str(self.golden),
                       deadline_output, after_copy=lambda: time.sleep(0.025), timeout_seconds=0.001)
-        self.assertFalse(Path(deadline_output).exists())
+        self.assertFalse((Path(deadline_output) / "index.json").exists())
         cancel_output = self.out()
+        self.addCleanup(lambda: shutil.rmtree(cancel_output, ignore_errors=True))
         def interrupt():
             raise KeyboardInterrupt()
         with self.assertRaises(KeyboardInterrupt):
             c.capture(str(self.graph_path), str(self.observation_path), str(self.golden),
                       cancel_output, after_copy=interrupt)
-        self.assertFalse(Path(cancel_output).exists())
+        self.assertFalse((Path(cancel_output) / "index.json").exists())
 
     def test_unclassified_file_switch_is_blocked(self):
-        self.observation["projects"][0]["argv"].insert(5, "/embed:" + str(self.source))
+        self.observation["projects"][0]["argv"].insert(5, "/mysteryinput:" + str(self.source))
         self.save()
         with self.assertRaisesRegex(ValueError, "unsupported/unclassified Csc argument"):
             c.build_inputs(str(self.graph_path), str(self.observation_path), str(self.golden))
@@ -200,6 +280,65 @@ class ClosureTests(unittest.TestCase):
         self.recompute(base, lambda i: i["commands"][0]["argv"].append("/checked+"))
         with self.assertRaisesRegex(ValueError, "changed Csc option in segmented index"):
             c.verify(base)
+
+    def test_index_unknown_input_kind_is_refused_even_with_fresh_root(self):
+        base, _ = self.run_capture()
+        def mutate(index):
+            metadata = next(row for row in index["entries"] if row["kind"] == "reference")
+            metadata["kind"] = "unknown-input"
+            index["entries"].sort(key=lambda row: (row["nodeId"], row["kind"], row["logicalPath"]))
+        self.recompute(base, mutate)
+        with self.assertRaisesRegex(ValueError, "unknown input kind"):
+            c.verify(base)
+
+    def test_missing_primary_or_unknown_project_role_is_refused(self):
+        for role in ("metadata-only", "unrecognized"):
+            with self.subTest(role=role):
+                base, _ = self.run_capture()
+                self.recompute(base, lambda index: index["commands"][0].__setitem__("projectRole", role))
+                with self.assertRaisesRegex(ValueError, "invalid primary/project roles"):
+                    c.verify(base)
+
+    def test_graph_root_must_be_in_the_graph(self):
+        other = self.golden / "Other.csproj"
+        other.write_bytes(b"<Project/>")
+        self.graph["root"] = str(other)
+        self.save()
+        with self.assertRaisesRegex(ValueError, "graph root project is missing"):
+            c.build_inputs(str(self.graph_path), str(self.observation_path), str(self.golden))
+
+    def test_optional_graph_verification_binds_root_role_and_properties(self):
+        second_node = copy.deepcopy(self.graph["nodes"][0])
+        second_node["id"] = "P|Configuration=Release"
+        second_node["globalProperties"]["Configuration"] = "Release"
+        second_observation = copy.deepcopy(self.observation["projects"][0])
+        second_observation["nodeId"] = second_node["id"]
+        self.graph["nodes"].append(second_node)
+        self.observation["projects"].append(second_observation)
+        self.save()
+        base, root = self.run_capture()
+        self.assertEqual(c.verify(base, graph_path=str(self.graph_path)), root)
+
+        def reclassify(index):
+            command = next(row for row in index["commands"] if row["nodeId"] == second_node["id"])
+            command["projectRole"] = "metadata-only"
+            for row in index["entries"]:
+                if row["nodeId"] == second_node["id"]:
+                    row["role"] = "metadata-only"
+        self.recompute(base, reclassify)
+        c.verify(base)  # Without the graph, the original root is not encoded in this index.
+        with self.assertRaisesRegex(ValueError, "root role or global properties differ"):
+            c.verify(base, graph_path=str(self.graph_path))
+
+    def test_optional_graph_verification_rejects_stale_graph_and_properties(self):
+        base, _ = self.run_capture()
+        self.recompute(base, lambda index: index["commands"][0]["globalProperties"].__setitem__("Configuration", "Release"))
+        with self.assertRaisesRegex(ValueError, "root role or global properties differ"):
+            c.verify(base, graph_path=str(self.graph_path))
+        self.graph["nodes"][0]["globalProperties"]["Configuration"] = "Release"
+        jsonwrite(self.graph_path, self.graph)
+        with self.assertRaisesRegex(ValueError, "graph differs from captured graph SHA-256"):
+            c.verify(base, graph_path=str(self.graph_path))
 
     def test_1001_sources_bounded_index(self):
         p = self.observation["projects"][0]

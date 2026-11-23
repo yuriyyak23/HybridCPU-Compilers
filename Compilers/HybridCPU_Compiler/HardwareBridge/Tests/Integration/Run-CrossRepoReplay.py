@@ -419,7 +419,11 @@ def main(args):
         assembly_sha = sha_file(assembly)[0]
         receipt["coreReaderAssemblySha256"] = assembly_sha
         receipt["stages"]["R2-02-core-reader"] = "Failed"  # until positive and every required negative verify
-        cmd = [str(dotnet), str(assembly), str(index_path), str(stage), closure, digest]
+        profile_path = stage / "csc-closure-profile.json"
+        profile_sha = sha_file(profile_path)[0].upper()
+        receipt["cscProfileSha256"] = profile_sha
+        cmd = [str(dotnet), str(assembly), str(index_path), str(stage), closure, digest,
+               str(profile_path), profile_sha]
         result = run("R2-02-core-reader", cmd, out, logs, args.timeout, env)
         receipt["commands"].append(result)
         require(result["status"] == "Passed", "Core reader rejected actual Bridge workspace")
@@ -428,6 +432,35 @@ def main(args):
                 response.get("code") == "CWINT03_V2_UNQUALIFIED_CLOSURE" and
                 response.get("indexSha256") == digest and response.get("closureSha256") == closure,
                 "Core reader did not return pinned unqualified candidate receipt")
+        profile_response = json_file(out / "csc-profile-result.json")
+        require(profile_response.get("status") == "CandidateOnly" and
+                profile_response.get("coreIndexSha256") == digest.lower() and
+                profile_response.get("coreClosureSha256") == closure.lower() and
+                profile_response.get("execution") == "NotEstablished" and
+                profile_response.get("provenance") == "NotEstablished" and
+                profile_response.get("admission") == "NotAdmitted",
+                "Core Csc sidecar reader did not return pinned candidate-only receipt")
+        receipt["cscProfileReader"] = profile_response
+        if args.scope == "fixture":
+            # Altered profile bytes must fail the separately supplied sidecar pin,
+            # even though the Core index and closure still import as Candidate.
+            case = out / "r2-02-profile-altered"; case.mkdir()
+            workspace = case / "core-workspace"
+            clean_copy(stage, workspace)
+            altered_profile = workspace / "csc-closure-profile.json"
+            altered_profile.write_bytes(altered_profile.read_bytes() + b" ")
+            negative = run("R2-02-profile-altered",
+                           [str(dotnet), str(assembly), str(workspace / "bridge-index.json"),
+                            str(workspace), closure, digest, str(altered_profile), profile_sha],
+                           out, logs, args.timeout, env)
+            receipt["commands"].append(negative)
+            verdict = json_file(case / "csc-profile-result.json")
+            require(negative["status"] == "Failed" and verdict.get("status") == "Rejected" and
+                    "independent SHA-256 pin" in verdict.get("diagnostic", ""),
+                    "Core profile reader accepted altered sidecar bytes or returned wrong refusal")
+            receipt["cscProfileAlteredNegative"] = {
+                "actualStatus": verdict["status"], "diagnostic": verdict["diagnostic"],
+                "reviewedProfileSha256": profile_sha, "expectedRefusal": "Passed"}
         if args.scope == "fixture":
             require(type(response.get("sourceRows")) is int and response["sourceRows"] >= 1001 and
                     type(response.get("rows")) is int and response["rows"] >= response["sourceRows"],

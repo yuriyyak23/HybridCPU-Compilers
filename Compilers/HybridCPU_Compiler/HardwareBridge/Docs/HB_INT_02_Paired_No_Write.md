@@ -47,6 +47,11 @@ historical context, not a tested HB-INT-02 golden capture.
    is tracked via Git HEAD/status but is not software source content.
    Any symlink/reparse/linked ancestor, missing source, changed file, invalid
    schema/hash/role, nonunique path, unknown switch or timeout is refused.
+   The segmented outputs are also reverified against the supplied graph bytes
+   after both captures and after receipt publication, and the observation bytes
+   are rehashed at both points. A changed graph, observation, closure, root-role
+   mapping or global-property mapping refuses the pair and removes the newly
+   created outputs.
 4. Pick **three new, distinct, nonexistent direct children of OS TEMP**:
    clean closure, dirty closure, and private receipt. The runner writes only
    there; no Golden path is ever opened for write. The local receipt records
@@ -194,3 +199,23 @@ The read-only Git guard now uses `os.path.samefile` to establish actual
 directory identity, refusing on mismatch or unavailable identity, rather
 than comparing spelled path objects. This does not relax the requirement
 to pin the exact 40-hex HEAD and full porcelain+source-byte inventories.
+
+On Windows, Git can make loose object files read-only. The synthetic test
+fixture removes the read-only attribute from those files during teardown,
+after all immutable-source checks. Other deletion errors propagate. The
+local regression establishes fixture behavior. Windows hosted coverage on
+an updated reviewed commit remains required.
+
+### TEMP failure handling (local working bytes, 2026-11-22)
+
+Pair and segmented capture no longer recursively delete caller-named output
+directories on failure. Another process can create or replace one after the
+initial absence check, making pathname-based cleanup unsafe. Failed runs can
+leave partial unqualified closures and `receipt.pending` in TEMP; operators
+must inspect ownership before manual removal. After both closures, source
+inventories and graph/observation checks pass, pair publishes `receipt.json`
+by atomic move-if-absent from the pending name. Failure before that point
+does not publish a receipt. The local receipt is not an immutable or trusted
+attestation. A platform or filesystem without exclusive rename support fails
+closed. This avoids destructive cleanup; it
+does not provide isolation from adversarial concurrent path replacement.

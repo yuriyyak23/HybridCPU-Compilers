@@ -69,6 +69,7 @@ class PairTests(unittest.TestCase):
         self.assertEqual(hb.verify(outs[1]), receipt["dirty"]["closureRootSha256"])
         self.assertEqual(json.loads((Path(outs[2]) / "receipt.json").read_bytes())["clean"]["chunkCount"],
                          receipt["clean"]["chunkCount"])
+        self.assertFalse((Path(outs[2]) / "receipt.pending").exists())
         index = json.loads((Path(outs[0]) / "index.json").read_bytes())
         index["entries"][0]["chunks"][0]["name"] = "chunk-88888888.bin"
         index["closureRootSha256"] = hb.sha(hb.canonical({k:v for k,v in index.items() if k != "closureRootSha256"}))
@@ -78,6 +79,17 @@ class PairTests(unittest.TestCase):
 
     def test_identical_bytes_are_not_a_dirty_overlay(self):
         self.assert_refused("inventories identical")
+
+    def test_exclusive_publication_refuses_existing_receipt(self):
+        with tempfile.TemporaryDirectory(prefix="hb02-exclusive-") as folder:
+            pending = Path(folder) / "receipt.pending"
+            receipt = Path(folder) / "receipt.json"
+            pending.write_bytes(b"candidate")
+            receipt.write_bytes(b"other owner")
+            with self.assertRaises(OSError):
+                paired.publish_exclusive(pending, receipt)
+            self.assertEqual(receipt.read_bytes(), b"other owner")
+            self.assertEqual(pending.read_bytes(), b"candidate")
 
     def test_changed_reference_is_blocked(self):
         self.modify_dirty()
@@ -118,7 +130,7 @@ class PairTests(unittest.TestCase):
                         dirty_observation=str(self.dirty.observation_path),
                         clean_output=outs[0], dirty_output=outs[1], receipt_output=outs[2],
                         after_publish=lambda: self.clean.original.write_bytes(b"concurrent drift"))
-        self.assertFalse(any(Path(p).exists() for p in outs))
+        self.assertFalse((Path(outs[2]) / "receipt.json").exists())
         self.clean.original.write_bytes(self.clean.source.read_bytes())
         outs2 = self.outputs3()
         def cancelled():
@@ -130,7 +142,89 @@ class PairTests(unittest.TestCase):
                         dirty_observation=str(self.dirty.observation_path),
                         clean_output=outs2[0], dirty_output=outs2[1], receipt_output=outs2[2],
                         after_clean=cancelled)
-        self.assertFalse(any(Path(p).exists() for p in outs2))
+        self.assertFalse((Path(outs2[2]) / "receipt.json").exists())
+
+    def test_unowned_output_created_during_capture_is_not_deleted(self):
+        self.modify_dirty()
+        for position in (1, 2):
+            with self.subTest(position=position):
+                outputs = self.outputs3()
+                target = Path(outputs[position])
+                sentinel = target / "other-owner.txt"
+                def occupy():
+                    target.mkdir()
+                    sentinel.write_text("other owner", encoding="utf-8")
+                with self.assertRaises((ValueError, FileExistsError)):
+                    paired.pair(clean_root=str(self.clean.golden), dirty_root=str(self.dirty.golden),
+                                clean_graph=str(self.clean.graph_path), dirty_graph=str(self.dirty.graph_path),
+                                clean_observation=str(self.clean.observation_path),
+                                dirty_observation=str(self.dirty.observation_path),
+                                clean_output=outputs[0], dirty_output=outputs[1], receipt_output=outputs[2],
+                                after_clean=occupy)
+                self.assertEqual(sentinel.read_text(encoding="utf-8"), "other owner")
+
+    def test_replaced_output_directory_is_not_deleted(self):
+        self.modify_dirty()
+        for position in (0, 2):
+            with self.subTest(position=position):
+                outputs = self.outputs3()
+                target = Path(outputs[position])
+                displaced = target.with_name(target.name + "-displaced")
+                self.outputs.append(str(displaced))
+                sentinel = target / "other-owner.txt"
+                def replace():
+                    target.rename(displaced)
+                    target.mkdir()
+                    sentinel.write_text("other owner", encoding="utf-8")
+                    raise ValueError("injected output replacement")
+                with self.assertRaisesRegex(ValueError, "injected output replacement"):
+                    paired.pair(clean_root=str(self.clean.golden), dirty_root=str(self.dirty.golden),
+                                clean_graph=str(self.clean.graph_path), dirty_graph=str(self.dirty.graph_path),
+                                clean_observation=str(self.clean.observation_path),
+                                dirty_observation=str(self.dirty.observation_path),
+                                clean_output=outputs[0], dirty_output=outputs[1], receipt_output=outputs[2],
+                                after_publish=replace)
+                self.assertEqual(sentinel.read_text(encoding="utf-8"), "other owner")
+
+    def test_graph_drift_after_capture_refuses_and_cleans_up(self):
+        self.modify_dirty()
+        for hook in ("after_clean", "after_publish"):
+            with self.subTest(hook=hook):
+                original = self.clean.graph_path.read_bytes()
+                outputs = self.outputs3()
+                def change_graph():
+                    self.clean.graph_path.write_bytes(original + b" ")
+                try:
+                    with self.assertRaisesRegex(ValueError, "graph differs"):
+                        paired.pair(clean_root=str(self.clean.golden), dirty_root=str(self.dirty.golden),
+                                    clean_graph=str(self.clean.graph_path), dirty_graph=str(self.dirty.graph_path),
+                                    clean_observation=str(self.clean.observation_path),
+                                    dirty_observation=str(self.dirty.observation_path),
+                                    clean_output=outputs[0], dirty_output=outputs[1],
+                                    receipt_output=outputs[2], **{hook: change_graph})
+                    self.assertFalse((Path(outputs[2]) / "receipt.json").exists())
+                finally:
+                    self.clean.graph_path.write_bytes(original)
+
+    def test_observation_drift_after_capture_refuses_and_cleans_up(self):
+        self.modify_dirty()
+        for hook in ("after_clean", "after_publish"):
+            with self.subTest(hook=hook):
+                original = self.clean.observation_path.read_bytes()
+                outputs = self.outputs3()
+                def change_observation():
+                    self.clean.observation_path.write_bytes(original + b" ")
+                try:
+                    with self.assertRaisesRegex(ValueError, "observation changed"):
+                        paired.pair(clean_root=str(self.clean.golden), dirty_root=str(self.dirty.golden),
+                                    clean_graph=str(self.clean.graph_path), dirty_graph=str(self.dirty.graph_path),
+                                    clean_observation=str(self.clean.observation_path),
+                                    dirty_observation=str(self.dirty.observation_path),
+                                    clean_output=outputs[0], dirty_output=outputs[1],
+                                    receipt_output=outputs[2], **{hook: change_observation})
+                    self.assertFalse((Path(outputs[2]) / "receipt.json").exists())
+                finally:
+                    self.clean.observation_path.write_bytes(original)
 
     def test_core_8192_limit_is_refusal_not_truncation(self):
         self.modify_dirty()
@@ -182,7 +276,7 @@ class PairTests(unittest.TestCase):
             fx.save()
         receipt, _ = self.run_pair()
         for label in ("clean", "dirty"):
-            self.assertEqual(receipt[label]["entryCount"], 1005)  # 1001 sources + 4 metadata/generator
+            self.assertEqual(receipt[label]["entryCount"], 1006)  # 1001 sources + 1 generator + 4 metadata inputs
             self.assertEqual(receipt[label]["fileCount"], 1002)
         print("Synthetic 1001 source files/snapshot, not executed Csc.")
 

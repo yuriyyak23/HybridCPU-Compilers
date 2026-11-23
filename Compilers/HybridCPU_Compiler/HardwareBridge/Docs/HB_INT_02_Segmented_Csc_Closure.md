@@ -12,6 +12,16 @@ Output: separate **hybridcpu.hardwarebridge.csc-closure-index/v2** index.json an
 
 **Trust boundary:** All input identities, including asserted primary and owned-body source roles, are **unqualified software observations**; SHA-256 is NOT a signature or proof. PE references, compiler, analyzer/config, project and assets are ALWAYS metadata-only. The producer never infers executable ownership from a PE/type/PDB. The local verify command checks integrity only, not independent Roslyn source closure.
 
+The verifier refuses unknown input kinds, unsupported project roles and an index
+without a primary project. A graph must contain its root project when captured.
+`verify --output <directory> --graph <original-graph.json>` additionally
+checks the graph bytes against the captured graph SHA-256, matches every command
+node and its global properties, and requires the primary role exactly for
+nodes whose project equals the graph root. Multiple graph nodes may describe
+the same root project with different global properties. The optional graph
+check validates the captured relationship; it does not attest actual execution
+or independently authorize source ownership.
+
 ## Observation input contract and transition
 
 The caller must supply an externally observed full Csc argument vector from a **separately authorized, isolated build**, never fabricate an executable Csc invocation from MSBuild evaluation or its -getItem/-getProperty API.
@@ -59,7 +69,7 @@ python Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/se
 python -m unittest -v Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph/test_segmented_csc_capture_v2.py
 ~~~
 
-Capture requires an exclusively new **direct child of OS TEMP**; on exception partial output is removed. Exit 0 with root digest means only a local unqualified byte-transport result. Invalid inputs exit 2. For clean pinned Golden commit versus dirty worktree use two independent observed captures and compare **actual captured source hashes**; HEAD alone is NOT byte identity.
+Capture requires an exclusively new **direct child of OS TEMP**; on exception partial unqualified output may remain. Exit 0 with root digest means only a local unqualified byte-transport result. Invalid inputs exit 2. For clean pinned Golden commit versus dirty worktree use two independent observed captures and compare **actual captured source hashes**; HEAD alone is NOT byte identity.
 
 ## Compatibility and blockers
 
@@ -119,3 +129,23 @@ facts, separately approved exact Golden clean/dirty SHA + worktree snapshots,
 and Core independent Roslyn acceptance are external **Blocked/NotRun**
 dependencies. Neither the synthetic fix nor a zero exit promotes Candidate,
 Observed, or Unqualified into Verified or AcceptedRTL.
+
+On failed capture the TEMP output may remain, including chunks or even an
+unqualified index written before a later validation failed. Capture does not
+recursively delete caller-named paths: a concurrent actor may have replaced
+the directory. Do not treat retained bytes as a successful capture. Inspect
+ownership before manual cleanup. This change does not establish a secure
+snapshot or protect against adversarial concurrent filesystem changes.
+
+The deprecated `project_csc_to_core_v2.py` and staged `stage_core_v2.py` also retain failed TEMP work instead of recursively deleting paths that another actor could have replaced. A failed legacy projection may leave even an index; never use a directory from a failed command as a completed projection. The staged path is moved to its final target only after validation succeeds. These measures do not establish an atomic snapshot or prevent adversarial path replacement during operation; inspect ownership before manual cleanup.
+
+
+### 2026-11-22 — Windows actual Csc launch and response-backed closure
+
+A disposable pinned `CscToolExe` launch shim observed five child Csc runs in a separate isolated checkout of Golden commit `6946ccab9d888f7dae0a4d8e18480f436138acd9` (tree `243a67c8ef462c1da2d1f06df9bee2c31508cb40`), SDK `11.0.100-rc.2.26504.105`, Release. Each response file was copied and held read-only through child exit; five task events crosswalked to five child PIDs, all exit 0, and response arguments matched expanded task arguments. Same-build evaluated Compile facts and Csc source token sets match 1,191/1,191. Full Bridge producer capture contains 2,218 rows / 86,594,404 bytes with closure `0046f8dde1a242beb95e2c587c4f7d96e54ee20b17d2b33ae9d9415bddc271dc` and index SHA `6cb4dc2e4fb15cebb8a3a629ec6521c5535423c9970ea88fe34f7fccdfda6f4e`; full evidence and limitations are in Core `artifacts/processor-20261114/golden-windows-csc-cwd-observation-20261122/retry-11-short-gen-path/csc-execution-crosswalk.json` and `golden-windows-csc-capture-20261122/capture-v2`. Direct Csc rebuild matched 44/44 instrumented PE/PDB hashes. This does not establish compiler read buffers or analyzer side effects, and it is not Core admission/trusted handoff. Stage/Core verification remains blocked pending a separately owner-approved exact Processor root-selector manifest.
+
+
+The post-slice Bridge discovery run passed: `python -m unittest discover -v`, 177 tests, 12 platform-dependent skips, exit 0, Bridge HEAD `e0fdfdebd537ecfbd67b5fd853940f061a5c41ae`. [Receipt](../../../artifacts/processor-20261114/bridge-hbint02-discovery-windows-capture-20261122.receipt.json), log SHA-256 `0de90f4d2357d1c2c3540bf548662904ade03b90eeac7ad699fe4739cc3b096c`. This is local producer regression evidence only; hosted CI, independent Core admission and hardware qualification remain open.
+
+
+**Graph provenance correction:** the pinned graph manifest uses values captured by an injected `BeforeTargets=CoreCompile` target in the observed build; this was not a separate MSBuild `ProjectGraph` evaluation. `compileFiles` contains 1,176 Golden-origin inputs. The other 15 Csc source operands are build-generated `obj` files marked separately as `msbuild-generated`; the crosswalk verifies all 1,191 target Compile items against the response-derived Csc source set. Fixture test success, same-build target evidence and instrumented OS child execution remain separate evidence classes.

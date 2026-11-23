@@ -16,7 +16,6 @@ import json
 import os
 import re
 from pathlib import Path
-import shutil
 import sys
 import tempfile
 
@@ -34,7 +33,7 @@ MAX_SOURCE = 2_097_152
 MAX_OTHER = 33_554_432
 SOURCE_KINDS = {"csc-source", "generator-source"}
 METADATA_KINDS = {"reference", "analyzer", "analyzer-config", "additional-file",
-                  "source-link", "app-config", "csc-binary", "project", "assets"}
+                  "source-link", "app-config", "embedded", "csc-binary", "project", "assets"}
 
 
 def reject(reason):
@@ -241,7 +240,9 @@ def project(capture_dir, roots_path, output_dir, after_stage=None):
             reject("projected current bytes do not match emitted manifest")
         return index["ClosureSha256"]
     except BaseException:
-        shutil.rmtree(output)
+        # A caller-visible path can be replaced after creation. Recursive
+        # pathname cleanup could delete another actor's directory. Retain
+        # incomplete TEMP output for inspection; failure grants no receipt.
         raise
 
 

@@ -26,7 +26,7 @@ internal static class CompanionBuildContractTests
         RequireRealPe(typeof(RestrictedCilImporterV1).Assembly, "HybridCPU.Compiler.Cil",
             [typeof(RestrictedCilImporterV1)]);
         RequireRealPe(typeof(ManagedSourceCompanionV1).Assembly, "HybridCPU.Compiler.Roslyn",
-            [typeof(ManagedSourceCompanionV1)]);
+            [typeof(ManagedSourceCompanionV1)], expectDll: false);
         RequireRealPe(typeof(CompanionBridgeProjectionV1).Assembly, "HardwareBridge.Companion",
             [typeof(CompanionBridgeProjectionV1)]);
 
@@ -35,7 +35,7 @@ internal static class CompanionBuildContractTests
         Reject(() => RequireRealPe(core, "HybridCPU.Compiler.Core",
             [typeof(ManagedSourceCompanionV1)]), "wrong-type-assembly");
         Reject(() => RequireRealPe(core, "HybridCPU.Compiler.Core", requiredCompilerTypes,
-            typeof(ManagedSourceCompanionV1).Assembly.Location), "swapped-valid-DLL");
+            typeof(RestrictedCilImporterV1).Assembly.Location), "swapped-valid-DLL");
 
         string bogusPath = Path.Combine(AppContext.BaseDirectory, "R0_01_non_pe_mutation.dll");
         using (var fake = new FileStream(bogusPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
@@ -63,7 +63,7 @@ internal static class CompanionBuildContractTests
     }
 
     private static void RequireRealPe(Assembly assembly, string expectedName, Type[] requiredTypes,
-        string? fileOverride = null)
+        string? fileOverride = null, bool expectDll = true)
     {
         if (assembly.IsDynamic || assembly.GetName().Name != expectedName ||
             string.IsNullOrWhiteSpace(assembly.Location) || !File.Exists(assembly.Location))
@@ -75,9 +75,9 @@ internal static class CompanionBuildContractTests
             throw new InvalidOperationException("Empty compiled PE: " + expectedName);
 
         using var pe = new PEReader(input);
-        if (!pe.HasMetadata || pe.PEHeaders.CorHeader is null ||
-            (pe.PEHeaders.CoffHeader.Characteristics & Characteristics.Dll) == 0)
-            throw new InvalidOperationException("Not a managed DLL PE: " + expectedName);
+        bool isDll = (pe.PEHeaders.CoffHeader.Characteristics & Characteristics.Dll) != 0;
+        if (!pe.HasMetadata || pe.PEHeaders.CorHeader is null || isDll != expectDll)
+            throw new InvalidOperationException("Unexpected managed PE kind: " + expectedName);
 
         MetadataReader metadata = pe.GetMetadataReader();
         if (!metadata.IsAssembly ||

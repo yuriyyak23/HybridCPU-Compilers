@@ -10,7 +10,6 @@ import json
 import os
 from pathlib import Path
 import re
-import shutil
 import stat
 import sys
 import tempfile
@@ -20,6 +19,7 @@ import segmented_csc_capture_v2 as capture
 CORE = "circuitweave.bridge-source-closure-index/v2"
 ROOTS = "hybridcpu.hardwarebridge.root-selectors/v1"
 MAPPING = "hybridcpu.hardwarebridge.csc-to-core-map/v1"
+PROFILE = "hybridcpu.hardwarebridge.csc-closure-profile/v1"
 MAX_ROWS, MAX_SIZE = 8192, 512 * 1024 * 1024
 
 def refuse(message):
@@ -135,7 +135,7 @@ def role(row):
     kind, ownership = row["kind"], row["role"]
     if kind not in ("csc-source", "generator-source", "reference", "analyzer",
                     "analyzer-config", "additional-file", "source-link", "app-config",
-                    "csc-binary", "project", "assets"):
+                    "embedded", "csc-binary", "project", "assets"):
         refuse("unknown captured Csc kind")
     if kind not in ("csc-source", "generator-source"):
         if ownership != "metadata-only":
@@ -230,7 +230,7 @@ def verify(output, reviewed_capture, reviewed_roots, capture_bundle=None):
     total_bytes = 0
     for i, (row, original) in enumerate(zip(rows, mapping["Rows"])):
         if not isinstance(row, dict) or set(row) != {"Path", "Role", "Sha256", "Bytes"} or (
-            not isinstance(original, dict) or set(original) != {
+                not isinstance(original, dict) or set(original) != {
                 "NodeId", "Kind", "SourceRole", "LogicalPath", "Path", "Sha256", "Bytes"
             }
         ):
@@ -241,8 +241,10 @@ def verify(output, reviewed_capture, reviewed_roots, capture_bundle=None):
             refuse("R2_01_ROW_PROPERTY_ORDER")
         category = role({"kind": original["Kind"], "role": original["SourceRole"]})
         expected_path = "inputs/%05d%s" % (i, ".cs" if category in ("source", "owned-body") else ".bin")
-        if row != {"Path": expected_path, "Role": category,
-                    "Sha256": original["Sha256"], "Bytes": original["Bytes"]}:
+        if original["Path"] != expected_path or row != {
+            "Path": expected_path, "Role": category,
+            "Sha256": original["Sha256"], "Bytes": original["Bytes"]
+        }:
             refuse("wrong source role/path/digest mapping")
         if type(row["Bytes"]) is not int or row["Bytes"] < (0 if category == "source" else 1) or (
             row["Bytes"] > (2097152 if category == "source" else 33554432)
@@ -285,11 +287,55 @@ def verify(output, reviewed_capture, reviewed_roots, capture_bundle=None):
             expected_mapping = {
                 "NodeId": entry["nodeId"], "Kind": entry["kind"],
                 "SourceRole": entry["role"], "LogicalPath": entry["logicalPath"],
-                "Path": rows[i]["Path"], "Sha256": entry["sha256"].upper(),
+                                "Path": rows[i]["Path"], "Sha256": entry["sha256"].upper(),
                 "Bytes": entry["bytes"]}
             if mapping["Rows"][i] != expected_mapping:
                 refuse("capture-map differs from independently pinned HB02 inventory")
-    expected = {"bridge-index.json", "capture-map.json", "roots-manifest.json"} | {
+    profile_file = capture.safe_path(str(base / "csc-closure-profile.json"))
+    profile_raw = profile_file.read_bytes()
+    if len(profile_raw) > 16 * 1024 * 1024:
+        refuse("Csc profile sidecar too large")
+    profile = json.loads(profile_raw, object_pairs_hook=capture.pairs_unique)
+    if json_bytes(profile) != profile_raw or not isinstance(profile, dict) or list(profile) != [
+        "Schema", "Disposition", "HbClosureRootSha256", "HbIndexSha256", "CoreIndexSha256", "CoreClosureSha256",
+        "Commands", "Files", "Generated", "Toolchains", "Claims"
+    ]:
+        refuse("invalid/noncanonical Csc profile sidecar")
+    if (profile["Schema"] != PROFILE or profile["Disposition"] != "candidate-only" or
+        profile["HbClosureRootSha256"] != reviewed_capture or
+        not re.fullmatch(r"[0-9a-f]{64}", profile["HbIndexSha256"]) or
+        profile["CoreIndexSha256"] != capture.sha(raw).lower() or
+        profile["CoreClosureSha256"] != index["ClosureSha256"].lower() or
+        profile["Claims"] != {"Execution": "NotEstablished", "Provenance": "NotEstablished", "Admission": "NotAdmitted"} or
+        not isinstance(profile["Commands"], list) or not profile["Commands"] or not isinstance(profile["Files"], list) or
+        not isinstance(profile["Generated"], list) or not isinstance(profile["Toolchains"], list) or
+        len(profile["Files"]) != len(mapping["Rows"])):
+        refuse("Csc profile pins/claims/row count mismatch")
+    for i, (side, mapped) in enumerate(zip(profile["Files"], mapping["Rows"])):
+        expected_file = {"CoreRowOrdinal": i, "NodeId": mapped["NodeId"], "Kind": mapped["Kind"],
+            "SourceRole": mapped["SourceRole"], "LogicalPath": mapped["LogicalPath"],
+            "ObservedPath": side.get("ObservedPath") if isinstance(side, dict) else None, "CorePath": mapped["Path"],
+            "Role": rows[i]["Role"], "Bytes": mapped["Bytes"], "Sha256": mapped["Sha256"].lower()}
+        if side != expected_file or not isinstance(side["ObservedPath"], str) or not os.path.isabs(side["ObservedPath"]):
+            refuse("Csc profile file crosswalk mismatch")
+    if capture_bundle is not None:
+        original_base = capture.safe_path(os.path.abspath(capture_bundle), file=False)
+        if capture.verify(str(original_base)) != reviewed_capture:
+            refuse("Csc profile capture pin changed")
+        original_index = load(original_base / "index.json", capture.MAX_INDEX)
+        if profile["HbIndexSha256"] != capture.sha((original_base / "index.json").read_bytes()):
+            refuse("Csc profile HB index SHA mismatch")
+        for i, side in enumerate(profile["Files"]):
+            if side["ObservedPath"] != original_index["entries"][i]["path"]:
+                refuse("Csc profile file crosswalk mismatch")
+    for command in profile["Commands"]:
+        if not isinstance(command, dict) or not isinstance(command.get("Argv"), list):
+            refuse("invalid Csc command sidecar")
+        tokens = command["Argv"]
+        if [x.get("Ordinal") for x in tokens] != list(range(len(tokens))) or hashlib.sha256(
+            json.dumps([x["Token"] for x in tokens], separators=(",", ":"), ensure_ascii=False).encode()).hexdigest() != command["ArgvSha256"]:
+            refuse("Csc argv ordinal/hash mismatch")
+    expected = {"bridge-index.json", "capture-map.json", "roots-manifest.json", "csc-closure-profile.json"} | {
         x["Path"] for x in rows
     } | {x["Path"] for x in descriptors}
     actual = set()
@@ -415,7 +461,8 @@ def stage(bundle, reviewed_capture, roots_file, reviewed_roots, output, timeout_
                               "Sha256": h.hexdigest().upper(), "Bytes": length})
             mapping.append({"NodeId": row["nodeId"], "Kind": row["kind"],
                             "SourceRole": row["role"], "LogicalPath": row["logicalPath"],
-                            "Path": name, "Sha256": h.hexdigest().upper(), "Bytes": length})
+                            "Path": name,
+                            "Sha256": h.hexdigest().upper(), "Bytes": length})
         if after_copy is not None:  # test injection, not exposed by CLI
             after_copy()
         deadline()
@@ -447,6 +494,53 @@ def stage(bundle, reviewed_capture, roots_file, reviewed_roots, output, timeout_
             refuse("mapping too large")
         with (work / "capture-map.json").open("xb") as sink:
             sink.write(mapping_payload)
+        original_index_bytes = (source / "index.json").read_bytes()
+        files = [{"CoreRowOrdinal": i, "NodeId": m["NodeId"], "Kind": m["Kind"],
+            "SourceRole": m["SourceRole"], "LogicalPath": m["LogicalPath"],
+            "ObservedPath": entries[i]["path"], "CorePath": m["Path"], "Role": core_rows[i]["Role"],
+            "Bytes": m["Bytes"], "Sha256": m["Sha256"].lower()} for i, m in enumerate(mapping)]
+        commands = []
+        for c in captured["commands"]:
+            tokens = []
+            for ordinal, token in enumerate(c["argv"]):
+                lower = token.lower()
+                kind, path = "option", None
+                if lower.startswith("/embed:"):
+                    kind, path = "embedded", token.split(":", 1)[1]
+                elif lower.endswith(".cs"):
+                    kind, path = "source", token
+                else:
+                    for prefix, candidate in (("/reference:", "reference"), ("/r:", "reference"),
+                        ("/analyzer:", "analyzer"), ("/analyzerconfig:", "analyzer-config"),
+                        ("/additionalfile:", "additional"), ("/sourcelink:", "source-link"),
+                        ("/appconfig:", "app-config"), ("/embed:", "embedded")):
+                        if lower.startswith(prefix): kind, path = candidate, token.split(":", 1)[1]; break
+                row_ordinal = None
+                if path is not None:
+                    absolute = os.path.abspath(path if os.path.isabs(path) else os.path.join(c["workingDirectory"], path))
+                    hits = [i for i, e in enumerate(entries) if os.path.normcase(os.path.abspath(e["path"])) == os.path.normcase(absolute)]
+                    if len(hits) != 1: refuse("argv operand has missing/ambiguous staged mapping")
+                    row_ordinal = hits[0]
+                tokens.append({"Ordinal": ordinal, "Token": token, "Kind": kind, "CoreRowOrdinal": row_ordinal})
+            commands.append({"NodeId": c["nodeId"], "ProjectRole": c["projectRole"],
+                "WorkingDirectory": c["workingDirectory"], "GeneratorOutputDirectory": c["generatorOutputDirectory"],
+                "ArgvSha256": hashlib.sha256(json.dumps(c["argv"], ensure_ascii=False, separators=(",", ":")).encode()).hexdigest(), "Argv": tokens})
+        generated = [{"NodeId": f["NodeId"], "CoreRowOrdinal": f["CoreRowOrdinal"],
+            "LogicalPath": f["LogicalPath"], "CorePath": f["CorePath"],
+            "Bytes": f["Bytes"], "Sha256": f["Sha256"]}
+            for f in files if f["Kind"] == "generator-source"]
+        profile = {"Schema": PROFILE, "Disposition": "candidate-only",
+            "HbClosureRootSha256": reviewed_capture, "HbIndexSha256": capture.sha(original_index_bytes),
+            "CoreIndexSha256": sha(index).lower(), "CoreClosureSha256": close_sha.lower(),
+            "Commands": commands, "Files": files, "Generated": generated,
+            "Toolchains": [{"NodeId": c["nodeId"], "CompilerSha256": next(e["sha256"] for e in entries if e["nodeId"] == c["nodeId"] and e["kind"] == "csc-binary"),
+                "ProjectSha256": next(e["sha256"] for e in entries if e["nodeId"] == c["nodeId"] and e["kind"] == "project"), "AssetsSha256": None} for c in captured["commands"]],
+            "Claims": {"Execution": "NotEstablished", "Provenance": "NotEstablished", "Admission": "NotAdmitted"}}
+        profile_bytes = json_bytes(profile)
+        if len(profile_bytes) > 16 * 1024 * 1024:
+            refuse("Csc profile sidecar too large")
+        with (work / "csc-closure-profile.json").open("xb") as sink:
+            sink.write(profile_bytes)
         deadline()
         verify(work, reviewed_capture, reviewed_roots, source)
         deadline()
@@ -457,8 +551,10 @@ def stage(bundle, reviewed_capture, roots_file, reviewed_roots, output, timeout_
         _publish_new_directory(work, target)
         return close_sha
     finally:
-        if work.exists():
-            shutil.rmtree(work)
+        # A private TEMP name can still be replaced concurrently. Do not
+        # recursively delete a pathname we can no longer prove we own.
+        # Failed work remains unqualified and the final target is not created.
+        pass
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)

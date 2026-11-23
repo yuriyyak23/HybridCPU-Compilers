@@ -1,5 +1,40 @@
 # HB-INT-03: opt-in executed Csc → PE/PDB method linkage (v1)
 
+## Observed Csc output body import
+
+`BridgeObservedCscBodyImporterV1` imports exact MethodDef roots from a
+caller-pinned managed PE using the existing restricted CIL body-world importer.
+It copies and checks the PE and portable PDB bytes against separate SHA-256
+pins, imports the selected primary-module closure, and produces managed source
+maps against the matching portable PDB. Its
+`hybridcpu.hardwarebridge.observed-csc-body-facts/v1` result identifies the
+caller-supplied capture digest separately from the PE/PDB and graph digests.
+
+The API takes existing output bytes and the expected capture digest. Execution
+provenance, full input closure, source admission, and independent Core
+qualification must be established by their respective owners. The existing
+Companion-source facts and executed-Csc link wire formats keep their semantics.
+The capture digest is a caller-supplied reference. The importer receives no
+capture file and does not rehash it. PDB document names and checksums in a
+source map are metadata assertions. The importer does not open those paths
+or prove that their source bytes exist or have the reported checksum.
+
+The local AddWord-only probe separately hashed the replay receipt and read
+the raw pinned Golden source bytes, then compared the independent source hash
+with all 15 visible map rows. It rejected a duplicate root, an inconsistent
+MethodDef name, and changed PE or PDB bytes. The resulting graph has two
+methods and one local edge, with digest
+`18c131a87a7f0fe6c2ac717c4d77216035a9f7743d28bc63563af13f185100c2`.
+
+On SDK `11.0.100-rc.2.26504.105`, the raw Release PE/PDB from Golden
+`6946ccab9d888f7dae0a4d8e18480f436138acd9` admitted AddWord, SubWord and
+MultiplyWord as three roots with three local edges to SignExtendWord. The
+graph digest was
+`d16b22d7952d835f9d27a11f2ebb7b7595d14778bdbff3f68db60cab51400f61`.
+This local run used the isolated software compiler build with the ignored
+`CompilerEmissionPackage.cs` overlaid. Clean compiler publication remains a
+prerequisite for a reproducible checkout build.
+
 **Owner:** HardwareBridge software facts only. **Not** a CIL compiler, RTL emitter, proof authority, or new default writer.
 
 ## Distinct identity domains
@@ -282,3 +317,20 @@ new PR CI job at its own head SHA, not from PR #32's historical green.
 All production inputs and private diagnostic bytes remain outside
 public artifacts. Software output can only be *Candidate/Observed*
 until a separate Core-owned acceptance.
+
+### Windows Golden task observation (2026-11-22; local candidate evidence)
+
+The pinned clean Golden clone completed a Windows Release build with five successful MSBuild Csc task events. The main command projection preserved 1,104 source, 180 reference, 10 analyzer, 2 analyzer-config and 3 embedded arguments. Windows task source tokens were resolved against the build invocation project directory for a post-build current-file snapshot, not a Csc read-buffer capture. The 1,104 source paths match the Linux response manifest; 1,102 bytes are identical and two SDK-generated files differ only by CRLF/LF. A method-level PEReader comparison found 30,561 method definitions with equal method keys, raw signature blobs, IL byte streams, and method/implementation flags across Linux and Windows outputs. [Candidate package](../../../../../CircuitWeave-main/artifacts/processor-20261114/golden-windows-csc-task-observation-20261122/attempt-03/receipt.json).
+
+This does **not** clear the R1-01/R1-03 Golden gate: no Windows OS process PID/argv/cwd/read-buffer witness or reviewed source approval was produced. Csc DLL, PE and PDB byte hashes differ; Windows reference/analyzer/config/embedded bytes and analyzer side effects remain uncaptured. Golden admission stays **Blocked/NotRun** until the strict producer/consumer requirements are met.
+
+
+### 2026-11-22 — Windows actual Csc launch and response-backed closure
+
+A disposable pinned `CscToolExe` launch shim observed five child Csc runs in a separate isolated checkout of Golden commit `6946ccab9d888f7dae0a4d8e18480f436138acd9` (tree `243a67c8ef462c1da2d1f06df9bee2c31508cb40`), SDK `11.0.100-rc.2.26504.105`, Release. Each response file was copied and held read-only through child exit; five task events crosswalked to five child PIDs, all exit 0, and response arguments matched expanded task arguments. Same-build evaluated Compile facts and Csc source token sets match 1,191/1,191. Full Bridge producer capture contains 2,218 rows / 86,594,404 bytes with closure `0046f8dde1a242beb95e2c587c4f7d96e54ee20b17d2b33ae9d9415bddc271dc` and index SHA `6cb4dc2e4fb15cebb8a3a629ec6521c5535423c9970ea88fe34f7fccdfda6f4e`; full evidence and limitations are in Core `artifacts/processor-20261114/golden-windows-csc-cwd-observation-20261122/retry-11-short-gen-path/csc-execution-crosswalk.json` and `golden-windows-csc-capture-20261122/capture-v2`. Direct Csc rebuild matched 44/44 instrumented PE/PDB hashes. This does not establish compiler read buffers or analyzer side effects, and it is not Core admission/trusted handoff. Stage/Core verification remains blocked pending a separately owner-approved exact Processor root-selector manifest.
+
+
+The post-slice Bridge discovery run passed: `python -m unittest discover -v`, 177 tests, 12 platform-dependent skips, exit 0, Bridge HEAD `e0fdfdebd537ecfbd67b5fd853940f061a5c41ae`. [Receipt](../../../artifacts/processor-20261114/bridge-hbint02-discovery-windows-capture-20261122.receipt.json), log SHA-256 `0de90f4d2357d1c2c3540bf548662904ade03b90eeac7ad699fe4739cc3b096c`. This is local producer regression evidence only; hosted CI, independent Core admission and hardware qualification remain open.
+
+
+**Graph provenance correction:** the pinned graph manifest uses values captured by an injected `BeforeTargets=CoreCompile` target in the observed build; this was not a separate MSBuild `ProjectGraph` evaluation. `compileFiles` contains 1,176 Golden-origin inputs. The other 15 Csc source operands are build-generated `obj` files marked separately as `msbuild-generated`; the crosswalk verifies all 1,191 target Compile items against the response-derived Csc source set. Fixture test success, same-build target evidence and instrumented OS child execution remain separate evidence classes.

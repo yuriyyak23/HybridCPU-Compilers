@@ -153,8 +153,26 @@ internal static class BridgeSelfTests
                     StringComparison.OrdinalIgnoreCase)), "Primary source map or PE/PDB facts absent.");
             ManagedSourceBodyWorldResultV1 raw = ManagedSourceCompanionV1.CompileBodyWorld(request,
                 importer, selectors, Array.Empty<int>(), Array.Empty<int>());
+            string observationSha = new('a', 64);
+            string peSha = export.Facts.PeSha256!.ToLowerInvariant();
+            string pdbSha = export.Facts.PdbSha256!.ToLowerInvariant();
+            var observedRoot = new BridgeObservedCscRootV1("Fixture", "AddWord",
+                raw.Compilation!.Methods.Single().Identity.MetadataToken);
+            var importedBodies = BridgeObservedCscBodyImporterV1.Import(raw.Source.Pe!, raw.Source.Pdb!,
+                observationSha, peSha, pdbSha, [observedRoot]);
+            Require(importedBodies.CaptureSha256 == observationSha && importedBodies.PeSha256 == peSha &&
+                    importedBodies.PdbSha256 == pdbSha && importedBodies.Methods.Single().SourceMap.PdbSha256 == pdbSha,
+                "Observed-body identities diverged.");
+            Throws<ArgumentException>(() => BridgeObservedCscBodyImporterV1.Import(raw.Source.Pe!, raw.Source.Pdb!,
+                observationSha, peSha, pdbSha, [observedRoot, observedRoot]), "Duplicate observed root");
+            Throws<InvalidDataException>(() => BridgeObservedCscBodyImporterV1.Import(raw.Source.Pe!, raw.Source.Pdb!,
+                observationSha, new string('0', 64), pdbSha, [observedRoot]), "Wrong observed PE pin");
+            Throws<InvalidDataException>(() => BridgeObservedCscBodyImporterV1.Import(raw.Source.Pe!, raw.Source.Pdb!,
+                observationSha, peSha, pdbSha, [observedRoot with { MethodName = "Wrong" }]), "Wrong observed MethodDef name");
             byte[] corruptedPdb = raw.Source.Pdb!.ToArray();
             corruptedPdb[corruptedPdb.Length - 1] ^= 0x01;
+            Throws<InvalidDataException>(() => BridgeObservedCscBodyImporterV1.Import(raw.Source.Pe!, corruptedPdb,
+                observationSha, peSha, pdbSha, [observedRoot]), "Changed observed portable PDB");
             var wrongPair = raw with { Source = raw.Source with { Pdb = corruptedPdb } };
             Require(CompanionBridgeProjectionV1.Project(export.Source, wrongPair).Status == "Rejected",
                 "Wrong PE/PDB pair was not rejected.");

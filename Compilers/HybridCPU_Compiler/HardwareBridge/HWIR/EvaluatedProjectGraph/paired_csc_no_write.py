@@ -5,12 +5,12 @@ Never writes to either original snapshot; all output is a fresh OS TEMP child.
 Receipts are local-only, not safe to upload wholesale (contain workspace paths).
 """
 import argparse
+import ctypes
 import hashlib
 import json
 import os
 import re
 from pathlib import Path
-import shutil
 import stat
 import subprocess
 import sys
@@ -30,6 +30,26 @@ INVENTORY_MAX_SECONDS = 300
 
 def reject(message):
     raise ValueError("Blocked: " + message)
+
+
+def publish_exclusive(source, target):
+    """Move within one directory without replacing an existing destination."""
+    if os.name == "nt":
+        # Windows MoveFileW, used by os.rename, fails when target exists.
+        os.rename(source, target)
+        return
+    if sys.platform.startswith("linux"):
+        libc = ctypes.CDLL(None, use_errno=True)
+        renameat2 = getattr(libc, "renameat2", None)
+        if renameat2 is None:
+            raise OSError("atomic exclusive rename unavailable")
+        renameat2.argtypes = [ctypes.c_int, ctypes.c_char_p, ctypes.c_int, ctypes.c_char_p, ctypes.c_uint]
+        renameat2.restype = ctypes.c_int
+        if renameat2(-100, os.fsencode(source), -100, os.fsencode(target), 1) != 0:
+            error = ctypes.get_errno()
+            raise OSError(error, os.strerror(error))
+        return
+    raise OSError("atomic exclusive rename unsupported on this platform")
 
 
 def new_temp_child(path):
@@ -183,7 +203,7 @@ def check_external_witness(path, reviewed_sha, graph, observation):
 
 def capture_one(graph, observation, snapshot, out):
     root = hb.capture(graph, observation, snapshot, str(out))
-    if hb.verify(str(out)) != root:
+    if hb.verify(str(out), graph_path=graph) != root:
         reject("segmented byte replay changed")
     index = hb.load(str(out / "index.json"), hb.MAX_INDEX)
     rows = index["entries"]
@@ -199,6 +219,12 @@ def capture_one(graph, observation, snapshot, out):
             "rawChunkSha256": raw_chunks, "chunkCount": len(raw_chunks), "entryCount": len(rows),
             "outputWorkspacePath": str(out), "graphSha256": index["graphSha256"],
             "observationSha256": index["observationSha256"]}
+
+
+def require_capture_unchanged(graph, observation, output, captured):
+    if (hb.verify(str(output), graph_path=graph) != captured["closureRootSha256"] or
+            hb.hash_file(observation)[0] != captured["observationSha256"]):
+        reject("segmented capture, graph or observation changed")
 
 
 def pair(*, clean_root, dirty_root, clean_graph, dirty_graph,
@@ -236,6 +262,9 @@ def pair(*, clean_root, dirty_root, clean_graph, dirty_graph,
         if after_clean is not None:  # tests only, never CLI
             after_clean()
         d = capture_one(dirty_graph, dirty_observation, str(dirty), outputs[1])
+        for graph, observation, output, item in zip(
+                (clean_graph, dirty_graph), (clean_observation, dirty_observation), outputs, (c, d)):
+            require_capture_unchanged(graph, observation, output, item)
         for root, baseline, expected in zip((clean, dirty), before, (clean_commit, dirty_commit)):
             require_unchanged(str(root), baseline, expected)
         if c["closureRootSha256"] == d["closureRootSha256"]:
@@ -244,22 +273,31 @@ def pair(*, clean_root, dirty_root, clean_graph, dirty_graph,
                    "executionGate": "Blocked: R1-01 executed Csc provenance not independently attested",
                    "clean": {**before[0], **c}, "dirty": {**before[1], **d}}
         outputs[2].mkdir(mode=0o700)
-        with (outputs[2] / "receipt.json").open("xb") as stream:
+        pending = outputs[2] / "receipt.pending"
+        with pending.open("xb") as stream:
             stream.write(hb.canonical(receipt) + b"\n")
         if after_publish is not None:  # test-only drift injection
             after_publish()
+        for graph, observation, output, item in zip(
+                (clean_graph, dirty_graph), (clean_observation, dirty_observation), outputs, (c, d)):
+            require_capture_unchanged(graph, observation, output, item)
         for root, baseline, expected in zip((clean, dirty), before, (clean_commit, dirty_commit)):
             require_unchanged(str(root), baseline, expected)
-        # Raw paths and hashes stay in TEMP receipt, never in CI log output.
-        print("HB-INT-02 unqualified paired receipt SHA256=" + hb.hash_file(outputs[2] / "receipt.json")[0])
-        print("cleanClosureRootSha256=" + c["closureRootSha256"])
-        print("dirtyClosureRootSha256=" + d["closureRootSha256"])
-        print("executionGate=Blocked (R1-01 not independently attested)")
+        digest = hb.hash_file(pending)[0]
+        # Atomic move-if-absent. No receipt.json is produced on failed
+        # revalidation. Retain pending and partial workspaces on failure: a
+        # path-based cleanup could delete a directory created by another actor.
+        publish_exclusive(pending, outputs[2] / "receipt.json")
+        try:
+            print("HB-INT-02 unqualified paired receipt SHA256=" + digest)
+            print("cleanClosureRootSha256=" + c["closureRootSha256"])
+            print("dirtyClosureRootSha256=" + d["closureRootSha256"])
+            print("executionGate=Blocked (R1-01 not independently attested)")
+        except OSError:
+            pass  # Publication has completed; a closed log is not a failed capture.
         return receipt
     except BaseException:
-        for output in outputs:
-            if output.is_dir() and not output.is_symlink():
-                shutil.rmtree(output)
+        # No recursive cleanup of caller-named TEMP paths; see capture above.
         raise
 
 

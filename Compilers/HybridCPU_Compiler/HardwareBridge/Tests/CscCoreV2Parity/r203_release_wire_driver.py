@@ -128,7 +128,7 @@ def mutations(out):
         ("role-promotion", mapped, replace_exact(map_bytes,
             b'"SourceRole":"primary"', b'"SourceRole":"metadata-only"')),
         ("duplicate-roots-property", roots, replace_exact(roots.read_bytes(),
-            b'{"Schema":', b'{"Schema":"bad","Schema":')),
+            b',"Schema":', b',"Schema":"bad","Schema":')),
         ("wrong-root", roots, replace_exact(roots.read_bytes(),
             b'"MethodName":"Step"', b'"MethodName":"Wrong"')),
         ("stale-original", input_path, input_path.read_bytes() + b"// changed\n"),

@@ -1,4 +1,5 @@
 """HB-INT-02 -> CW-INT-03 wire projection tests. Synthetic bytes are NOT Csc receipts."""
+import copy
 import json
 from pathlib import Path
 import shutil
@@ -50,10 +51,26 @@ class ProjectorTests(unittest.TestCase):
 
     def test_staged_bytes_mutated_during_projection(self):
         target = self.f.out()
+        self.addCleanup(lambda: shutil.rmtree(target, ignore_errors=True))
         with self.assertRaisesRegex(ValueError, "staged output mutated"):
             p.project(self.capture, str(self.roots), target,
-                      after_stage=lambda out: (out / "src/00002.cs").write_bytes(b"altered"))
-        self.assertFalse(Path(target).exists())
+                      after_stage=lambda out: next((out / "src").glob("*.cs")).write_bytes(b"altered"))
+        self.assertTrue(Path(target).is_dir())
+        self.assertFalse((Path(target) / 'index.json').exists())
+
+    def test_failed_projection_does_not_remove_replaced_output(self):
+        target = Path(self.f.out())
+        displaced = target.with_name(target.name + '-displaced')
+        self.addCleanup(lambda: shutil.rmtree(target, ignore_errors=True))
+        self.addCleanup(lambda: shutil.rmtree(displaced, ignore_errors=True))
+        def replace_and_fail(output):
+            output.rename(displaced)
+            output.mkdir()
+            (output / 'sentinel').write_bytes(b'other owner')
+            raise ValueError('simulated failure after path replacement')
+        with self.assertRaisesRegex(ValueError, 'simulated failure'):
+            p.project(self.capture, str(self.roots), str(target), after_stage=replace_and_fail)
+        self.assertEqual((target / 'sentinel').read_bytes(), b'other owner')
 
     def test_stale_input_and_corrupted_chunk(self):
         Path(self.capture, "chunk-00000000.bin").write_bytes(b"broken")
@@ -82,6 +99,11 @@ class ProjectorTests(unittest.TestCase):
             for row in index["entries"]:
                 if row["kind"] in p.SOURCE_KINDS:
                     row["role"] = "owned-body"
+            primary = copy.deepcopy(index["commands"][0])
+            primary["nodeId"] = "Z|Configuration=Debug"
+            primary["projectRole"] = "primary"
+            index["commands"].append(primary)
+            index["commands"].sort(key=lambda command: command["nodeId"])
         self.f.recompute(self.capture, change)
         with self.assertRaisesRegex(ValueError, "DEPRECATED legacy projection refuses non-primary"):
             p.project(self.capture, str(self.roots), self.f.out())
@@ -94,6 +116,11 @@ class ProjectorTests(unittest.TestCase):
             for row in index["entries"]:
                 if row["kind"] in p.SOURCE_KINDS:
                     row["role"] = "metadata-only"
+            primary = copy.deepcopy(index["commands"][0])
+            primary["nodeId"] = "Z|Configuration=Debug"
+            primary["projectRole"] = "primary"
+            index["commands"].append(primary)
+            index["commands"].sort(key=lambda command: command["nodeId"])
         self.f.recompute(self.capture, change)
         with self.assertRaisesRegex(ValueError, "DEPRECATED legacy projection refuses non-primary"):
             p.project(self.capture, str(self.roots), self.f.out())

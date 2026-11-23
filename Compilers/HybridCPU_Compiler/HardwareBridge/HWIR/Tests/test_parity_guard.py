@@ -119,12 +119,22 @@ class ParityGuardRegression(unittest.TestCase):
         with self.assertRaisesRegex(p.Refused, 'UNPINNED_NATIVE_TOOLS'):
             self.compare(native=native)
 
-    def test_symlink_and_timeout_and_duplicate_json(self):
+    def test_symlink_is_refused(self):
         with tempfile.TemporaryDirectory() as d:
             original = Path(d) / 'original.txt'; original.write_bytes(self.source)
-            linked = Path(d) / 'linked.txt'; linked.symlink_to(original)
+            linked = Path(d) / 'linked.txt'
+            try:
+                linked.symlink_to(original)
+            except OSError as ex:
+                if getattr(ex, 'winerror', None) != 1314:
+                    raise
+                self.skipTest('Windows symlink privilege unavailable')
             with self.assertRaisesRegex(p.Refused, 'SYMLINK_INPUT'):
                 p.read_pinned(linked, 'source', float('inf'))
+
+    def test_timeout_and_duplicate_json(self):
+        with tempfile.TemporaryDirectory() as d:
+            original = Path(d) / 'original.txt'; original.write_bytes(self.source)
             with self.assertRaisesRegex(p.Refused, 'TIMEOUT'):
                 p.read_pinned(original, 'source', 0)
         with self.assertRaisesRegex(p.Refused, 'DUPLICATE_JSON_PROPERTY'):
