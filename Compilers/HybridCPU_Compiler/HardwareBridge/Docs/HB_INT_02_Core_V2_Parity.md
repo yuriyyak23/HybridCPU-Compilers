@@ -1,5 +1,7 @@
 # HB-INT-02 / CW-INT-03: C# byte-parity regression (stacked on PR #14)
 
+> **Baseline 2026-11-25.** Python↔.NET bytes, actual CW importer and CW independent Roslyn re-emission require three distinct receipts. Record exact pins and case/alias/property-order/refusal cases. Current Python synthetic results are in the evidence index. See [current status](current/STATUS.md).
+
 **Status: test-only interoperability extension, never source verification.**
 Parent [HB-INT-02 Core v2 projection PR #14](https://github.com/yuriyyak23/HybridCPU-Compilers/pull/14).
 Six-package [HardwareBridge integration plan](CircuitWeave_Pipeline_Integration_Plan.md).

@@ -1,5 +1,7 @@
 # HB-INT-06 — opt-in cross-repository software-source transport replay
 
+> **Baseline 2026-11-25.** The exact-SHA R0-02 protected importer result is not a run of the independent R2-02 replay workflow. The replay dispatch checks event/repo/ref and approved mode and pin syntax. Unlike R0-02, its workflow has no explicit `github.ref_protected` check or fixed approval-variable equality check. Keep reviewed input pin custody, least-privilege checkout, no-write receipts and the replay admission ceiling. The repo/workflow owner must review this policy difference before claiming equivalent protected trust. No current positive paired replay receipt was established. See [current status](current/STATUS.md).
+
 **Owner:** HybridCPU-Compilers / HardwareBridge tests only. The only v2 importer is the Core-owned `BridgeSegmentIndexImporterV2.Import`. No Core implementation, new hardware verifier, source resolver, or lowering authority has been added to Bridge.
 
 ## Command contract

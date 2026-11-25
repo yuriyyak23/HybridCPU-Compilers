@@ -1,5 +1,7 @@
 # HB-INT-06 — cross-repo QA matrix and no-source-write evidence
 
+> **Baseline 2026-11-25.** The exact-SHA standalone workflow exercised v1 protocol, v2 codec and no-write mutations. Restore passed, Core build failed (exit 1), and production Companion self-tests and actual pinned consumer were blocked. Use the current evidence index for exact jobs before quoting older tables. See [current status](current/STATUS.md).
+
 **Scope:** read-only HardwareBridge software facts and test-only orchestration. **Not** an EDA executor, independent verifier, AcceptedRTL gate, Golden runner or ASIC signoff.
 Owner: HybridCPU-Compilers / HardwareBridge. Backlog: HB-INT-06. Plans: [Bridge PR #4](https://github.com/yuriyyak23/HybridCPU-Compilers/pull/4) and [Core PR #1](https://github.com/yuriyyak23/CircuitWeave/pull/1).
 

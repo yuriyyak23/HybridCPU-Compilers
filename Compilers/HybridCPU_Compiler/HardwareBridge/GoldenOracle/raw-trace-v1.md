@@ -1,5 +1,7 @@
 # HB-INT-04 — Golden raw trace interchange v1
 
+> **2026-11-25 evidence.** Host logical-clock, inputs, states and events are bounded claims about a recording. Hardware resets, stalls, arbitration, memory lifecycle and physical clock edges require their own reviewed temporal witnesses. See [current gates](../Docs/current/STATUS.md).
+
 Status: **implemented producer-only structural contract; independent Core qualification BLOCKED**. Owner: HardwareBridge `GoldenOracle/GoldenRawTraceV1.cs`. Version: `hybridcpu.hardwarebridge.golden-raw-trace/v1`; separate from existing `hybridcpu.hardwarebridge.sidecar/v1` and `golden-observation/v1`. No implicit migration of sidecar/v1.
 
 ## Trust and process boundary

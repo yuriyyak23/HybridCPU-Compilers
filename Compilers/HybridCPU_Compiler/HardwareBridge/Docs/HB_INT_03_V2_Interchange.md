@@ -1,5 +1,7 @@
 # HB-INT-03 — opt-in strict source/facts v2 interchange
 
+> **Baseline 2026-11-25.** Canonical HB description of the two v2 formats. At the reviewed CW HEAD there is an implemented source-index reader. The HB provenance envelope still has no confirmed matching CW reader. Historical pins below remain scoped to their original fixtures. The reviewed CW root SDK is stable `11.0.100`; historical paired and RC2 capture pins remain distinct. See [current status](current/STATUS.md).
+
 Status: **Candidate producer, unqualified; Core v2 facts acceptance Blocked**. This is not a hardware or Processor qualification.
 
 ## HEAD, pins, and dependency
@@ -7,7 +9,7 @@ Status: **Candidate producer, unqualified; Core v2 facts acceptance Blocked**. T
 - HybridCPU-Compilers master before branch: `94f59223b36659c9162620224f91349ac79fb896`.
 - CircuitWeave master before branch: `555672232e46cb4e8b157e2d1b1db1e873c4194e`.
 - Earlier audit SHA: HB `c66d2ec2bb8a06e29ced1d884c98a055054b4a26`; Core `58a7c44c3353a9c95108192224b5ea190f96464b`.
-- Core `global.json` SDK pin: `11.0.100-rc.2.26504.105` (prerelease/latestPatch). A version string is not a real Csc binary pin.
+- Historical Core `global.json` SDK pin: `11.0.100-rc.2.26504.105` (prerelease/latestPatch). A version string is not a real Csc binary pin.
 - Related: [CW-INT-03 draft Core reader PR #3](https://github.com/yuriyyak23/CircuitWeave/pull/3), [CW-INT-04 backlog](https://github.com/yuriyyak23/CircuitWeave/blob/master/docs/roadmap/circuitweave/12_CW_INT_Execution_Packages.md), [HB plan PR #4](https://github.com/yuriyyak23/HybridCPU-Compilers/pull/4), [master plan PR #1](https://github.com/yuriyyak23/CircuitWeave/pull/1).
 
 ## Three deliberately separate formats
@@ -16,7 +18,7 @@ Status: **Candidate producer, unqualified; Core v2 facts acceptance Blocked**. T
 2. **Core-compatible v2 source transport**: `circuitweave.bridge-source-closure-index/v2`, from `BridgeSegmentIndexV2.Write`. Compact JSON object, exactly `Schema,Roots,Chunks,ClosureSha256`. Each chunk contains LF-terminated compact canonical JSONL rows `Path,Role,Sha256,Bytes`, sorted ordinal by path; descriptor is `Path,Sha256,Bytes,Rows`. SHA-256 of concatenated ordered raw chunk bytes = ClosureSha256. Roles: source / owned-body / metadata-only / unselected / compiler-pe / compiler-pdb. Limits from Core PR #3: 1 MiB index, 4 MiB per chunk, 256 chunks, 8,192 rows, 64 MiB aggregate manifest, 512 MiB input bytes. The Core draft reader accepts transport as **unqualified** source inventory, not accepted binding.
 3. **Bridge-only opt-in provenance envelope**: `hybridcpu.hardwarebridge.provenance-index/v2`, from `BridgeProvenanceCodecV2`. Compact `Schema,PayloadSha256,Payload`; payload ordered fields `Schema,SourceSnapshotDigest,CompanionSourceInputDigest,SdkVersion,CscSha256,CscOptionsSha256,PeSha256,PdbSha256,SoftwareStatus,CoreIndexSha256,ClosureSha256,SourceRoles,Inputs`. The snapshot digest is distinct from the Companion input digest. SourceRoles require original / working / generated for each source. Compiler/Csc/PE/PDB/reference bytes are explicit pins; Candidate requires actual matching PE/PDB inputs; Rejected cannot claim those pins. Allowed SoftwareStatus = Candidate or Rejected. No Verified, accepted RTL, signature or Physical fields. Max 4 MiB, JSON max depth 16, reject duplicate properties anywhere, unexpected/reordered keys, wrong hash, changed byte evidence, wrong live source/SDK, unknown schema or noncanonical serialization.
 
-**Contract seam:** Core PR #3 consumes format (2), but **does not consume (3)**. Paired Core reader review/PR and independent Roslyn body/source byte validation are required before any default producer switch; a checksum is not a signature. `BridgeProvenanceCodecV2.Write` explicitly cross-checks v2 source/reference bytes against the bounded existing v1 snapshot (max 128 docs/refs). The pure index can emit 1,200+ sources, but HB-INT-02 must supply a scalable qualified current snapshot root before the large Processor is supported. Do not fabricate that root.
+**Contract seam:** The reviewed `BridgeSegmentIndexImporterV2` consumes format (2). No reader for (3) was confirmed in CircuitWeave. Paired Core reader review/PR and independent Roslyn body/source byte validation are required before any default producer switch; a checksum is not a signature. `BridgeProvenanceCodecV2.Write` explicitly cross-checks v2 source/reference bytes against the bounded existing v1 snapshot (max 128 docs/refs). The pure index can emit 1,200+ sources, but a separate scalable, qualified snapshot and software compilation path is required before claiming large Processor facts. Do not fabricate that root.
 
 ## Opt-in migration
 

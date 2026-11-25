@@ -1,5 +1,7 @@
 # R0-02 — Private Core read-only CI gate
 
+> **Baseline 2026-11-25.** Current exact-SHA push failed preflight with `UnprotectedMasterRef` (hosted exit 1). The standalone job passed synthetic negative gate tests. A protected approved dispatch and owner-reviewed variables and credential remain mandatory for a positive run. The current job stopped before reading private Core. See [current status](current/STATUS.md).
+
 Scope: .github/workflows/hb-int-06-no-write.yml, Tests/HbInt06.CoreGate.ps1, Tests/R0_02_TrustExtension.ps1 and this document only. R2-02 cross-repo replay workflow/harness, parent Run-HbInt06.ps1, Core, Golden and software compiler builds are NOT owned here. This gate does not qualify Golden, HWIR, RTL, or accepted hardware.
 
 ## Reviewed identities (2026-11-21)

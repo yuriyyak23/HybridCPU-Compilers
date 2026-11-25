@@ -1,5 +1,7 @@
 # HB-INT-02 source transport / release-v2 (data-only)
 
+> **Baseline 2026-11-25.** Release transport remains explicit opt-in. CW reads staged v2 and has separate v3/v4 output supplement readers. V4 PE/PDB/refout and resource status bind to the primary Csc command and task-output witness. See the compatibility matrix before interpreting any of those artifacts as a replay or handoff. See [current status](current/STATUS.md).
+
 **Contract:** `circuitweave.bridge-source-closure-index/v2`. This document specifies
 the opt-in *software source byte transport* to the existing
 `CircuitWeave.Frontend.Roslyn/Bridge/BridgeSegmentIndexImporterV2.cs`.

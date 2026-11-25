@@ -1,5 +1,7 @@
 # HardwareBridge JSON sidecar v1
 
+> **Baseline 2026-11-25.** This page owns the v1 wire description. The writer remains on v1 when the v1 export is selected. CircuitWeave additionally requires exact writer-canonical bytes and an independent live digest. See the current matrix for stricter root/path refusal behavior and for separate opt-in transport versions. See [current status](current/STATUS.md).
+
 **Unqualified software observation; no RTL acceptance.** One deterministic UTF-8 JSON object created by `BridgeSidecarCodecV1.Write`:
 
 ```json
@@ -22,3 +24,5 @@ Serialization is in declared record/anonymous-property order, using default `Sys
 ## Opt-in v2 migration (HB-INT-03)
 
 The v1 wire format and digest preimage above remain unchanged. An independent Core-compatible segmented JSONL transport (`circuitweave.bridge-source-closure-index/v2`) and a **separate**, not-yet-Core-qualified Bridge compiler provenance envelope (`hybridcpu.hardwarebridge.provenance-index/v2`) are available as opt-in codecs only. See [HB_INT_03_V2_Interchange.md](HB_INT_03_V2_Interchange.md). Do not treat v2 checksum/Companion Candidate as binding verification or change the default without paired CW-INT-03/04 reader review.
+
+The strict common profile requires null compiler input/artifact/output/graph fields for Rejected facts, as produced by `BridgeCompilerFactsV1.Rejected`. CW refuses non-null compiler artifact claims even if the HB codec can deserialize an arbitrary Rejected DTO. Require exact writer-canonical bytes for paired import and keep both source pin and producer schema explicit. See [compatibility seams](current/COMPATIBILITY.md#compatibility-seams).

@@ -1,5 +1,7 @@
 # HB-INT-02 R1-02 — paired no-write clean/dirty segmented capture
 
+> **Baseline 2026-11-25.** Synthetic fixture no-write or clean/dirty pairs do not replace exact pinned live receipts. Check the current status before making a paired producer/reader claim. See [current status](current/STATUS.md).
+
 **Scope:** additive opt-in orchestration in HardwareBridge. Neither a new C# compiler
 nor an executed-Csc attestation. The existing `csc-closure-index/v2`, sidecar/v1,
 CW-INT-03 consumer and Golden project files are unchanged.

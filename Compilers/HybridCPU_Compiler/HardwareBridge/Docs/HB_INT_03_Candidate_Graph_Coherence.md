@@ -1,5 +1,7 @@
 # HB-INT-03: strict Candidate software-method graph coherence (v2)
 
+> **Baseline 2026-11-25.** v1 exact selectors can express generic argument lists, but that support does not transfer to the v2 Candidate proof. The projected facts have to establish exact instantiation identity and ownership. Nonempty generic argument lists in a v2 Candidate root are refused with `HBINT03_V2_ROOT`. Candidate limits include 256 methods and 16,384 edges. Missing or ambiguous graph linkage fails closed. See [current status](current/STATUS.md).
+
 **Plan:** [six HB-INT packages](CircuitWeave_Pipeline_Integration_Plan.md) and [HB-INT-03 v2 interchange](HB_INT_03_V2_Interchange.md). Companion owner: HardwareBridge source/facts codec only. Cross-repo consumer, independent symbol ownership, C#→HWIR, verified RTL and target signoff belong to CircuitWeave.
 
 ## Changed behavior — no schema change

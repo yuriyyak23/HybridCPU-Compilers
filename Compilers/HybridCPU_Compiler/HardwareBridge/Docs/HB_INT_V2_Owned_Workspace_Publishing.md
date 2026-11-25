@@ -1,5 +1,7 @@
 # HB-INT-02/03/06 — opt-in v2 owned workspace publication
 
+> **Baseline 2026-11-25.** Owned publishing protects the selected output namespace and checks path/byte stability. It provides no OS isolation from another process with the same access. Require separately reviewed filesystem execution controls when replaying compiler code. See [current status](current/STATUS.md).
+
 **Scope:** HardwareBridge read-only software facts -> portable Core CW-INT-03 transport. The new publisher is not a compiler, Core reader, independent source verifier, EDA runner or verification authority.
 
 Baseline for this follow-up: HybridCPU-Compilers `master@77947f82cd61ed5248c0ae48d722d7fbfdf29a9a` after merged [HB-INT-03 PR #10](https://github.com/yuriyyak23/HybridCPU-Compilers/pull/10); CircuitWeave `master@26724fc70a1cb7c403aa50d8e0f41383202a22ac`. [Six-package HardwareBridge plan](CircuitWeave_Pipeline_Integration_Plan.md), [Core CW-INT-03 reader](https://github.com/yuriyyak23/CircuitWeave/pull/3).

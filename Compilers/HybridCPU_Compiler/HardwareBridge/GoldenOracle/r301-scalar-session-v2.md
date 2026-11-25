@@ -1,5 +1,7 @@
 # R3-01 — opt-in Golden oracle scalar session v2 (producer only)
 
+> **2026-11-25 evidence.** Source approval and live execution approval are distinct. The reviewed workflow fixes Golden at `6946ccab9d888f7dae0a4d8e18480f436138acd9` for its source check. Current paired live Golden execution and independent temporal receipts remain unestablished. See [current gates](../Docs/current/STATUS.md).
+
 **Status:** bounded explicitly invoked *managed fixture* observation, not trusted Golden CPU execution, PE/PDB/source proof, Core qualification, or RTL acceptance. The real Golden HybridCPU-v2 replay host is **NotRun** without explicit read-only approval; stateful Processor/clock/RAM/stall/retire and Core CW-INT-10/11 remain **Blocked**.
 
 ## Why a new shape
