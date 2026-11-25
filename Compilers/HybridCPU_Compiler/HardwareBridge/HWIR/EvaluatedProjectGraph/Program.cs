@@ -3,10 +3,75 @@ using System.Text.Json;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Graph;
 
+// Native .NET projection of externally pinned MSBuild Csc task-event evidence.
+// The projection remains task-event-only: it is not OS argv, file-read, or trust evidence.
+if (args.Length > 0 && args[0] == "project-task-events-v1")
+{
+    try
+    {
+        if (args.Length != 4)
+            throw new ArgumentException("Usage: project-task-events-v1 <task-events.json> <expected-sha256> <new-temp-output.json>");
+        Console.WriteLine(CscWindowsTaskEventProjector.ProjectFile(args[1], args[2], args[3]));
+        Environment.ExitCode = 0;
+    }
+    catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException or
+        ArgumentException or System.Text.Json.JsonException or FormatException or OverflowException or
+        DllNotFoundException or EntryPointNotFoundException or BadImageFormatException)
+    {
+        Console.Error.WriteLine("REFUSED: " + ex.Message);
+        Environment.ExitCode = 2;
+    }
+    return;
+}
+
+// Strict pinned reconstruction of saved Csc task-time evidence. This remains
+// unqualified observation assembly; the command does not confer trust/admission.
+if (args.Length > 0 && args[0] == "produce-csc-execution-crosswalk-v1")
+{
+    Environment.ExitCode = CscExecutionCrosswalkProducer.Main(new[] { "produce" }.Concat(args.Skip(1)).ToArray());
+    return;
+}
+
+if (args.Length > 0 && args[0] == "assemble-csc-observation-v2")
+{
+    Environment.ExitCode = CscObservationV2Assembler.Main(new[] { "assemble" }.Concat(args.Skip(1)).ToArray());
+    return;
+}
+
+if (args.Length > 0 && args[0] == "prepare-csc-observation-v2-manifest")
+{
+    Environment.ExitCode = CscObservationV2Assembler.Main(new[] { "prepare-manifest" }.Concat(args.Skip(1)).ToArray());
+    return;
+}
+
+// The raw V2 writer consumes already captured facts and has no Core dependency.
+if (args.Length > 0 && args[0] == "capture-v2")
+{
+    Environment.ExitCode = SegmentedCscCaptureV2.Run(args.Skip(1).ToArray());
+    return;
+}
+
 // Evaluate only. No MSBuild target, restore or build is executed in the input tree.
-if (args.Length is not (3 or 4) || args.Any(p => !Path.IsPathFullyQualified(p)))
-    throw new ArgumentException("Expected absolute project, SDK directory, new output path and optional prior source inventory.");
+if (args.Length < 3 || !Path.IsPathFullyQualified(args[0]) || !Path.IsPathFullyQualified(args[1]) || !Path.IsPathFullyQualified(args[2]))
+    throw new ArgumentException("Expected absolute project, SDK directory, new output path, optional prior source inventory and --global-property=NAME=VALUE options.");
 string project = Path.GetFullPath(args[0]), sdk = Path.GetFullPath(args[1]), output = Path.GetFullPath(args[2]);
+string? priorInventoryPath = null;
+var globalOverrides = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+for (int i = 3; i < args.Length; i++)
+{
+    const string propertyPrefix = "--global-property=";
+    if (args[i].StartsWith(propertyPrefix, StringComparison.Ordinal))
+    {
+        string assignment = args[i][propertyPrefix.Length..];
+        int equals = assignment.IndexOf('=');
+        if (equals < 1 || equals == assignment.Length - 1 || assignment.Contains('\0'))
+            throw new ArgumentException("Global property must be --global-property=NAME=VALUE.");
+        if (!globalOverrides.TryAdd(assignment[..equals], assignment[(equals + 1)..]))
+            throw new ArgumentException("Duplicate global property override: " + assignment[..equals]);
+    }
+    else if (priorInventoryPath is null && Path.IsPathFullyQualified(args[i])) priorInventoryPath = Path.GetFullPath(args[i]);
+    else throw new ArgumentException("Unrecognized evaluator argument: " + args[i]);
+}
 string modelRoot = Directory.GetParent(Path.GetDirectoryName(project)!)!.FullName;
 string compilerRoot = Path.GetFullPath(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "HybridCPU Compilers"));
 static bool Under(string path, string root) => path.Equals(root, StringComparison.OrdinalIgnoreCase) || path.StartsWith(Path.TrimEndingDirectorySeparator(root) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
@@ -17,7 +82,9 @@ if (File.Exists(output) || !File.Exists(Path.Combine(sdk, "MSBuild.dll")) || !Di
     throw new InvalidOperationException("Output exists or SDK directory is invalid.");
 Environment.SetEnvironmentVariable("MSBuildSDKsPath", Path.Combine(sdk, "Sdks"));
 Environment.SetEnvironmentVariable("MSBUILD_EXE_PATH", Path.Combine(sdk, "MSBuild.dll"));
-var globals = new Dictionary<string, string> { ["Configuration"] = "Debug", ["EnableInternalTestHooks"] = "true" };
+var globals = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+{ ["Configuration"] = "Debug", ["EnableInternalTestHooks"] = "true" };
+foreach (var property in globalOverrides) globals[property.Key] = property.Value;
 using var collection = new ProjectCollection();
 var graph = new ProjectGraph(new ProjectGraphEntryPoint(project, globals), collection);
 if (graph.ProjectNodes.Count > 100) throw new InvalidDataException("Project graph exceeds limit.");
@@ -49,9 +116,9 @@ var nodes = graph.ProjectNodes.OrderBy(Identity, StringComparer.OrdinalIgnoreCas
         references = node.ProjectReferences.Select(Identity).Order(StringComparer.OrdinalIgnoreCase).ToArray() };
 }).ToArray();
 object? inventoryAudit = null;
-if (args.Length == 4)
+if (priorInventoryPath is not null)
 {
-    var inventoryFile = new FileInfo(args[3]);
+    var inventoryFile = new FileInfo(priorInventoryPath);
     if (!inventoryFile.Exists || inventoryFile.Length is < 1 or > 32 * 1024 * 1024 || (inventoryFile.Attributes & FileAttributes.ReparsePoint) != 0)
         throw new InvalidDataException("Prior source inventory is missing, linked or oversized.");
     byte[] inventoryBytes = File.ReadAllBytes(inventoryFile.FullName);

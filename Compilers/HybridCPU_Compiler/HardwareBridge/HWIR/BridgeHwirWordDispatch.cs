@@ -154,8 +154,17 @@ public static class BridgeHwirWordDispatch
                 }
                 else
                 {
-                    string operation = arm.TargetMethod == "CompareLessSigned64" ? "slt64" : "ult64";
-                    baseNodes.Add(new HwOperationNode("less", operation, ["op1", "op2"], u1, Origin: baseOrigin));
+                    bool signedCompare = arm.TargetMethod == "CompareLessSigned64";
+                    if (signedCompare)
+                    {
+                        var signed64 = new HwBitVectorType(64, HwSignedness.Signed);
+                        baseNodes.Add(new HwOperationNode("op1_signed", "bitcast", ["op1"], signed64, Origin: baseOrigin));
+                        baseNodes.Add(new HwOperationNode("op2_signed", "bitcast", ["op2"], signed64, Origin: baseOrigin));
+                    }
+                    string operation = signedCompare ? "slt64" : "ult64";
+                    string left = signedCompare ? "op1_signed" : "op1";
+                    string right = signedCompare ? "op2_signed" : "op2";
+                    baseNodes.Add(new HwOperationNode("less", operation, [left, right], u1, Origin: baseOrigin));
                     baseNodes.Add(new HwOperationNode("value", "zext", ["less"], u64, Origin: baseOrigin));
                 }
                 baseNodes.Add(new HwOutputDriveNode("drive", "result", "value", baseOrigin));
@@ -190,7 +199,9 @@ public static class BridgeHwirWordDispatch
                         ? [new HwConstantNode("upper_imm_scale", u64, Convert.ToString(4096, 2).PadLeft(64, '0'), immediateOrigin), new HwOperationNode("value", "mul", ["immediate", "upper_imm_scale"], u64, Origin: immediateOrigin), new HwOutputDriveNode("drive", "result", "value", immediateOrigin)]
                         : [new HwConstantNode("upper_imm_scale", u64, Convert.ToString(4096, 2).PadLeft(64, '0'), immediateOrigin), new HwOperationNode("upper_immediate", "mul", ["immediate", "upper_imm_scale"], u64, Origin: immediateOrigin), new HwOperationNode("value", "add", ["instructionPc", "upper_immediate"], u64, Origin: immediateOrigin), new HwOutputDriveNode("drive", "result", "value", immediateOrigin)]
                     : operation is "slt64" or "ult64"
-                    ? [new HwOperationNode("less", operation, ["op1", "immediate"], u1, Origin: immediateOrigin), new HwOperationNode("value", "zext", ["less"], u64, Origin: immediateOrigin), new HwOutputDriveNode("drive", "result", "value", immediateOrigin)]
+                    ? operation == "slt64"
+                        ? [new HwOperationNode("op1_signed", "bitcast", ["op1"], new HwBitVectorType(64, HwSignedness.Signed), Origin: immediateOrigin), new HwOperationNode("immediate_signed", "bitcast", ["immediate"], new HwBitVectorType(64, HwSignedness.Signed), Origin: immediateOrigin), new HwOperationNode("less", operation, ["op1_signed", "immediate_signed"], u1, Origin: immediateOrigin), new HwOperationNode("value", "zext", ["less"], u64, Origin: immediateOrigin), new HwOutputDriveNode("drive", "result", "value", immediateOrigin)]
+                        : [new HwOperationNode("less", operation, ["op1", "immediate"], u1, Origin: immediateOrigin), new HwOperationNode("value", "zext", ["less"], u64, Origin: immediateOrigin), new HwOutputDriveNode("drive", "result", "value", immediateOrigin)]
                     : [new HwOperationNode("value", operation, ["op1", "immediate"], u64, Origin: immediateOrigin), new HwOutputDriveNode("drive", "result", "value", immediateOrigin)];
                 var immediateName = "scalar_" + arm.EnumMember.ToLowerInvariant();
                 shiftModules.Add(new HwModule(immediateName, immediateName, immediatePorts, immediateNodes, [], new HwHardwareContract("scalar." + arm.EnumMember.ToLowerInvariant() + ".partial.v1", HwModuleKind.Combinational, immediatePorts, new HwTimingContract(0, 1)), immediateOrigin));
@@ -284,8 +295,20 @@ public static class BridgeHwirWordDispatch
                 HwPortContract[] leafPorts = [new("op1", HwPortDirection.Input, u64), new("op2", HwPortDirection.Input, u64), new("result", HwPortDirection.Output, u64)];
                 var isMin = arm.EnumMember.StartsWith("MIN", StringComparison.Ordinal);
                 var signed = !arm.EnumMember.EndsWith("U", StringComparison.Ordinal);
-                HwNode[] compareNodes = [new HwOperationNode("less", signed ? "slt64" : "ult64", isMin ? ["op2", "op1"] : ["op1", "op2"], u1, Origin: compareOrigin),
-                    new HwMuxNode("value", "less", "op2", "op1", u64, compareOrigin), new HwOutputDriveNode("drive", "result", "value", compareOrigin)];
+                string compareLeft = isMin ? "op2" : "op1";
+                string compareRight = isMin ? "op1" : "op2";
+                var compareNodes = new List<HwNode>();
+                if (signed)
+                {
+                    var signed64 = new HwBitVectorType(64, HwSignedness.Signed);
+                    compareNodes.Add(new HwOperationNode("compare_left_signed", "bitcast", [compareLeft], signed64, Origin: compareOrigin));
+                    compareNodes.Add(new HwOperationNode("compare_right_signed", "bitcast", [compareRight], signed64, Origin: compareOrigin));
+                    compareLeft = "compare_left_signed";
+                    compareRight = "compare_right_signed";
+                }
+                compareNodes.Add(new HwOperationNode("less", signed ? "slt64" : "ult64", [compareLeft, compareRight], u1, Origin: compareOrigin));
+                compareNodes.Add(new HwMuxNode("value", "less", "op2", "op1", u64, compareOrigin));
+                compareNodes.Add(new HwOutputDriveNode("drive", "result", "value", compareOrigin));
                 var name = "scalar_" + arm.EnumMember.ToLowerInvariant();
                 shiftModules.Add(new HwModule(name, name, leafPorts, compareNodes, [], new HwHardwareContract("scalar." + arm.EnumMember.ToLowerInvariant() + ".partial.v1", HwModuleKind.Combinational, leafPorts, new HwTimingContract(0,1)), compareOrigin));
                 nodes.Add(new HwWireNode(id + "_value", u64, origin));

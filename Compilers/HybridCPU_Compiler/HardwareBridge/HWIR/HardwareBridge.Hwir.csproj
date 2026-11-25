@@ -70,6 +70,11 @@
     <Compile Include="BridgeHwirVectorSegmentReadAdmission.cs" />
     <!-- Regression-only adapter; caller pins the checked-out Core project explicitly. -->
     <ProjectReference Include="$(CircuitWeaveRepoRoot)/src/CircuitWeave.Frontend.Roslyn/CircuitWeave.Frontend.Roslyn.csproj" Condition="'$(CircuitWeaveRepoRoot)' != '' and '$(CircuitWeaveExpectedHeadSha)' != '' and '$(BridgeExpectedSdkVersion)' != ''" />
+    <!-- Legacy fixtures use Core-owned HWIR types directly; keep that dependency opt-in and rooted at the same pinned Core checkout. -->
+    <ProjectReference Include="$(CircuitWeaveRepoRoot)/src/CircuitWeave.HWIR/CircuitWeave.HWIR.csproj" Condition="'$(CircuitWeaveRepoRoot)' != '' and '$(CircuitWeaveExpectedHeadSha)' != '' and '$(BridgeExpectedSdkVersion)' != ''" />
+    <!-- The explicitly compiled fixture sources consume these Core contracts directly; do not rely on transitive ProjectReference propagation. -->
+    <ProjectReference Include="$(CircuitWeaveRepoRoot)/src/CircuitWeave.Bindings/CircuitWeave.Bindings.csproj" Condition="'$(CircuitWeaveRepoRoot)' != '' and '$(CircuitWeaveExpectedHeadSha)' != '' and '$(BridgeExpectedSdkVersion)' != ''" />
+    <ProjectReference Include="$(CircuitWeaveRepoRoot)/src/CircuitWeave.Contracts/CircuitWeave.Contracts.csproj" Condition="'$(CircuitWeaveRepoRoot)' != '' and '$(CircuitWeaveExpectedHeadSha)' != '' and '$(BridgeExpectedSdkVersion)' != ''" />
     <Reference Include="Microsoft.CodeAnalysis"><HintPath>$(MSBuildSDKsPath)/../Roslyn/bincore/Microsoft.CodeAnalysis.dll</HintPath><Private>true</Private></Reference>
     <Reference Include="Microsoft.CodeAnalysis.CSharp"><HintPath>$(MSBuildSDKsPath)/../Roslyn/bincore/Microsoft.CodeAnalysis.CSharp.dll</HintPath><Private>true</Private></Reference>
   </ItemGroup>
@@ -77,8 +82,9 @@
     <!-- Standalone source identity only; Core-derived legacy HWIR stays explicitly opt-in. -->
     <Compile Include="..\SourceSnapshot\BridgeSourceSnapshotV1.cs" Link="BridgeSourceSnapshotV1.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis" Version="5.9.0" />
+  <ItemGroup Condition="'$(EnableBridgeHwirLegacyFixtures)' == 'true'">
+    <!-- Match the pinned Core Central Package Management version when the legacy fixture graph is opted in. -->
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="5.12.0" />
   </ItemGroup>
   <Target Name="ValidatePinnedBridgeHwirFixtures" BeforeTargets="PrepareForBuild;CollectPackageReferences" Condition="'$(EnableBridgeHwirLegacyFixtures)' == 'true'">
     <Error Condition="'$(CircuitWeaveRepoRoot)' == '' or '$(CircuitWeaveFrontendRoslynProject)' == ''" Text="HBINT0101 MissingCoreFrontend: explicit CircuitWeaveRepoRoot and CircuitWeaveFrontendRoslynProject required." />

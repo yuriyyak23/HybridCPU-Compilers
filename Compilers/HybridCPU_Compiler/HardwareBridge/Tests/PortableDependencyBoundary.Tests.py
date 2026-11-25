@@ -30,12 +30,24 @@ class PortableDependencyBoundary(unittest.TestCase):
         cls.parent = project(cls.parent_text)
 
     def test_default_hwir_requires_no_core_checkout(self):
-        self.assertEqual(references(self.hwir), ["$(CircuitWeaveRepoRoot)/src/CircuitWeave.Frontend.Roslyn/CircuitWeave.Frontend.Roslyn.csproj"])
+        declared_refs = references(self.hwir)
+        self.assertEqual(declared_refs, [
+            "$(CircuitWeaveRepoRoot)/src/CircuitWeave.Frontend.Roslyn/CircuitWeave.Frontend.Roslyn.csproj",
+            "$(CircuitWeaveRepoRoot)/src/CircuitWeave.HWIR/CircuitWeave.HWIR.csproj",
+            "$(CircuitWeaveRepoRoot)/src/CircuitWeave.Bindings/CircuitWeave.Bindings.csproj",
+            "$(CircuitWeaveRepoRoot)/src/CircuitWeave.Contracts/CircuitWeave.Contracts.csproj",
+        ])
         groups = list(self.hwir.findall("ItemGroup"))
         project_refs = [g for g in groups if any(i.tag == "ProjectReference" for i in g)]
         self.assertEqual(len(project_refs), 1)
         self.assertEqual(project_refs[0].get("Condition"),
                          "'$(EnableBridgeHwirLegacyFixtures)' == 'true'")
+        self.assertEqual(len(list(project_refs[0].iter("ProjectReference"))), 4)
+        # All Core references, including the direct Bindings/Contracts dependencies used by
+        # opt-in fixture source, live only in the explicit legacy-fixture item group.
+        unconditional_refs = [reference for group in groups if group.get("Condition") is None
+                              for reference in group.findall("ProjectReference")]
+        self.assertEqual(unconditional_refs, [])
         self.assertIn("false</EnableBridgeHwirLegacyFixtures>", self.hwir_text)
         self.assertEqual(len([x for x in self.hwir.iter("Compile")
                               if "SourceSnapshot" in x.get("Include", "")]), 1)

@@ -10,6 +10,15 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="5.9.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="TaskTimeObserver/CscWindowsTaskEventProjector.csproj" />
+    <ProjectReference Include="TaskTimeObserver/CscObservationV2Assembler.csproj" />
+    <ProjectReference Include="TaskTimeObserver/CscExecutionCrosswalkProducer.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- This tool is a single executable; nested observer/probe fixtures own their sources. -->
+    <Compile Remove="TaskTimeObserver/**/*.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="Microsoft.Build" HintPath="$(MSBuildBinPath)\Microsoft.Build.dll" />
     <Reference Include="Microsoft.Build.Framework" HintPath="$(MSBuildBinPath)\Microsoft.Build.Framework.dll" />
     <Reference Include="Microsoft.Build.Utilities.Core" HintPath="$(MSBuildBinPath)\Microsoft.Build.Utilities.Core.dll" />
