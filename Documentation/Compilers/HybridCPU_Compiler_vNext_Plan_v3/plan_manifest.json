@@ -1,0 +1,123 @@
+{
+  "schema": "hybridcpu.compiler-plan-manifest/v1",
+  "plan": "HybridCPU_Compiler_vNext_Plan_v3",
+  "verification_date": "2026-11-09",
+  "revision": "documentation-reconciled-20261109",
+  "qualification": "no",
+  "current_status_file": "00_CODE_VERIFICATION_REPORT.md",
+  "capability_report": "CURRENT_STATE_AND_PROGRESS.md",
+  "whitebook": "../Whitebook/README.md",
+  "acceptance_file": "93_ACCEPTANCE_MATRIX.md",
+  "source_index": "94_SOURCE_INDEX.md",
+  "validation_file": "96_TEST_STRATEGY.md",
+  "continuation": {
+    "queue_owner": "95_IMPLEMENTATION_ORDER_AND_COMMITS.md",
+    "execution_prompt": "EXECUTION_PROMPT.md",
+    "phase_files_are": "responsibility areas, not another implementation queue",
+    "priority": "real CSharp source-to-image consumers in existing owners"
+  },
+  "baseline": {
+    "dirty_worktree": true,
+    "observation_date": "2026-11-09",
+    "recheck_before_implementation": true,
+    "observed_head": "1bfe41a49cf11c80fa6c6aee87accb54b78b331f"
+  },
+  "evidence": {
+    "sdk_profile": {
+      "pass_lines": 427,
+      "exit": 0
+    },
+    "source_recheck_date": "2026-11-09",
+    "report": "../../../TempEnv/doom-continuation-20260905/scalar-default-20261024/REPORT.md",
+    "execution_date": "2026-10-24",
+    "manifest_drift": 0,
+    "evaluated_manifest_count": 493,
+    "limits": "exact manifests and report scope; not current host/full solution/guest/publication qualification",
+    "compiler_manifest_count": 541,
+    "default_profile": {
+      "pass_lines": 426,
+      "exit": 0
+    },
+    "managed": {
+      "pass_lines": 433,
+      "exit": 0
+    },
+    "focused_source": {
+      "pass_lines": 48,
+      "exit": 0
+    },
+    "new_test_campaign": false
+  },
+  "next_bounded_gate": {
+    "owner": "P3/P4",
+    "consumer": "zero-input constrained signed scalar helper",
+    "saved_evidence": "v137 HCCIL1702 exit4, inline/concrete exit0; not reexecuted 2026-11-09",
+    "queue_owner": "95_IMPLEMENTATION_ORDER_AND_COMMITS.md",
+    "status": "open",
+    "source_fact": "exact matcher rejects parameter count zero"
+  },
+  "toolchain": {
+    "companion_project": "../../../Compilers/HybridCPU_Compiler/Roslyn/HybridCPU.Compiler.Roslyn.csproj",
+    "policy": "98_ROSLYN_DOTNET11_CSHARP15_POLICY.md",
+    "source": "../../../global.json"
+  },
+  "phases": [
+    {
+      "role": "owner/dependency reference; scope from 93, queue from 95",
+      "id": "P0",
+      "file": "P0_TOOLCHAIN_REPRO_AND_QUALIFICATION.md"
+    },
+    {
+      "role": "owner/dependency reference; scope from 93, queue from 95",
+      "id": "P1",
+      "file": "P1_SOURCE_OWNERSHIP_AND_RUNTIME_EDGE.md"
+    },
+    {
+      "role": "owner/dependency reference; scope from 93, queue from 95",
+      "id": "P2",
+      "file": "P2_CANONICAL_PIPELINE_CONVERGENCE.md"
+    },
+    {
+      "role": "owner/dependency reference; scope from 93, queue from 95",
+      "id": "P3",
+      "file": "P3_CIL_HARDENING_PROVENANCE_SOURCEMAP.md"
+    },
+    {
+      "role": "owner/dependency reference; scope from 93, queue from 95",
+      "id": "P4",
+      "file": "P4_ROSLYN_MANAGED_SOURCE_COMPANION.md"
+    },
+    {
+      "role": "owner/dependency reference; scope from 93, queue from 95",
+      "id": "P5",
+      "file": "P5_POLICY_CACHE_INCREMENTAL_CONCURRENCY.md"
+    },
+    {
+      "role": "owner/dependency reference; scope from 93, queue from 95",
+      "id": "P6",
+      "file": "P6_REPRODUCIBLE_PGO.md"
+    },
+    {
+      "role": "owner/dependency reference; scope from 93, queue from 95",
+      "id": "P7",
+      "file": "P7_EVIDENCE_AND_TYPE_SAFETY.md"
+    },
+    {
+      "role": "owner/dependency reference; scope from 93, queue from 95",
+      "id": "P8",
+      "file": "P8_FRONTEND_TARGET_QUALIFICATION.md"
+    },
+    {
+      "role": "owner/dependency reference; scope from 93, queue from 95",
+      "id": "P9",
+      "file": "P9_RELEASE_CUTOVER_AND_RESEARCH_EVALUATION.md"
+    }
+  ],
+  "required_invariants": [
+    "compiler facts do not grant runtime authority",
+    "metadata declarations do not grant body authority",
+    "discovery does not grant admission",
+    "component acceptance is not roadmap completion"
+  ],
+  "archive": "Archive/migration-notes-20261109/README.md"
+}
