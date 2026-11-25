@@ -4,7 +4,7 @@ Frozen observation на 12 октября 2026; это не current-source inven
 
 Закрытые scoped regressions: CFG-entry relocation, FixtureDrift и exact upstream ILCompiler admission. Diagnostic Doom image прошёл loader и наблюдался более шести суток до внештатного reboot Windows. Native terminal/finished outcome не сохранён; кадров не подтверждено. Это stability observation конкретного frozen artifact, не guest completion/publication.
 
-Подробные identities, samples и ограничения сохранены в immutable [baseline review](../../../../TempEnv/doom-continuation-20260905/plan-audit-20261012-211824/reports/plan-status-2026-10-12.md) и [publish/run report](../../../../TempEnv/doom-continuation-20260905/diagnostic-doom-20261006-003421/reports/iteration-report.md). Не воспроизводить их длинный ledger в активном плане.
+Исторические идентификаторы отчётов: `plan-audit-20261012-211824/reports/plan-status-2026-10-12.md` и `diagnostic-doom-20261006-003421/reports/iteration-report.md`. Эти receipts не входят в reviewed checkout. Описанное наблюдение сохранено как датированная запись плана.
 
 Historical compiler/build acceptance не валидирует позднейшие changes. Исчезновение конкретного Doom callsite fault не следует из роста counters. Full loader-backed GC-root/safepoint, handled/unhandled EH, process-exit, interop и два qualifying clean publish не закрыты этими observations. Rejected/unqualified image не qualified output; eh-unwind непубликуем.
 

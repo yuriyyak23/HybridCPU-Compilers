@@ -1,6 +1,6 @@
 # 07 — Границы проектов
 
-Сверено по project files 9 ноября 2026. Evaluated Compile/ProjectReference/TargetPath для новой сборки проверяются отдельно с её свойствами.
+Сверено по project files 25 ноября 2026. Evaluated Compile/ProjectReference/TargetPath для новой сборки проверяются отдельно с её свойствами.
 
 | Проект | Основная ответственность / зависимости |
 |---|---|
@@ -10,6 +10,7 @@
 | Roslyn | Source companion; Analyzers + CIL, default Roslyn package или explicit SDK host |
 | Analyzers / Generators | netstandard2.0 tooling; NoHeap и declaration-only incremental generation |
 | Upper compiler | Concrete ISE/runtime integration + Core; selective compile groups |
+| HardwareBridge Companion | Opt-in report/projection поверх Roslyn → Cil → Core. Portable codecs и pinned legacy HWIR имеют отдельные графы ([HB status](../../../Compilers/HybridCPU_Compiler/HardwareBridge/Docs/current/STATUS.md)). |
 | ReleaseQualification / tools | Consumer validation/evidence; не зависимость Core |
 
 Наличие проекта в root solution не гарантирует включение всех tooling projects или их acceptance. Для compiler consumers используется direct project build.

@@ -1,6 +1,6 @@
 # M0–M7 — disposition, не текущая очередь
 
-Актуализировано 2026-10-18. M0–M6 scoped acceptance сохраняется; исторические SDK versions/counts не current source inventory. Qualification: no.
+Disposition от 18 октября 2026. Текущая квалификация ведётся в v3. M0–M6 scoped acceptance сохраняется; исторические SDK versions/counts не current source inventory. Qualification: no.
 
 | Slice | Принятый foundation scope | Продолжение |
 |---|---|---|

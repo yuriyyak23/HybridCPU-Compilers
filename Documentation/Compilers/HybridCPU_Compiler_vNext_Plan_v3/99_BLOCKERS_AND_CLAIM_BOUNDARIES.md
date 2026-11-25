@@ -1,6 +1,10 @@
 # 99 — Открытые границы
 
-9 ноября 2026. Единственная очередь реализации — [95](95_IMPLEMENTATION_ORDER_AND_COMMITS.md). Этот файл не содержит второго backlog по отдельным helper shapes.
+25 ноября 2026. Единственная очередь реализации — [95](95_IMPLEMENTATION_ORDER_AND_COMMITS.md). Этот файл не содержит второго backlog по отдельным helper shapes.
+
+## Общая зависимость сборки
+
+[P0](P0_TOOLCHAIN_REPRO_AND_QUALIFICATION.md) и software Core owner закрывают [#38](https://github.com/yuriyyak23/HybridCPU-Compilers/issues/38): tracked production declarations, точный граф и изолированные Debug/Release receipts. [00](00_CODE_VERIFICATION_REPORT.md) отделяет это состояние от исторических component runs.
 
 ## Функциональное расширение
 

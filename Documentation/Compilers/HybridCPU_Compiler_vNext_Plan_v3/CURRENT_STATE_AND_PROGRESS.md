@@ -1,6 +1,6 @@
 # HybridCPU Compiler — возможности и прогресс
 
-Состояние на 9 ноября 2026. Основание: текущие owners в `Compilers/HybridCPU_Compiler`, проекты и contracts, сохранённый acceptance v137 от 24 октября. Документ описывает реализованные ограниченные сценарии, а не полную совместимость с C#/.NET. Общая квалификация продукта не подтверждена.
+Состояние на 25 ноября 2026 по tracked коду на `58a4f4dc5b3e0d4b2b1558b0eefb8c74ed37a4e3`. Реализованные сценарии описаны по owners. Их текущая сборка и runtime требуют отдельных receipts. Исторический v137 и новые ограничения сборки разобраны в [00](00_CODE_VERIFICATION_REPORT.md).
 
 ## Что представляет собой компилятор
 
@@ -38,13 +38,13 @@ HybridCPU Compiler — набор C#/.NET компонентов для подг
 
 ## Что подтверждено проверками
 
-Последний [immutable report v137](../../../TempEnv/doom-continuation-20260905/scalar-default-20261024/REPORT.md) фиксирует Release/tiered-off runs: default profile **426**, SDK profile **427**, full Managed **433** PASS-строки, все exit 0; focused **48** source cases. Добавлены **48** физических cases. Повтор PE/PDB/maps/image, 304 прежних images и 48 lane images проверены в заявленном scope.
+Запись от 9 ноября приводит результаты v137 от 24 октября и сверку сохранённых входов (541 compiler, 493 evaluated, drift 0 в той выборке). Архивные распечатки не входят в текущий checkout. Новая компиляция и переоценка этого manifest не выполнялись. [00](00_CODE_VERIFICATION_REPORT.md) сохраняет исходные counts и границы отчёта.
 
-9 ноября заново проверены хэши 541 compiler и 493 evaluated inputs: drift 0. Это сохранность входов acceptance, а не повторная кампания или новая qualification runtime. Default и SDK PE/PDB/maps не обязаны совпадать между собой; image equality и semantic equivalence проверяются отдельными отношениями. Generic/concrete I8 zero не имеют заявленного code-byte equality.
+Production Core остаётся prerequisite актуальной проверки C#→image. Tracked declarations отсутствуют, а предыдущий exact-SHA hosted job остановился на Core. Текущие loader/guest/publish outcomes отсутствуют.
 
 ## Что остаётся открытым
 
-Ближайший consumer — `private static U Adjust<U>() where U:struct => default(U)`: body уже знаком, но exact method signature admission требует хотя бы один параметр. Отказ HCCIL1702 и положительные inline/concrete controls сохранены; владельцы исправления — metadata matcher и final scalar proof. Реализация выбирается только через [очередь95](95_IMPLEMENTATION_ORDER_AND_COMMITS.md).
+Ближайший consumer — `private static U Adjust<U>() where U:struct => default(U)`: body уже знаком, но exact method signature admission требует хотя бы один параметр. Отказ HCCIL1702 и положительные inline/concrete controls сохранены; владельцы исправления — metadata matcher и final scalar proof. Повторный запуск зависит от Core build prerequisite. Реализация выбирается через [очередь 95](95_IMPLEMENTATION_ORDER_AND_COMMITS.md).
 
 Более широкие задачи: новые C# emitted-IL/metadata формы, generic constraints, nullable/aggregate/byref/EH ABI, дополнительные frontend/target contours. Их наличие не означает, что текущие foundation отсутствуют или должны быть переписаны. Cache/concurrency/host AOT/LLVM expansion и performance promotion требуют своего consumer и измерений.
 
