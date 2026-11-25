@@ -2,6 +2,6 @@
 
 Раздел перенесён: [Diagnostic transport](Evidence/Baseline.md).
 
-Endpoint реализован и применён. Детальный contract: Tools/HybridCpuBootBlobEvidence/IndependentRun.md и действующие source/contracts; не проектировать транспорт заново.
+Endpoint был реализован и применён в frozen scope. Старый launcher contract недоступен в этом checkout. Для новой итерации сверять актуальный runtime adapter, независимый launcher и точный допущенный image. См. [правила проверки](Evidence/Validation.md).
 
 Актуализировано 12 октября 2026. Qualification: no.

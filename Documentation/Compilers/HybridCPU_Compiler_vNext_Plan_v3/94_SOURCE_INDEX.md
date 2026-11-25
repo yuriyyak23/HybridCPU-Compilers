@@ -1,6 +1,6 @@
 # 94 — Индекс кода
 
-Пути проверены 9 ноября 2026. Индекс показывает owners; наличие файла не является acceptance. Actual Compile/ProjectReference/TargetPath проверяются с параметрами конкретной сборки.
+Пути проверены 25 ноября 2026. Индекс показывает owners; наличие файла не является acceptance. Actual Compile/ProjectReference/TargetPath проверяются с параметрами конкретной сборки.
 
 | Ответственность | Код |
 |---|---|
@@ -23,7 +23,8 @@
 | Source regressions | [CompilerProfileSmoke](../../../Compilers/HybridCPU_Compiler/Tools/CompilerProfileSmoke/Program.cs), [nullable](../../../Compilers/HybridCPU_Compiler/Tools/CompilerProfileSmoke/NullableInt32Checks.cs), [I8 values](../../../Compilers/HybridCPU_Compiler/Tools/CompilerProfileSmoke/Int64ValueChecks.cs) |
 | Physical / serialized oracle | [ManagedPortSmoke](../../../Compilers/HybridCPU_Compiler/Tools/ManagedPortSmoke/Program.cs), [nullable](../../../Compilers/HybridCPU_Compiler/Tools/ManagedPortSmoke/NullableValueSmoke.cs), [evaluator](../../../Compilers/HybridCPU_Compiler/Tools/ManagedPortSmoke/NativeConstantSmoke.cs), [wide-rem](../../../Compilers/HybridCPU_Compiler/Tools/ManagedPortSmoke/UnsignedDivisionSmoke.cs) |
 | Scheduler measurement | [SchedulerBenchmark](../../../Compilers/HybridCPU_Compiler/Tools/SchedulerBenchmark/SchedulerBenchmark.csproj) |
+| HardwareBridge export | [Opt-in Companion](../../../Compilers/HybridCPU_Compiler/HardwareBridge/HardwareBridge.Companion.csproj), [status](../../../Compilers/HybridCPU_Compiler/HardwareBridge/Docs/current/STATUS.md) |
 | Release evidence boundaries | [ReleaseQualification README](../../../Compilers/HybridCPU_Compiler/ReleaseQualification/README.md) |
-| Toolchain / isolation | [global.json](../../../global.json), [Isolation.props](../../../Compilers/CpuInterfaceBridge/Validation/Isolation.props), [SDK Roslyn references](../../../Compilers/HybridCPU_Compiler/Roslyn/SdkRoslynHost.targets) |
+| Toolchain / isolation | [Toolchain policy](98_ROSLYN_DOTNET11_CSHARP15_POLICY.md), [Isolation.props](../../../Compilers/CpuInterfaceBridge/Validation/Isolation.props), [SDK Roslyn references](../../../Compilers/HybridCPU_Compiler/Roslyn/SdkRoslynHost.targets) |
 
 Project boundaries: [Core](../../../Compilers/HybridCPU_Compiler/Core/HybridCPU.Compiler.Core.csproj), [CIL](../../../Compilers/HybridCPU_Compiler/Cil/HybridCPU.Compiler.Cil.csproj), [Roslyn](../../../Compilers/HybridCPU_Compiler/Roslyn/HybridCPU.Compiler.Roslyn.csproj), [upper compiler](../../../Compilers/HybridCPU_Compiler/HybridCPU_Compiler.csproj), [NativeAOT adapter](../../../Compilers/HybridCPU_Compiler/NativeAot/HybridCPU.Compiler.NativeAot.Adapter.csproj), [LLVM](../../../Compilers/HybridCPU_Compiler/LLVM/HybridCPU.Compiler.Llvm.csproj).

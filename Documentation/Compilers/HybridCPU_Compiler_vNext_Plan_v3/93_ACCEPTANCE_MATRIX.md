@@ -1,6 +1,6 @@
 # 93 — Матрица возможностей и acceptance
 
-9 ноября 2026. «Реализовано» означает ограниченный контракт текущего owner, а не полную языковую или runtime совместимость. Последние сохранённые runs и применимость хэшей — [00](00_CODE_VERIFICATION_REPORT.md). Новая test campaign при обновлении документации не проводилась.
+25 ноября 2026. «Реализовано» означает ограниченный контракт текущего owner, а не полную языковую или runtime совместимость. Последние сохранённые runs и применимость хэшей — [00](00_CODE_VERIFICATION_REPORT.md). Новая test campaign при обновлении документации не проводилась.
 
 | Область | Реализовано в существующих owners | Граница |
 |---|---|---|
@@ -19,14 +19,18 @@
 | Runtime adapter | Concrete emission/transport contract | Image success не loader/guest/publication |
 | Release tools | Structural validation, identities, scalar summaries | Декларации clean builds и parser success не actual build/execution receipts |
 
-## Последний компонентный блок
+## Исторический компонентный блок v137
 
 v137 подтвердил generic scalar zero в 48 source и 48 physical cases: arity3–8 × selected I4/I8 × owner int/long × direct/transitive. Unary/binary zero дополнительно проверены CLI. Full default/SDK/Managed runs имеют exit 0; counts и manifests хранятся в00/report, а не дублируются здесь.
 
 Проверены deterministic PE/PDB/maps/image repeat, independent scalar/host/encoded/serialized oracle, presence/extrema/high-bit/overflow, original inputs и eager call counts. Generic/concrete I8 zero семантически эквивалентны; code-byte equality для них не заявлена. Negative families охватывают roles/constraints/identity/body/effects/EH/byref/budgets/fault/cancel/reuse/diagnostic precedence в указанном в report объёме, не все возможные комбинации языка.
 
+## Текущая применимость
+
+Compiler owners и ограниченные admission paths подтверждены статически. Текущая сборка и execution **NOT RUN**. Отсутствующие Core Artifacts contracts блокируют проверку production graph. Underlying build failure зафиксирован на предшествующем SHA, см. [00](00_CODE_VERIFICATION_REPORT.md).
+
 ## Общие пределы
 
-MatrixTile lane6/HardPinned сохраняется. Release wide-remainder exact equality и независимый quotient/MUL/SUB physical oracle подтверждены последним компонентным набором. Debug equivalence не следует из Release результата.
+MatrixTile lane6/HardPinned сохраняется. Release wide-remainder exact equality и независимый quotient/MUL/SUB physical oracle зафиксированы в историческом компонентном наборе. Debug equivalence не следует из Release результата.
 
 Full solution, произвольная BCL, async/unsafe/interop/trimming, general aggregates, loader/guest/publication и обычная стабильность preview host не квалифицированы этими runs. Общая qualification — **нет**. Следующий consumer определяется только [95](95_IMPLEMENTATION_ORDER_AND_COMMITS.md); широкие ограничения — [99](99_BLOCKERS_AND_CLAIM_BOUNDARIES.md).

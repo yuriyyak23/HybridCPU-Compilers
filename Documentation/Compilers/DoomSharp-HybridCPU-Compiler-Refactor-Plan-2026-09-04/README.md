@@ -1,6 +1,6 @@
 # DoomSharp compiler refactor plan — предшественник v3
 
-Актуализация навигации: 2026-10-18. Qualification: no.
+Навигация сверена 25 ноября 2026. Общая квалификация отсутствует.
 
 Продолжение модернизации ведётся в [HybridCPU Compiler vNext v3](../HybridCPU_Compiler_vNext_Plan_v3/README.md). Единственная implementation queue — [v3/95](../HybridCPU_Compiler_vNext_Plan_v3/95_IMPLEMENTATION_ORDER_AND_COMMITS.md); [готовый промпт](../HybridCPU_Compiler_vNext_Plan_v3/EXECUTION_PROMPT.md).
 
@@ -11,6 +11,6 @@ M0–M6 завершены scoped. Это не completion расширенных
 - [Modernize](Modernize/README.md) — переход к existing shared stages/source consumers.
 - Текущие code facts/results/limitations — [v3/00](../HybridCPU_Compiler_vNext_Plan_v3/00_CODE_VERIFICATION_REPORT.md) и [v3/93](../HybridCPU_Compiler_vNext_Plan_v3/93_ACCEPTANCE_MATRIX.md).
 
-Root files00–09 — compatibility pointers. Старые SDK/NoHeap versions, PID, project counts и frozen image hashes не являются текущим baseline. Датированные immutable reports не переписываются; недоступные outputs не восстанавливаются ради плана.
+Файлы 00–09 сохраняют входящие ссылки как compatibility pointers. Свежие build gates и next consumer см. в [v3/95](../HybridCPU_Compiler_vNext_Plan_v3/95_IMPLEMENTATION_ORDER_AND_COMMITS.md). Старые SDK/NoHeap versions, PID, project counts и frozen image hashes не являются текущим baseline. Датированные immutable reports не переписываются; недоступные outputs не восстанавливаются ради плана.
 
 Приоритет — работающий C# source→image. Pack/double publish/длительный Doom run нужны для соответствующего runtime/publication claim, не для каждой modernization итерации. Compiler static facts не runtime authority; PublishQualifiedWorkstreams и nonpublish eh-unwind сохраняются.

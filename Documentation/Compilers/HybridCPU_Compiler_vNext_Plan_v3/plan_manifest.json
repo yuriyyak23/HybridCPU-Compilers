@@ -1,8 +1,8 @@
 {
   "schema": "hybridcpu.compiler-plan-manifest/v1",
   "plan": "HybridCPU_Compiler_vNext_Plan_v3",
-  "verification_date": "2026-11-09",
-  "revision": "documentation-reconciled-20261109",
+  "verification_date": "2026-11-25",
+  "revision": "documentation-reconciled-20261125",
   "qualification": "no",
   "current_status_file": "00_CODE_VERIFICATION_REPORT.md",
   "capability_report": "CURRENT_STATE_AND_PROGRESS.md",
@@ -17,49 +17,45 @@
     "priority": "real CSharp source-to-image consumers in existing owners"
   },
   "baseline": {
-    "dirty_worktree": true,
-    "observation_date": "2026-11-09",
+    "dirty_worktree": false,
+    "observation_date": "2026-11-25",
     "recheck_before_implementation": true,
-    "observed_head": "1bfe41a49cf11c80fa6c6aee87accb54b78b331f"
+    "observed_head": "58a4f4dc5b3e0d4b2b1558b0eefb8c74ed37a4e3"
   },
   "evidence": {
-    "sdk_profile": {
-      "pass_lines": 427,
-      "exit": 0
-    },
-    "source_recheck_date": "2026-11-09",
-    "report": "../../../TempEnv/doom-continuation-20260905/scalar-default-20261024/REPORT.md",
-    "execution_date": "2026-10-24",
-    "manifest_drift": 0,
-    "evaluated_manifest_count": 493,
-    "limits": "exact manifests and report scope; not current host/full solution/guest/publication qualification",
-    "compiler_manifest_count": 541,
-    "default_profile": {
-      "pass_lines": 426,
-      "exit": 0
-    },
-    "managed": {
-      "pass_lines": 433,
-      "exit": 0
-    },
-    "focused_source": {
-      "pass_lines": 48,
-      "exit": 0
-    },
-    "new_test_campaign": false
+    "scope": "static review of clean checkout; earlier hosted jobs are revision-specific",
+    "new_test_campaign": false,
+    "exact_sha_workflow_runs_observed": 0,
+    "local_production_execution": "NOT RUN",
+    "hosted_reference": {
+      "bridge_sha": "d95ff907171fda783897d1a87febdc37f2bcce08",
+      "url": "https://github.com/yuriyyak23/HybridCPU-Compilers/actions/runs/45657995837/job/139359800220",
+      "companion_restore_exit": 0,
+      "companion_build_exit": 1,
+      "diagnostics": [
+        "CS0234",
+        "CS0246"
+      ]
+    }
   },
   "next_bounded_gate": {
     "owner": "P3/P4",
     "consumer": "zero-input constrained signed scalar helper",
-    "saved_evidence": "v137 HCCIL1702 exit4, inline/concrete exit0; not reexecuted 2026-11-09",
+    "saved_evidence": "Historical v137 records HCCIL1702 exit 4 and inline/concrete exit 0. Exact current repro not run.",
     "queue_owner": "95_IMPLEMENTATION_ORDER_AND_COMMITS.md",
-    "status": "open",
-    "source_fact": "exact matcher rejects parameter count zero"
+    "status": "blocked",
+    "source_fact": "IsExactStructScalarMethod rejects signature[2] == 0",
+    "prerequisite": {
+      "owner": "Software Core",
+      "issue": "https://github.com/yuriyyak23/HybridCPU-Compilers/issues/38",
+      "exit": "Genuine tracked contracts and clean evaluated production build"
+    }
   },
   "toolchain": {
     "companion_project": "../../../Compilers/HybridCPU_Compiler/Roslyn/HybridCPU.Compiler.Roslyn.csproj",
     "policy": "98_ROSLYN_DOTNET11_CSHARP15_POLICY.md",
-    "source": "../../../global.json"
+    "source": "98_ROSLYN_DOTNET11_CSHARP15_POLICY.md",
+    "root_global_json": false
   },
   "phases": [
     {
@@ -119,5 +115,36 @@
     "discovery does not grant admission",
     "component acceptance is not roadmap completion"
   ],
-  "archive": "Archive/migration-notes-20261109/README.md"
+  "archive": "Archive/migration-notes-20261109/README.md",
+  "historical_evidence": {
+    "v137": {
+      "sdk_profile": {
+        "pass_lines": 427,
+        "exit": 0
+      },
+      "source_recheck_date": "2026-11-09",
+      "report": "scalar-default-20261024/REPORT.md",
+      "execution_date": "2026-10-24",
+      "manifest_drift": 0,
+      "evaluated_manifest_count": 493,
+      "limits": "exact manifests and report scope; not current host/full solution/guest/publication qualification",
+      "compiler_manifest_count": 541,
+      "default_profile": {
+        "pass_lines": 426,
+        "exit": 0
+      },
+      "managed": {
+        "pass_lines": 433,
+        "exit": 0
+      },
+      "focused_source": {
+        "pass_lines": 48,
+        "exit": 0
+      },
+      "new_test_campaign": false,
+      "availability": "not tracked in reviewed checkout",
+      "observation_head": "1bfe41a49cf11c80fa6c6aee87accb54b78b331f",
+      "dirty_worktree": true
+    }
+  }
 }

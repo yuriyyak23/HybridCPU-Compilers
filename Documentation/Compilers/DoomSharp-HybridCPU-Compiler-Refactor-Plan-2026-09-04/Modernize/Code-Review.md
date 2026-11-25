@@ -1,6 +1,6 @@
-# Текущие architecture decisions
+# Foundation architecture decisions
 
-Сверка 2026-10-18. Старый внешний audit не является очередью; actual source выше прежних тезисов. Qualification: no.
+Foundation decisions зафиксированы 18 октября 2026. Сверка путей и границ evidence — 25 ноября 2026. Старый внешний audit не является очередью; actual source выше прежних тезисов. Qualification: no.
 
 - Canonical facade физически Core/Compilation/HybridCpuCanonicalCompiler.cs. Shared IrProgramCompiler/ProgramBundler/PostBundleCompiler уже используются canonical/CIL/NativeAOT.
 - Runtime emission/production/decomposition/Phase00 — upper owners; Core не получает live execution/permission state.
