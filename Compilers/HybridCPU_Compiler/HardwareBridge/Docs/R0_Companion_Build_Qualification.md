@@ -1,5 +1,7 @@
 # R0-01 — Companion production build qualification
 
+> **Baseline 2026-11-25.** Historical Debug and Release receipt remains scoped to its own commit. At current baseline the independent Windows HB-INT-06 job also fails in Core. Review current tracked source absence and #38 before any fresh production build claim. See [current status](current/STATUS.md).
+
 ## Scope and trust boundary
 
 Owner: R0-01 only. The **real** build dependency chain is
@@ -13,7 +15,7 @@ This package changes only its owned test, standalone R0-01 runner, workflow and 
 * Reviewed original audit head: `8d3453dcc02bfb63710727f4f602edd9bc31efad`; re-read master before this package: `9befee4f3971b4945c553cf3162ed84af94134e4`.
 * [HB-INT-06 Windows build job](https://github.com/yuriyyak23/HybridCPU-Compilers/actions/runs/44740086741/job/136301263920) (2026-11-20) recorded **companion-restore Passed exit=0**, **companion-build Failed exit=1** (stdout SHA256 `5AFEBCB2B9561FA38F3E9301FAE30109EBDCCFB7D14C703F7BC6AB57E0B48C2E`).
 * Error examples: `CompilerProductionProviderContracts.cs(3,34) CS0234` unknown `HybridCPU.Compiler.Core.IR.Artifacts`; `CompilerProductionLoweringGate.cs(101,12) CS0246` `CompilerEmissionPackage`; `CompilerRuntimeBridge.cs(56,43) CS0246` `CompilerSidebandEnvelope`; plus `DescriptorEnvelope`, `TypedSlotFactsEnvelope`, `CompilerEvidenceEnvelope`, `SidebandRequirement`, `DescriptorAbiStatus`.
-* The current master GitHub tree has `Core/IR` but **no** tracked `Core/IR/Artifacts/**`. Its file/directory commit-path history lookup returns no tracked files for that path. Searches reveal many consumers but no verified declarations of the required missing types. Do **not** invent blank types, trim the dependent graph or silently exclude the production code. This is an unresolved real production-source dependency, not proof that a `Compile Include` is the remedy.
+* The original review’s master GitHub tree has `Core/IR` but **no** tracked `Core/IR/Artifacts/**`. Its file/directory commit-path history lookup returns no tracked files for that path. Searches reveal many consumers but no verified declarations of the required missing types. Do **not** invent blank types, trim the dependent graph or silently exclude the production code. This is an unresolved real production-source dependency, not proof that a `Compile Include` is the remedy.
 * `Core/HybridCPU.Compiler.Core.csproj` has default SDK compile items and `Compile Remove` for `obj` and `$(BaseIntermediateOutputPath)`; `Cil` project references Core, `Roslyn` references Cil, and Companion references Roslyn. The new runner records the actual evaluated Compile/ProjectReference items in CI to distinguish this source-state diagnosis from an evaluated MSBuild exclusion.
 * There is **no root global.json** in HybridCPU-Compilers. The Windows lane deliberately pins the historic separately reviewed **Core-compatible** SDK `11.0.100-rc.2.26504.105`; the toy observer's `11.0.100` is a distinct toolchain and must not be conflated with it. The lane verifies installed SDK, dotnet binary SHA256 and SDK Roslyn `csc.dll` SHA256 at runtime.
 

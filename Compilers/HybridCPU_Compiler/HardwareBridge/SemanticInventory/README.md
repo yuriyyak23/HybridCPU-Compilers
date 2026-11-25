@@ -1,5 +1,7 @@
 # Semantic source inventory (diagnostic, not HWIR)
 
+See [current compatibility](../Docs/current/COMPATIBILITY.md) for how this evaluation-based inventory relates to TaskTimeObserver, CscLaunchProbe and executed-Csc linkage. Match graph/SDK/byte captures to the selected configuration and keep observed generated syntax-tree order separate from manifest order.
+
 `HardwareBridge.SemanticInventory.csproj` reads a byte-pinned MSBuild evaluation,
 checks every source hash and groups active class/struct declarations by Roslyn
 symbol. It records declaration coordinates, attributes, explicit members,
@@ -19,13 +21,13 @@ Compilation errors are grouped in the output, and source attributes/dependencies
 can remain unresolved. `incomplete-unqualified` is unconditional. The result
 must not be published as elaborated modules or verification evidence.
 
-To reproduce on this machine, first run the Studio checkout's
+To reproduce with independent checkouts, first run the Studio checkout's
 `eng/Capture-HybridCpuSourceBytes.ps1 -Output <new-path-under-Studio-eng>`; it refuses to overwrite a capture. From this HardwareBridge directory run:
 
 ```powershell
 dotnet run --project SemanticInventory/HardwareBridge.SemanticInventory.csproj -- `
-  'C:\Users\Yuriy\Desktop\CircuitWeave-Studio-main\eng\hybridcpu-debug-source-bytes.json' `
-  'C:\Users\Yuriy\Desktop\CircuitWeave-Studio-main\eng\new-inventory.json'
+  '<isolated-workspace>\hybridcpu-debug-source-bytes.json' `
+  '<isolated-workspace>\new-inventory.json'
 powershell -NoProfile -ExecutionPolicy Bypass -File Tests/SemanticInventory.Tests.ps1
 ```
 
@@ -37,12 +39,12 @@ output directory, then pass it to the inventory command:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File SemanticInventory/CaptureProjectGraph.ps1 `
-  -RootInventory 'C:\Users\Yuriy\Desktop\CircuitWeave-Studio-main\eng\hybridcpu-debug-source-bytes.json' `
-  -Output 'C:\Users\Yuriy\Desktop\CircuitWeave-Studio-main\eng\new-project-graph.json'
+  -RootInventory '<isolated-workspace>\hybridcpu-debug-source-bytes.json' `
+  -Output '<isolated-workspace>\new-project-graph.json'
 dotnet run --project SemanticInventory/HardwareBridge.SemanticInventory.csproj -- `
-  'C:\Users\Yuriy\Desktop\CircuitWeave-Studio-main\eng\hybridcpu-debug-source-bytes.json' `
-  'C:\Users\Yuriy\Desktop\CircuitWeave-Studio-main\eng\new-project-inventory.json' `
-  --project-graph 'C:\Users\Yuriy\Desktop\CircuitWeave-Studio-main\eng\new-project-graph.json'
+  '<isolated-workspace>\hybridcpu-debug-source-bytes.json' `
+  '<isolated-workspace>\new-project-inventory.json' `
+  --project-graph '<isolated-workspace>\new-project-graph.json'
 ```
 
 Project files and all evaluated Compile sources are SHA-256 pinned. Reference
@@ -62,7 +64,7 @@ HybridCPU example manifest is `eng/hybridcpu-sdk-json-generator.json` in Studio;
 run with a new output path and append:
 
 ```powershell
---sdk-json-generator 'C:\Users\Yuriy\Desktop\CircuitWeave-Studio-main\eng\hybridcpu-sdk-json-generator.json'
+--sdk-json-generator '<isolated-workspace>\hybridcpu-sdk-json-generator.json'
 ```
 
 Each explicit member now has a documentation-comment identity (including overload

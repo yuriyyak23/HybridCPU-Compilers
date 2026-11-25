@@ -1,5 +1,7 @@
 # HB-INT-02/03 follow-up: large Csc capture → existing Core v2 source transport
 
+> **Baseline 2026-11-25.** The projection writes the CW source index, not the HB provenance envelope. Keep roots and index pins independently bound and preserve the original compiler order through separate capture evidence. Source-role promotion requires explicit producer/reader review. See [current status](current/STATUS.md).
+
 **Status: implemented producer-only adapter; unqualified, no executed-compiler receipt.** This is an additive extension of the [six-package HardwareBridge plan](CircuitWeave_Pipeline_Integration_Plan.md), specifically HB-INT-02 exact capture + HB-INT-03 strict interchange, for seam S2 / Core CW-INT-03. It does **not** revise BridgeSourceSnapshot v1, sidecar v1, HB-INT-03 provenance envelope v2, or CircuitWeave's independent source verifier.
 
 ## Why this exists

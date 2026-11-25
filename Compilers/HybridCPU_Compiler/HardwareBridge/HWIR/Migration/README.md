@@ -1,5 +1,7 @@
 # HB-INT-05 — opt-in legacy/Core HWIR migration guard
 
+> **2026-11-25 recheck.** HB-INT-05 failed before test execution in the hosted job. Clean LF checkout reproduced `CURRENT_SOURCE_SIZE_DRIFT` for `BridgeHwirWordDispatch.cs`: 70,397 bytes in current tracked source, 68,443 in the reviewed inventory. Issue [#40](https://github.com/yuriyyak23/HybridCPU-Compilers/issues/40) remains open. Independent CW-INT-06 scalar lowering, CW-INT-13 temporal contracts and P06 remain separate obligations. See [current evidence](../../Docs/current/evidence-index.json).
+
 **State:** partial implementation, **NOT a completed migration**. Owner: HardwareBridge *regression reference only*. Backlog: [HB-INT-05](../../Docs/CircuitWeave_Pipeline_Integration_Plan.md) / [plan PR #4](https://github.com/yuriyyak23/HybridCPU-Compilers/pull/4). Depends on **CW-INT-06** (source-owned generic typed lowering) and **CW-INT-13** (stateful CPU semantics). Both remain **Blocked for migration proof** as of the audited Core master `555672232e46cb4e8b157e2d1b1db1e873c4194e`.
 
 ## Delivered scope

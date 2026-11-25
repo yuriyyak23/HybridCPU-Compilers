@@ -1,5 +1,7 @@
 # Source owners, compilation graph and dependency boundaries
 
+For HardwareBridge, the project reference direction is Companion → Roslyn → Cil → software Core. Roslyn also references Analyzers and software Core references Platform.Contracts. See [current status](../../../Compilers/HybridCPU_Compiler/HardwareBridge/Docs/current/STATUS.md) for the stage order, portable profile and explicit pinned legacy HWIR opt-in.
+
 **Whitebook appendix · reviewed revision:** `06700ff9a7c650be60ea6a85783f29acdd4f2b9b` (2026-11-11). **Purpose:** show actual compiler ownership without assuming that one solution build or a shared data structure qualifies all frontends. Return to [Whitebook](README.md).
 
 ## 1. Actual repository layout
@@ -59,10 +61,10 @@ Core project: [`HybridCPU.Compiler.Core.csproj`](../../../Compilers/HybridCPU_Co
 |---|---|---|
 | Native ASM/carrier | [Native project](../../../Compilers/HybridCPU_Compiler/Native/HybridCPU.Compiler.Native.csproj), [frontends](../../../Compilers/HybridCPU_Compiler/Native/NativeCompilerFrontends.cs) | Native compiler owns parsed words, target/build provenance, refusal |
 | LLVM modules | [LLVM project](../../../Compilers/HybridCPU_Compiler/LLVM/HybridCPU.Compiler.Llvm.csproj), [importer](../../../Compilers/HybridCPU_Compiler/LLVM/LlvmModuleImporterV1.cs) | LLVMSharp 22.1.8 dependency; semantic mapping bounded/default-off |
-| C# owned sources | [Roslyn project](../../../Compilers/HybridCPU_Compiler/Roslyn/HybridCPU.Compiler.Roslyn.csproj), [Companion](../../../Compilers/HybridCPU_Compiler/Roslyn/ManagedSourceCompanionV1.cs) | C# 13 default via Roslyn 4.14.0, C# 15 explicit gated SDK-host; diagnostics/NoHeap |
+| C# owned sources | [Roslyn project](../../../Compilers/HybridCPU_Compiler/Roslyn/HybridCPU.Compiler.Roslyn.csproj), [Companion](../../../Compilers/HybridCPU_Compiler/Roslyn/ManagedSourceCompanionV1.cs) | C# 13 default via the declared Roslyn CSharp 5.12.0 package, C# 15 explicit gated SDK-host; diagnostics/NoHeap |
 | Managed PE/CIL | [CIL project](../../../Compilers/HybridCPU_Compiler/Cil/HybridCPU.Compiler.Cil.csproj), [importer](../../../Compilers/HybridCPU_Compiler/Cil/RestrictedCilImporterV1.cs) | Exact metadata/body ownership, restricted IL/managed semantics |
 | ILCompiler graph | [NativeAOT adapter](../../../Compilers/HybridCPU_Compiler/NativeAot/HybridCPU.Compiler.NativeAot.Adapter.csproj), [target map](../../../Compilers/HybridCPU_Compiler/NativeAot/PHASE23_TARGET_ENABLEMENT_MAP.md) | Pinned external patched upstream .NET 10 ILCompiler, no general CLR target |
-| Hardware facts | [HardwareBridge companion](../../../Compilers/HybridCPU_Compiler/HardwareBridge/HardwareBridge.Companion.csproj) | Opt-in Roslyn/CIL facts; no HWIR/RTL/qualification |
+| Reported software facts | [HardwareBridge companion](../../../Compilers/HybridCPU_Compiler/HardwareBridge/HardwareBridge.Companion.csproj) | Opt-in Roslyn/CIL facts; no HWIR/RTL/qualification |
 
 Direction of dependencies: caller/frontend → (possibly CIL/Roslyn) → shared Core → Platform.Contracts. RuntimeKernel/ManagedRuntime hold *runtime component* contracts; external ISE owns actual CPU execution. Release qualification consumes versioned component outputs outwardly, not by making Core depend on release code.
 

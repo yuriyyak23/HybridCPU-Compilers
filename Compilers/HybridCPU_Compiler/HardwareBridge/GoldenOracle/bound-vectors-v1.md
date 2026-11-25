@@ -1,5 +1,7 @@
 # HB-INT-04 continuation: source-bound scalar vector replay v1
 
+> **2026-11-25 evidence.** The reader binds an independently supplied root ordinal and requested vectors to a source snapshot and assembly SHA-256. A bound replay of those supplied records leaves the provenance of the delegate, assembly MVID and actual executed MethodDef to the independent Golden owner. See [current gates](../Docs/current/STATUS.md).
+
 **Status: optional data-only producer contract; Golden oracle attestation and RTL equivalence Blocked.**
 
 This feature completes the *scalar/vector* interchange gap beside `GoldenRawTraceV1` (step transition DTO) without modifying `TrustedAddWordOracleV1`, `BridgeSidecarCodecV1` or Golden HybridCPU-v2. Contract: `hybridcpu.hardwarebridge.golden-bound-vectors/v1`. It does **not** run arbitrary C#, load assemblies, choose a delegate from JSON, execute targets or create an independent proof gate.

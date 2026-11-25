@@ -1,0 +1,287 @@
+{
+  "registryVersion": 1,
+  "reviewDate": "2026-11-25",
+  "hbBaseline": "d95ff907171fda783897d1a87febdc37f2bcce08",
+  "workspace": {
+    "baselineBranch": "master",
+    "baselineStatus": "## master...origin/master",
+    "baselineTrackedFiles": 2003,
+    "baselineTrackedDirty": 0,
+    "baselineUntracked": 0,
+    "localTestBranch": "detached HEAD",
+    "platform": "Linux",
+    "git": "2.56.1",
+    "gh": "2.46.0",
+    "python": "3.12.14",
+    "unavailable": [
+      "dotnet",
+      "pwsh",
+      "Windows runner",
+      "private checkout credential"
+    ],
+    "adjacentWorkspace": "Golden clean master locally; private CW, Studio, TraceWeave reviewed with GitHub connector at exact commits."
+  },
+  "relatedPullRequests": [
+    {
+      "url": "https://github.com/yuriyyak23/HybridCPU-Compilers/pull/28",
+      "state": "merged",
+      "scope": "qualification harness, not restored contracts"
+    },
+    {
+      "url": "https://github.com/yuriyyak23/HybridCPU-Compilers/pull/30",
+      "state": "merged",
+      "scope": "gate implementation, not branch protection"
+    },
+    {
+      "url": "https://github.com/yuriyyak23/HybridCPU-Compilers/pull/37",
+      "state": "merged",
+      "scope": "migration gate, not independent dual evidence"
+    }
+  ],
+  "current": [
+    {
+      "id": "ci-hb06-windows",
+      "origin": "GitHub Actions job log and metadata",
+      "bridgeSha": "d95ff907171fda783897d1a87febdc37f2bcce08",
+      "url": "https://github.com/yuriyyak23/HybridCPU-Compilers/actions/runs/45657995837/job/139359800220",
+      "status": "FAIL",
+      "exitCode": 1,
+      "scope": "Windows v1/v2/Companion and mutation workflow",
+      "reason": "Core CS0234/CS0246",
+      "sdk": "11.0.100-rc.2.26504.105",
+      "goldenSha": "6946ccab9d888f7dae0a4d8e18480f436138acd9",
+      "stages": {
+        "v1-protocol-tests": {
+          "status": "PASS",
+          "exitCode": 0
+        },
+        "v2-codec-contract": {
+          "status": "PASS",
+          "exitCode": 0
+        },
+        "companion-restore": {
+          "status": "PASS",
+          "exitCode": 0
+        },
+        "companion-build": {
+          "status": "FAIL",
+          "exitCode": 1
+        },
+        "selftests-restore": {
+          "status": "PASS",
+          "exitCode": 0
+        },
+        "combined-companion-selftests": {
+          "status": "BLOCKED",
+          "execution": "NOT RUN"
+        },
+        "no-write-mutations": {
+          "status": "PASS",
+          "exitCode": 0
+        },
+        "synthetic-core-gate-negatives": {
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "id": "ci-hb06-core",
+      "origin": "GitHub Actions job log and metadata",
+      "bridgeSha": "d95ff907171fda783897d1a87febdc37f2bcce08",
+      "url": "https://github.com/yuriyyak23/HybridCPU-Compilers/actions/runs/45657995837/job/139359801009",
+      "status": "FAIL",
+      "exitCode": 1,
+      "scope": "Protected importer preflight on push",
+      "reason": "UnprotectedMasterRef",
+      "configuredCoreSha": "b5c44685197a40df99a4d48891120b12475c6ca5",
+      "configuredGoldenSha": "6946ccab9d888f7dae0a4d8e18480f436138acd9",
+      "actualCheckout": "NOT RUN",
+      "actualCoreImporter": "NOT RUN",
+      "underlyingTest": "BLOCKED",
+      "receiptSha256": "2fda07ff481d4e3d1a9f4f6ce1b58bf302b034190087442447dedb18002b4d9f"
+    },
+    {
+      "id": "ci-hb05",
+      "origin": "GitHub Actions job log and metadata",
+      "bridgeSha": "d95ff907171fda783897d1a87febdc37f2bcce08",
+      "url": "https://github.com/yuriyyak23/HybridCPU-Compilers/actions/runs/45657995822/job/139359800372",
+      "status": "FAIL",
+      "exitCode": 2,
+      "scope": "HB-INT-05 report-only migration workflow",
+      "reason": "CURRENT_SOURCE_SIZE_DRIFT",
+      "python": "3.12.3",
+      "dependentTests": "NOT RUN",
+      "workflowNoWriteStep": "NOT RUN"
+    },
+    {
+      "id": "portable-boundary",
+      "origin": "Local isolated detached tracked checkout",
+      "bridgeSha": "d95ff907171fda783897d1a87febdc37f2bcce08",
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 Compilers/HybridCPU_Compiler/HardwareBridge/Tests/PortableDependencyBoundary.Tests.py",
+      "status": "PASS",
+      "exitCode": 0,
+      "scope": "8 static and synthetic mutation checks"
+    },
+    {
+      "id": "python-transport",
+      "origin": "Local isolated detached tracked checkout",
+      "bridgeSha": "d95ff907171fda783897d1a87febdc37f2bcce08",
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/EvaluatedProjectGraph -p 'test_*.py'",
+      "status": "PARTIAL",
+      "exitCode": 0,
+      "scope": "169 passed, 20 skipped out of 189; synthetic capture/projection, staging, output and no-write suites, no actual CW runner"
+    },
+    {
+      "id": "python-integration",
+      "origin": "Local isolated detached tracked checkout",
+      "bridgeSha": "d95ff907171fda783897d1a87febdc37f2bcce08",
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s Compilers/HybridCPU_Compiler/HardwareBridge/Tests/Integration -p 'test_*.py'",
+      "status": "PASS",
+      "exitCode": 0,
+      "scope": "29 integration harness and receipt fixture checks; no private or paired execution"
+    },
+    {
+      "id": "r303-inventory",
+      "origin": "Local isolated detached tracked checkout",
+      "bridgeSha": "d95ff907171fda783897d1a87febdc37f2bcce08",
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/Migration/r3_03_inventory_gate.py --require-history",
+      "status": "FAIL",
+      "exitCode": 2,
+      "scope": "Reproduced CURRENT_SOURCE_SIZE_DRIFT after retrieving both historical commits",
+      "file": "HWIR/BridgeHwirWordDispatch.cs",
+      "currentBytes": 70397,
+      "currentBlob": "2ccac38731b16a3c89ce4b6bb46a04bf8a650ec9",
+      "inventoryBytes": 68443,
+      "inventoryBlob": "693af8037f1b0d8a43282aa867baa44b11382339",
+      "inventorySha": "9befee4f3971b4945c553cf3162ed84af94134e4"
+    },
+    {
+      "id": "hwir-mutations",
+      "origin": "Local isolated detached tracked checkout",
+      "bridgeSha": "d95ff907171fda783897d1a87febdc37f2bcce08",
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/Tests -p 'test_*.py'",
+      "status": "FAIL",
+      "exitCode": 1,
+      "scope": "29 cases, 2 errors in inventory-dependent checks (CURRENT_SOURCE_SIZE_DRIFT and HISTORICAL_GIT_UNAVAILABLE in copied fixture); 27 other cases passed"
+    },
+    {
+      "id": "r303-dual-artifact",
+      "origin": "Local isolated detached tracked checkout",
+      "bridgeSha": "d95ff907171fda783897d1a87febdc37f2bcce08",
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s Compilers/HybridCPU_Compiler/HardwareBridge/HWIR/Migration -p 'R3_03_*test.py'",
+      "status": "PASS",
+      "exitCode": 0,
+      "scope": "12 synthetic dual-artifact and external-claim checks"
+    },
+    {
+      "id": "sidecar-example",
+      "origin": "Local isolated detached tracked checkout",
+      "bridgeSha": "d95ff907171fda783897d1a87febdc37f2bcce08",
+      "command": "Python json.JSONDecoder.raw_decode; hashlib.sha256 on exact Payload and Source-without-SnapshotDigest bytes",
+      "status": "PASS",
+      "exitCode": 0,
+      "scope": "Exact raw UTF-8 PayloadSha256 and SnapshotDigest preimages match in the checked-in v1 example; no local .NET writer execution"
+    },
+    {
+      "id": "tracked-checkout",
+      "origin": "Local isolated detached tracked checkout",
+      "bridgeSha": "d95ff907171fda783897d1a87febdc37f2bcce08",
+      "command": "git diff --exit-code",
+      "status": "PASS",
+      "exitCode": 0,
+      "scope": "No tracked changes in test checkout; synthetic transport suites created untracked result folders in isolated worktree"
+    },
+    {
+      "id": "current-local-build",
+      "origin": "Local tooling inspection",
+      "bridgeSha": "d95ff907171fda783897d1a87febdc37f2bcce08",
+      "status": "BLOCKED",
+      "execution": "NOT RUN",
+      "exitCode": null,
+      "scope": "Clean Windows Debug and Release build, evaluated assets/deps, Csc and assembly hashes",
+      "reason": "No dotnet, Windows or pwsh in local environment; tracked production contracts absent"
+    },
+    {
+      "id": "current-paired",
+      "origin": "Exact-SHA Actions run list and preflight log; CW source review",
+      "bridgeSha": "d95ff907171fda783897d1a87febdc37f2bcce08",
+      "reviewedCoreSha": "66ffa4af96c3a8dbb1fb65f8cb8b31b1c3acae2c",
+      "status": "BLOCKED",
+      "execution": "NOT RUN",
+      "exitCode": null,
+      "scope": "Protected paired producer / actual pinned reader, native or live Golden qualification",
+      "reason": "Negative preflight; private read receipt absent, compiler graph blocked"
+    },
+    {
+      "id": "cw-v1-example-parity",
+      "origin": "Exact GitHub file read and local tracked example comparison",
+      "bridgeSha": "d95ff907171fda783897d1a87febdc37f2bcce08",
+      "coreSha": "66ffa4af96c3a8dbb1fb65f8cb8b31b1c3acae2c",
+      "url": "https://github.com/yuriyyak23/CircuitWeave/blob/66ffa4af96c3a8dbb1fb65f8cb8b31b1c3acae2c/tests/CircuitWeave.CWINT03.BridgeImport/Fixtures/bridge-v1-example.json",
+      "status": "PASS",
+      "scope": "1772 bytes identical across pinned examples; no CW importer execution"
+    },
+    {
+      "id": "ci-cw03",
+      "origin": "GitHub Actions job metadata",
+      "coreSha": "66ffa4af96c3a8dbb1fb65f8cb8b31b1c3acae2c",
+      "url": "https://github.com/yuriyyak23/CircuitWeave/actions/runs/45617281985",
+      "status": "FAIL",
+      "exitCode": null,
+      "jobIds": [
+        139215842511,
+        139215842830
+      ],
+      "scope": "Both strict and paired synthetic fixture jobs failed; metadata has no steps; stage and process exit not established"
+    },
+    {
+      "id": "golden-source-identity",
+      "origin": "Local clean read-only Golden checkout and Git blob extraction",
+      "goldenSha": "6946ccab9d888f7dae0a4d8e18480f436138acd9",
+      "status": "PASS",
+      "exitCode": 0,
+      "scope": "Selected ScalarAluOps.cs raw Git blob SHA-1 and SHA-256 confirmed, no compile or execution",
+      "sourceSha256": "f1726c298722496f1218aeee41de7c8f75c79c26a36c0e606cae7e8b5123c5fe"
+    },
+    {
+      "id": "documentation-diff",
+      "origin": "Local documentation worktree",
+      "bridgeSha": "d95ff907171fda783897d1a87febdc37f2bcce08",
+      "status": "PASS",
+      "exitCode": 0,
+      "scope": "383 unique per-page Markdown links inspected, no unresolved local target or anchor; registry JSON duplicate-key and fixture/evidence references pass; no non-documentation paths changed",
+      "command": "git diff --check; Python 3.12.14 local path/heading and JSON registry validation"
+    }
+  ],
+  "historical": [
+    {
+      "id": "historical-r001",
+      "origin": "GitHub Actions job and issue #38",
+      "bridgeSha": "119aad1e5f8fc40e598b91ad61d78e015737eb92",
+      "url": "https://github.com/yuriyyak23/HybridCPU-Compilers/actions/runs/44836199095/job/136633096036",
+      "sdk": "11.0.100-rc.2.26504.105",
+      "status": "FAIL",
+      "scope": "Windows Debug and Release evaluated graph, build and no-write",
+      "details": "Issue #38 reports 294 Core and 11 Companion Compile items, restore 0, build 1 in both configurations, and no-write for 2082 tracked files; not current graph evaluation."
+    },
+    {
+      "id": "historical-hb06",
+      "origin": "GitHub Actions job metadata and issue #38",
+      "bridgeSha": "8d3453dcc02bfb63710727f4f602edd9bc31efad",
+      "url": "https://github.com/yuriyyak23/HybridCPU-Compilers/actions/runs/44740086741/job/136301263920",
+      "status": "FAIL",
+      "scope": "Earlier Windows Companion compile and portable diagnostics",
+      "details": "CS0234/CS0246 reported; separate private preflight also failed."
+    },
+    {
+      "id": "historical-cw-synthetic-fixture-lock",
+      "origin": "CW exact reviewed fixture-lock file",
+      "bridgeSha": "797b6dd4fc1c7a44f958ebb22d43e745d0e6938c",
+      "url": "https://github.com/yuriyyak23/CircuitWeave/blob/66ffa4af96c3a8dbb1fb65f8cb8b31b1c3acae2c/tests/CircuitWeave.CWINT03.BridgeImport/Fixtures/bridge-v2-producer.lock.json",
+      "status": "NOT RUN",
+      "scope": "Static fixture pin review only. Previously recorded CI URL is in lock.",
+      "indexSha256": "8F4B195CE064F06DC24C67383BD57A3497A5FBCCE959BB64360605AF18F50E7E",
+      "closureSha256": "8107F7A9B676F2A39558A3FF333FABE9E547E63A45F1E57EF4104AC679A83520"
+    }
+  ]
+}

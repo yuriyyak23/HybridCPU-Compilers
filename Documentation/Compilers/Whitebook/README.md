@@ -1,5 +1,7 @@
 # HybridCPU Compiler — Whitebook
 
+Текущие ревизии, раздельные статусы реализации и запуска, ограничения HB↔CW и R0/R2/R3 evidence приведены в [current status](../../../Compilers/HybridCPU_Compiler/HardwareBridge/Docs/current/STATUS.md).
+
 **Актуализация: 11 ноября 2026.** Source-anchored архитектура и функциональные границы [HybridCPU-Compilers](https://github.com/yuriyyak23/HybridCPU-Compilers), проверенный `master`: `06700ff9a7c650be60ea6a85783f29acdd4f2b9b`. Документ описывает фактических source owners и действующие ограничения; не является заявлением о полном C#/.NET, единой production qualification, универсальном NativeAOT или C#→RTL.
 
 > **Навигация:** [корневой README](../../../README.md) · [source owners и зависимости](SOURCE_OWNERS_AND_BOUNDARIES.md) · [HardwareBridge и CircuitWeave](HARDWAREBRIDGE_AND_CIRCUITWEAVE.md) · [сборка, тесты и release evidence](BUILD_TEST_AND_RELEASE.md).
@@ -76,7 +78,7 @@ Core не должен зависеть от concrete ISE или frontend implem
 
 ## 5. Roslyn source companion: точные входы и identity
 
-[Документация Roslyn](../../../Compilers/HybridCPU_Compiler/Roslyn/README.md) является source-level contract для фактического CLI. Default: package `Microsoft.CodeAnalysis.CSharp 4.14.0`, `CSharp13`, `net11.0`. `CSharp15` только при explicit matching SDK host, а не в пакете Roslyn по умолчанию. Не переносить исторический NativeAOT SDK 10.x pin на основной компилятор.
+[Документация Roslyn](../../../Compilers/HybridCPU_Compiler/Roslyn/README.md) является source-level contract для фактического CLI. Default: package `Microsoft.CodeAnalysis.CSharp 5.12.0 (declared)`, `CSharp13`, `net11.0`. `CSharp15` только при explicit matching SDK host, а не в пакете Roslyn по умолчанию. Не переносить исторический NativeAOT SDK 10.x pin на основной компилятор.
 
 `CompanionSourceRequestV1` получает явные документы и reference images. Owned source является моментальным неизменяемым снимком; diagnostics/NoHeap проходят до emit. В `compile-source-image` допускаются repeatable `--source`/`--reference`, объявленные root type/method и output. Три роли references:
 

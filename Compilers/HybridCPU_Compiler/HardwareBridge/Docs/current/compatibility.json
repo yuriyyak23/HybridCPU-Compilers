@@ -1,0 +1,239 @@
+{
+  "registryVersion": 1,
+  "reviewDate": "2026-11-25",
+  "baseline": {
+    "hybridCpuCompilers": "d95ff907171fda783897d1a87febdc37f2bcce08",
+    "circuitWeave": "66ffa4af96c3a8dbb1fb65f8cb8b31b1c3acae2c",
+    "golden": "6946ccab9d888f7dae0a4d8e18480f436138acd9",
+    "traceWeaveStudio": "ab9f3f577653c1dd616e284b8442d0f01f0ba25e"
+  },
+  "guard": {
+    "defaultExport": "hybridcpu.hardwarebridge.sidecar/v1",
+    "approvedCoreWorkflowPin": "b5c44685197a40df99a4d48891120b12475c6ca5",
+    "configuredGoldenWorkflowPin": "6946ccab9d888f7dae0a4d8e18480f436138acd9"
+  },
+  "matrix": "COMPATIBILITY.md",
+  "contracts": [
+    {
+      "schema": "hybridcpu.hardwarebridge.source-snapshot/v1",
+      "owner": "HB",
+      "producer": "BridgeSourceSnapshotV1.Capture",
+      "consumer": "CW BridgeSidecarImporterV1 (embedded Source)",
+      "normativeReference": "../sidecar-v1.md",
+      "implementation": "Implemented",
+      "fixture": "../example-candidate.json",
+      "pairedExecution": "BLOCKED",
+      "evidence": [
+        "ci-hb06-windows"
+      ],
+      "gap": "Stricter CW overload/root and canonical shape checks."
+    },
+    {
+      "schema": "hybridcpu.hardwarebridge.compiler-facts/v1",
+      "owner": "HB",
+      "producer": "CompanionBridgeProjectionV1.Project; BridgeCompilerFactsV1.ToJsonUtf8",
+      "consumer": "CW BridgeSidecarImporterV1 (embedded Facts); TraceWeave-Studio ReportedCompilerFacts.TryParse",
+      "normativeReference": "../../CompilerFacts/README.md",
+      "implementation": "Implemented; production build blocked",
+      "fixture": "../../Tests/HardwareBridge.SelfTests.csproj",
+      "pairedExecution": "BLOCKED",
+      "evidence": [
+        "ci-hb06-windows"
+      ],
+      "gap": "Standalone viewer DTO inspection does not exercise Companion or debugger runtime."
+    },
+    {
+      "schema": "hybridcpu.hardwarebridge.sidecar/v1",
+      "owner": "HB",
+      "producer": "BridgeSidecarCodecV1",
+      "consumer": "CW BridgeSidecarImporterV1.Import",
+      "normativeReference": "../sidecar-v1.md",
+      "implementation": "Implemented; default explicit export",
+      "fixture": "../example-candidate.json",
+      "pairedExecution": "BLOCKED",
+      "evidence": [
+        "ci-hb06-windows",
+        "sidecar-example",
+        "cw-v1-example-parity"
+      ],
+      "gap": "Independent current SnapshotDigest and owned source bytes required."
+    },
+    {
+      "schema": "circuitweave.bridge-source-closure-index/v2",
+      "owner": "CW wire and reader; HB producer",
+      "producer": "BridgeSegmentIndexV2.Write; project_csc_to_core_v2.py",
+      "consumer": "CW BridgeSegmentIndexImporterV2.Import",
+      "normativeReference": "../HB_INT_02_Core_V2_Projection.md",
+      "implementation": "Implemented; opt-in",
+      "fixture": "../../Tests/HardwareBridge.V2.ContractTests.csproj",
+      "pairedExecution": "BLOCKED",
+      "evidence": [
+        "ci-hb06-windows",
+        "python-transport",
+        "ci-hb06-core",
+        "ci-cw03",
+        "historical-cw-synthetic-fixture-lock"
+      ],
+      "gap": "Transport limits and independent index/closure pins do not qualify large Companion facts."
+    },
+    {
+      "schema": "hybridcpu.hardwarebridge.csc-closure-index/v2",
+      "owner": "HB raw wire and capture; CW raw reader",
+      "producer": "SegmentedCscCaptureV2; segmented_csc_capture_v2.py",
+      "consumer": "CW HardwareBridgeCscCaptureImporterV2; HardwareBridgeRawCaptureStagerV2",
+      "normativeReference": "../HB_INT_02_Segmented_Csc_Closure.md",
+      "implementation": "Implemented; opt-in",
+      "fixture": "../../HWIR/EvaluatedProjectGraph/test_segmented_csc_capture_v2.py",
+      "pairedExecution": "BLOCKED",
+      "evidence": [
+        "python-transport",
+        "current-paired"
+      ],
+      "gap": "Raw binary chunks and capture-root pins do not establish invoked compiler, generator/response consumption or hardware admission."
+    },
+    {
+      "schema": "circuitweave.bridge-source-closure-index/v2 (staged profile)",
+      "owner": "HB publisher; CW reader",
+      "producer": "BridgeV2OwnedWorkspacePublisher.Publish; stage_core_v2.py",
+      "consumer": "CW BridgeV2StagedSourceImporter.Import",
+      "normativeReference": "../HB_INT_02_03_Core_V2_Staging.md",
+      "implementation": "Implemented; opt-in",
+      "fixture": "../../HWIR/EvaluatedProjectGraph/test_stage_core_v2.py",
+      "pairedExecution": "BLOCKED",
+      "evidence": [
+        "python-transport",
+        "python-integration"
+      ],
+      "gap": "Reviewed root/map pins and OS isolation separate."
+    },
+    {
+      "schema": "hybridcpu.hardwarebridge.provenance-index/v2",
+      "owner": "HB",
+      "producer": "BridgeProvenanceCodecV2",
+      "consumer": "HB ReadAndValidate; no confirmed CW reader",
+      "normativeReference": "../HB_INT_03_V2_Interchange.md",
+      "implementation": "Implemented; opt-in",
+      "fixture": "../../Tests/HardwareBridge.V2.ContractTests.csproj",
+      "pairedExecution": "BLOCKED",
+      "evidence": [
+        "ci-hb06-windows"
+      ],
+      "gap": "Bounded v1 snapshot and conservative Candidate graph."
+    },
+    {
+      "schema": "hybridcpu.hardwarebridge.executed-csc-link/v1",
+      "owner": "HB",
+      "producer": "BridgeExecutedCscLinkV1",
+      "consumer": "HB link validator; current paired CW receipt unavailable",
+      "normativeReference": "../HB_INT_03_Executed_Csc_Link.md",
+      "implementation": "Implemented; opt-in",
+      "fixture": "../../Tests/CscLinkFixture/HardwareBridge.CscLink.FixtureTests.csproj",
+      "pairedExecution": "BLOCKED",
+      "evidence": [
+        "current-paired"
+      ],
+      "gap": "Observed task/argv, bytes, execution and independent replay have separate scope."
+    },
+    {
+      "schema": "circuitweave.bridge-compiler-output-supplement/v3",
+      "owner": "CW",
+      "producer": "Current HB producer unverified",
+      "consumer": "CW BridgeSegmentIndexImporterV3.Import",
+      "normativeReference": "COMPATIBILITY.md",
+      "implementation": "CW reader implemented",
+      "fixture": "CW tests/CircuitWeave.BridgeV3Import.Tests",
+      "pairedExecution": "BLOCKED",
+      "evidence": [
+        "current-paired"
+      ],
+      "gap": "Requires external base/output and structural witness v1 pins."
+    },
+    {
+      "schema": "circuitweave.bridge-compiler-output-supplement/v4",
+      "owner": "CW wire and reader; HB writer",
+      "producer": "segmented_csc_output_capture_v1.py",
+      "consumer": "CW BridgeSegmentIndexImporterV4.Import",
+      "normativeReference": "COMPATIBILITY.md",
+      "implementation": "Implemented; opt-in",
+      "fixture": "../../HWIR/EvaluatedProjectGraph/test_segmented_csc_output_capture_v1.py",
+      "pairedExecution": "BLOCKED",
+      "evidence": [
+        "python-transport",
+        "current-paired"
+      ],
+      "gap": "External v2 base, raw capture, Csc profile, outputs/witness and matching generated order. No original task qualification."
+    },
+    {
+      "schema": "hybridcpu.hardwarebridge.golden-observation/v1",
+      "owner": "HB adapter; independent Golden owner for observations",
+      "producer": "TrustedAddWordOracleV1.Observe",
+      "consumer": "CW v1 sidecar embedded observation",
+      "normativeReference": "../../GoldenOracle/README.md",
+      "implementation": "Implemented; conditional registered delegate",
+      "fixture": "../example-candidate.json",
+      "pairedExecution": "BLOCKED",
+      "evidence": [
+        "ci-hb06-windows"
+      ],
+      "gap": "Caller trust and bounded scalar observations only."
+    },
+    {
+      "schema": "hybridcpu.hardwarebridge.golden-bound-vectors/v1",
+      "owner": "HB DTO; Golden execution independently owned",
+      "producer": "GoldenBoundVectorsCodecV1",
+      "consumer": "HB ReadAndValidate; paired CW attestation unverified",
+      "normativeReference": "../../GoldenOracle/bound-vectors-v1.md",
+      "implementation": "Implemented; opt-in",
+      "fixture": "../../Tests/GoldenBoundVectors.ContractTests.csproj",
+      "pairedExecution": "BLOCKED",
+      "evidence": [
+        "current-paired"
+      ],
+      "gap": "Independent expected source, assembly, method and vector custody."
+    },
+    {
+      "schema": "hybridcpu.hardwarebridge.golden-raw-trace/v1",
+      "owner": "HB DTO; temporal contract CW",
+      "producer": "GoldenRawTraceCodecV1",
+      "consumer": "HB ReadAndValidatePinnedHostReplay",
+      "normativeReference": "../../GoldenOracle/raw-trace-v1.md",
+      "implementation": "Implemented; opt-in",
+      "fixture": "../../Tests/GoldenRawTrace.ContractTests.csproj",
+      "pairedExecution": "BLOCKED",
+      "evidence": [
+        "current-paired"
+      ],
+      "gap": "Raw host steps only. No cycles, stateful Processor or native proof."
+    },
+    {
+      "schema": "hybridcpu.hardwarebridge.r301-scalar-session/v2",
+      "owner": "HB host pin adapter; Golden execution independently owned",
+      "producer": "R301ScalarSessionCodecV2",
+      "consumer": "HB session validation",
+      "normativeReference": "../../GoldenOracle/r301-scalar-session-v2.md",
+      "implementation": "Implemented; opt-in",
+      "fixture": "../../Tests/GoldenBoundVectorsR301.ContractTests.csproj",
+      "pairedExecution": "BLOCKED",
+      "evidence": [
+        "current-paired"
+      ],
+      "gap": "Scope remains explicitly pinned one-delegate observation."
+    },
+    {
+      "schema": "legacy HWIR opt-in profile",
+      "owner": "HB fixtures; CW hardware lowering",
+      "producer": "HardwareBridge.Hwir.csproj",
+      "consumer": "Conditional CW project references",
+      "normativeReference": "../../HWIR/Migration/README.md",
+      "implementation": "Implemented; default disabled",
+      "fixture": "../../HWIR/Migration/R3_03_dual_artifact_test.py",
+      "pairedExecution": "BLOCKED",
+      "evidence": [
+        "r303-inventory",
+        "r303-dual-artifact",
+        "current-paired"
+      ],
+      "gap": "Shared lowering is insufficient for independent equivalence."
+    }
+  ]
+}

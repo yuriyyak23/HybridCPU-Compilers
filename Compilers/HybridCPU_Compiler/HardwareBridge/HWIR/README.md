@@ -1,5 +1,7 @@
 # HardwareBridge bounded AddWord HWIR path
 
+This is the legacy migration profile. The portable HWIR project leaves `EnableBridgeHwirLegacyFixtures` off. Explicit opt-in uses four pinned CircuitWeave references, separate from the production software Companion. Where a fixture calls the same Core lowering as the comparison, it cannot establish independent implementations. See [migration](Migration/README.md) and [current gates](../Docs/current/STATUS.md).
+
 `EvaluatedProjectGraph` captures MSBuild's own evaluated `ProjectGraph` nodes,
 global properties, Compile paths, evaluated reference/analyzer items, assets-file
 hashes and edges for Debug/EnableInternalTestHooks. These items are only the

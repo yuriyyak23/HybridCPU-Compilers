@@ -1,6 +1,6 @@
 # Managed source companion
 
-Default host: package Roslyn4.14.0, explicit CSharp13. Existing analyzer/generator packages
+Default source lane: CSharp13. The project declares Microsoft.CodeAnalysis 5.9.0 and Microsoft.CodeAnalysis.CSharp 5.12.0 in package mode. In explicit SDK host mode, SdkRoslynHost.targets binds the installed SDK compiler assemblies. Check evaluated assets/deps and actual assembly identities before recording the resolved toolchain. Existing analyzer/generator packages
 and CSharp13 source lane remain unchanged. Owned requests retain v2 identity/defaults.
 
 The same companion assembly now has a command-line entry (OutputType Exe; public library

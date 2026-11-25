@@ -1,5 +1,7 @@
 # Build, tests, reproducibility and release evidence
 
+**HardwareBridge qualification.** At the 2026-11-25 baseline, the Windows production Companion restore completed, then Core compilation failed with CS0234/CS0246. The protected importer preflight separately refused the current ref. Read [current status](../../../Compilers/HybridCPU_Compiler/HardwareBridge/Docs/current/STATUS.md) for exact jobs, precise profiles, SDK pins and blocked downstream tests. The commands on this page identify entry points for a qualified host.
+
 **Whitebook appendix, source audit 2026-11-11.** This is an **execution guide and proof-scope matrix**, not a report claiming successful tests in the current environment. Reviewed source revision: `06700ff9a7c650be60ea6a85783f29acdd4f2b9b`. [Whitebook](README.md) · [Source owners](SOURCE_OWNERS_AND_BOUNDARIES.md).
 
 ## 1. Toolchain identities are separate
@@ -7,7 +9,7 @@
 | Identity | Source | Meaning |
 |---|---|---|
 | Compiler host | [Core project](../../../Compilers/HybridCPU_Compiler/Core/HybridCPU.Compiler.Core.csproj), [Roslyn project](../../../Compilers/HybridCPU_Compiler/Roslyn/HybridCPU.Compiler.Roslyn.csproj) | The maintained compiler assemblies target `net11.0` |
-| Default Roslyn | [Roslyn project](../../../Compilers/HybridCPU_Compiler/Roslyn/HybridCPU.Compiler.Roslyn.csproj) | `Microsoft.CodeAnalysis.CSharp 4.14.0` with `LangVersion 13.0` and default C# 13 source lane |
+| Default Roslyn | [Roslyn project](../../../Compilers/HybridCPU_Compiler/Roslyn/HybridCPU.Compiler.Roslyn.csproj) | `Microsoft.CodeAnalysis.CSharp 5.12.0 (declared)` with `LangVersion 13.0` and default C# 13 source lane |
 | C# 15 opt-in host | [SDK-Roslyn targets](../../../Compilers/HybridCPU_Compiler/Roslyn/SdkRoslynHost.targets) | `UseSdkRoslynForCompanion=true`: both source consumer and companion must use matching SDK compiler identity |
 | LLVM frontend | [LLVM project](../../../Compilers/HybridCPU_Compiler/LLVM/HybridCPU.Compiler.Llvm.csproj) | LLVMSharp/LLVMSharp.Interop 22.1.8; optional/native runtime version/ABI requires qualification |
 | Test framework | [xUnit tests](../../../Tests/HybridCPU.Compiler.Tests.csproj) | Microsoft.NET.Test.Sdk 18.11.0, xunit 2.9.3, runner 4.0.1 for this repo source snapshot |

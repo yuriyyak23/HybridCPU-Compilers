@@ -4,7 +4,7 @@
 
 > **Status:** research/development compiler with versioned, selectively qualified *components and profiles*. This repository does **not** claim general .NET/C# compatibility, standalone production publishing, or qualification of all code paths. Read [Whitebook: architecture and boundaries](Documentation/Compilers/Whitebook/README.md) and [build/evidence guidance](Documentation/Compilers/Whitebook/BUILD_TEST_AND_RELEASE.md) before relying on generated images.
 >
-> **Platform:** compiler projects target **.NET 11**. The default Roslyn companion uses Microsoft.CodeAnalysis.CSharp **4.14.0** and **C# 13**; an explicitly selected, matching SDK-Roslyn host is needed for the gated **C# 15** lane. The separately patched NativeAOT/ILCompiler toolchain has **its own .NET 10 source/SDK pins**. The host TFM does not imply supported guest .NET 11 APIs.
+> **Platform:** compiler projects target **.NET 11**. The Roslyn project declares Microsoft.CodeAnalysis **5.9.0** and, in package mode, Microsoft.CodeAnalysis.CSharp **5.12.0**. The default input lane is **C# 13**; an explicitly selected, matching SDK-Roslyn host is needed for the gated **C# 15** lane. The separately patched NativeAOT/ILCompiler toolchain has **its own .NET 10 source/SDK pins**. The host TFM does not imply supported guest .NET 11 APIs.
 
 ## What this project does
 
@@ -106,6 +106,8 @@ The source must actually contain the named and supported method and a complete a
 The resulting file is a target artifact, **not a normal executable to run directly on the host OS**. Loader/execution and observable runtime correctness require separate checks.
 
 ### HardwareBridge (read-only, opt-in)
+
+[Current status](Compilers/HybridCPU_Compiler/HardwareBridge/Docs/current/STATUS.md) records the clean-baseline Windows failure in software Core (CS0234/CS0246), the blocked paired CircuitWeave job, and separate passing portable v1/v2 codec checks. The commands below are build entry points. The production Companion and its combined self-tests require the genuine Core contracts tracked in [#38](https://github.com/yuriyyak23/HybridCPU-Compilers/issues/38). Use the qualification workflow’s exact SDK and isolated artifacts root for evidence.
 
 The bridge is intentionally small, independent of CircuitWeave and not loaded through an arbitrary JSON-specified assembly. It has a dedicated project because the upper compiler does not reference the Roslyn/CIL projects:
 

@@ -1,5 +1,7 @@
 # HB-INT-02/03 — opt-in pinned Csc bytes → Core v2 staging
 
+> **Baseline 2026-11-25.** The CW staged importer requires independently reviewed index, closure and roots pins. Stage to an owned output tree. Link checks and repeated inventories establish bounded observations under the declared filesystem assumptions. They cannot establish OS isolation or prevent all same-user TOCTOU races. See [current status](current/STATUS.md).
+
 **Scope:** read-only software observation transport, not a general C#→HWIR compiler, Golden execution, hardware root inference or independent verification. This closes one **producer-side representation gap** between HB-INT-02 `hybridcpu.hardwarebridge.csc-closure-index/v2` and HB-INT-03 / CW-INT-03 `circuitweave.bridge-source-closure-index/v2`. Both original versions and sidecar/v1 remain unchanged.
 
 **Baseline:** HybridCPU-Compilers `master@77947f82cd61ed5248c0ae48d722d7fbfdf29a9a`; CircuitWeave `master@26724fc70a1cb7c403aa50d8e0f41383202a22ac` (2026-11-19). See [HB plan](CircuitWeave_Pipeline_Integration_Plan.md), [HB-INT-02](HB_INT_02_Segmented_Csc_Closure.md), [HB-INT-03](HB_INT_03_V2_Interchange.md), and [Core importer tests](https://github.com/yuriyyak23/CircuitWeave/tree/master/tests/CircuitWeave.CWINT03.BridgeImport).

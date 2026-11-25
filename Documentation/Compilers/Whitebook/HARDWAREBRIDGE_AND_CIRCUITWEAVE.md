@@ -1,5 +1,7 @@
 # HardwareBridge v1 and the independent CircuitWeave boundary
 
+The v1 export remains the default format for an explicit Bridge export. Transport evolution lives in [v2 interchange](../../../Compilers/HybridCPU_Compiler/HardwareBridge/Docs/HB_INT_03_V2_Interchange.md), [executed Csc linkage](../../../Compilers/HybridCPU_Compiler/HardwareBridge/Docs/HB_INT_03_Executed_Csc_Link.md), and [reviewed replay](../../../Compilers/HybridCPU_Compiler/HardwareBridge/Docs/HB_INT_06_CrossRepo_Replay.md). See [current status](../../../Compilers/HybridCPU_Compiler/HardwareBridge/Docs/current/STATUS.md) for current limits, v3/v4 reader coverage and gate evidence.
+
 **Whitebook appendix · source review 2026-11-11.** Purpose: record the **implemented** software-compiler bridge without inventing a hardware compiler inside HybridCPU-Compilers. [Whitebook](README.md) · [Source owners](SOURCE_OWNERS_AND_BOUNDARIES.md).
 
 ## 1. Role of the bridge
@@ -112,6 +114,12 @@ dotnet build Compilers/HybridCPU_Compiler/HardwareBridge/HardwareBridge.Companio
 dotnet run --project Compilers/HybridCPU_Compiler/HardwareBridge/Tests/HardwareBridge.SelfTests.csproj -c Release
 ```
 
-The self-test suite covers deterministic serialization, wrong/stale/duplicate inputs, ownership and source-map refusals and scalar Golden edge cases; it is **not** an EDA test. Check actual command exit, SDK, inputs and fresh outputs. A missing .NET 11/required reference/tool remains `NOT RUN`, not `PASS`.
+The self-test suite covers deterministic serialization, wrong/stale/duplicate inputs, ownership and source-map refusals and scalar Golden edge cases; it is **not** an EDA test. Check actual command exit, SDK, inputs and fresh outputs. Record missing SDK, references or tool prerequisites as BLOCKED and the dependent checks as NOT RUN.
 
 **Non-goals:** hardware DSL, C#→RTL, Hardware Bindings resolver, CIRCT, native EDA execution, waveform visualization, memory/clock modelling, formal proof or ABI inference. See [build/evidence rules](BUILD_TEST_AND_RELEASE.md).
+
+## Downstream publication and reported facts
+
+CircuitWeave's `StudioCompilationPublicationService` publishes a Core-owned `cwstudio.project/v1` manifest and bounded snapshot artifacts for CircuitWeave.Studio. Candidate publication has its own HWIR validation and does not invoke the independent P06 ladder. The Studio loader checks manifest-bound IDs, lengths and digests. A Bridge provenance hash needs explicit artifact ID and digest-domain binding before it can identify manifest HWIR. Missing lineage remains `Unmapped`. [Core publisher](https://github.com/yuriyyak23/CircuitWeave/blob/66ffa4af96c3a8dbb1fb65f8cb8b31b1c3acae2c/src/CircuitWeave.Visualization.Publishing/StudioCompilationPublicationService.cs) · [Studio publication contract](https://github.com/yuriyyak23/CircuitWeave.Studio/blob/b92923b64adb9e1fcbefff15732ea8da68865853/docs/architecture/FILE_PUBLICATION_AND_LAUNCH.md).
+
+TraceWeave-Studio is a separate debugger. Its `ReportedCompilerFacts.TryParse` supports the DTO produced by `BridgeCompilerFactsV1.ToJsonUtf8` for reported inspection. The parser bounds input to 512 Ki characters and diagnostics to 256, requires schema and unique checked properties, and validates source-span integers. This establishes a viewer contract only. [TraceWeave-Studio DTO](https://github.com/yuriyyak23/TraceWeave-Studio/blob/ab9f3f577653c1dd616e284b8442d0f01f0ba25e/src/TraceWeave.Studio.Contracts/Compiler/ReportedCompilerFacts.cs).
