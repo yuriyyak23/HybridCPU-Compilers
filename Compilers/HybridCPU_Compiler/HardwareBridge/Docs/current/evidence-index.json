@@ -1,25 +1,30 @@
 {
   "registryVersion": 1,
-  "reviewDate": "2026-11-25",
-  "hbBaseline": "d95ff907171fda783897d1a87febdc37f2bcce08",
+  "reviewDate": "2026-11-27",
+  "hbBaseline": "8749de2c1c5cefbae82c22ab7d418f57d640bd71",
   "workspace": {
+    "reviewMode": "Tracked GitHub objects and Actions metadata",
     "baselineBranch": "master",
-    "baselineStatus": "## master...origin/master",
-    "baselineTrackedFiles": 2003,
-    "baselineTrackedDirty": 0,
-    "baselineUntracked": 0,
-    "localTestBranch": "detached HEAD",
-    "platform": "Linux",
-    "git": "2.56.1",
-    "gh": "2.46.0",
-    "python": "3.12.14",
-    "unavailable": [
-      "dotnet",
-      "pwsh",
-      "Windows runner",
-      "private checkout credential"
-    ],
-    "adjacentWorkspace": "Golden clean master locally; private CW, Studio, TraceWeave reviewed with GitHub connector at exact commits."
+    "localExecution": "NOT RUN",
+    "previousReview": {
+      "baselineBranch": "master",
+      "baselineStatus": "## master...origin/master",
+      "baselineTrackedFiles": 2003,
+      "baselineTrackedDirty": 0,
+      "baselineUntracked": 0,
+      "localTestBranch": "detached HEAD",
+      "platform": "Linux",
+      "git": "2.56.1",
+      "gh": "2.46.0",
+      "python": "3.12.14",
+      "unavailable": [
+        "dotnet",
+        "pwsh",
+        "Windows runner",
+        "private checkout credential"
+      ],
+      "adjacentWorkspace": "Golden clean master locally; private CW, Studio, TraceWeave reviewed with GitHub connector at exact commits."
+    }
   },
   "relatedPullRequests": [
     {
@@ -39,6 +44,79 @@
     }
   ],
   "current": [
+    {
+      "id": "review-20261127-heads",
+      "origin": "GitHub branch metadata and complete tracked HB tree",
+      "bridgeSha": "8749de2c1c5cefbae82c22ab7d418f57d640bd71",
+      "coreSha": "8022bce4a6cfe89dda807630070c73094d893958",
+      "status": "PASS",
+      "scope": "Exact SHA and tracked source inventory checked. HB master protected=false. Core/IR/Artifacts subtree absent; issues #38 and #40 open."
+    },
+    {
+      "id": "review-20261127-hb-execution",
+      "origin": "GitHub Actions exact head_sha query",
+      "bridgeSha": "8749de2c1c5cefbae82c22ab7d418f57d640bd71",
+      "status": "NOT RUN",
+      "scope": "No exact-SHA runs returned at review time. No local execution."
+    },
+    {
+      "id": "review-20261127-cw-p06",
+      "origin": "GitHub Actions run and job metadata",
+      "coreSha": "8022bce4a6cfe89dda807630070c73094d893958",
+      "url": "https://github.com/yuriyyak23/CircuitWeave/actions/runs/45709902890",
+      "status": "FAIL",
+      "exitCode": null,
+      "scope": "Hosted conclusion only. No job steps returned; stage and process exit are unknown."
+    },
+    {
+      "id": "review-20261127-paired",
+      "origin": "CW CLI source and consumer compatibility register at reviewed commits",
+      "bridgeSha": "8749de2c1c5cefbae82c22ab7d418f57d640bd71",
+      "coreSha": "8022bce4a6cfe89dda807630070c73094d893958",
+      "url": "https://github.com/yuriyyak23/CircuitWeave/blob/8022bce4a6cfe89dda807630070c73094d893958/docs/current/COMPATIBILITY.md",
+      "status": "BLOCKED",
+      "execution": "NOT RUN",
+      "scope": "No positive current paired receipt established. V3/V4 CLI has fail-closed return 2 before CWR3 composition; this is a source fact, not a new execution."
+    },
+    {
+      "id": "review-20261127-worddispatch",
+      "origin": "GitHub file bytes and tracked inventory, reviewed 2026-11-26 at same HB SHA",
+      "bridgeSha": "8749de2c1c5cefbae82c22ab7d418f57d640bd71",
+      "status": "BLOCKED",
+      "execution": "NOT RUN",
+      "scope": "WordDispatch tracked blob 70397 bytes versus 68443 pinned; no new guard execution."
+    }
+  ],
+  "historical": [
+    {
+      "id": "historical-r001",
+      "origin": "GitHub Actions job and issue #38",
+      "bridgeSha": "119aad1e5f8fc40e598b91ad61d78e015737eb92",
+      "url": "https://github.com/yuriyyak23/HybridCPU-Compilers/actions/runs/44836199095/job/136633096036",
+      "sdk": "11.0.100-rc.2.26504.105",
+      "status": "FAIL",
+      "scope": "Windows Debug and Release evaluated graph, build and no-write",
+      "details": "Issue #38 reports 294 Core and 11 Companion Compile items, restore 0, build 1 in both configurations, and no-write for 2082 tracked files; not current graph evaluation."
+    },
+    {
+      "id": "historical-hb06",
+      "origin": "GitHub Actions job metadata and issue #38",
+      "bridgeSha": "8d3453dcc02bfb63710727f4f602edd9bc31efad",
+      "url": "https://github.com/yuriyyak23/HybridCPU-Compilers/actions/runs/44740086741/job/136301263920",
+      "status": "FAIL",
+      "scope": "Earlier Windows Companion compile and portable diagnostics",
+      "details": "CS0234/CS0246 reported; separate private preflight also failed."
+    },
+    {
+      "id": "historical-cw-synthetic-fixture-lock",
+      "origin": "CW exact reviewed fixture-lock file",
+      "bridgeSha": "797b6dd4fc1c7a44f958ebb22d43e745d0e6938c",
+      "url": "https://github.com/yuriyyak23/CircuitWeave/blob/66ffa4af96c3a8dbb1fb65f8cb8b31b1c3acae2c/tests/CircuitWeave.CWINT03.BridgeImport/Fixtures/bridge-v2-producer.lock.json",
+      "status": "NOT RUN",
+      "scope": "Static fixture pin review only. Previously recorded CI URL is in lock.",
+      "indexSha256": "8F4B195CE064F06DC24C67383BD57A3497A5FBCCE959BB64360605AF18F50E7E",
+      "closureSha256": "8107F7A9B676F2A39558A3FF333FABE9E547E63A45F1E57EF4104AC679A83520"
+    },
     {
       "id": "ci-hb06-windows",
       "origin": "GitHub Actions job log and metadata",
@@ -251,37 +329,6 @@
       "exitCode": 0,
       "scope": "383 unique per-page Markdown links inspected, no unresolved local target or anchor; registry JSON duplicate-key and fixture/evidence references pass; no non-documentation paths changed",
       "command": "git diff --check; Python 3.12.14 local path/heading and JSON registry validation"
-    }
-  ],
-  "historical": [
-    {
-      "id": "historical-r001",
-      "origin": "GitHub Actions job and issue #38",
-      "bridgeSha": "119aad1e5f8fc40e598b91ad61d78e015737eb92",
-      "url": "https://github.com/yuriyyak23/HybridCPU-Compilers/actions/runs/44836199095/job/136633096036",
-      "sdk": "11.0.100-rc.2.26504.105",
-      "status": "FAIL",
-      "scope": "Windows Debug and Release evaluated graph, build and no-write",
-      "details": "Issue #38 reports 294 Core and 11 Companion Compile items, restore 0, build 1 in both configurations, and no-write for 2082 tracked files; not current graph evaluation."
-    },
-    {
-      "id": "historical-hb06",
-      "origin": "GitHub Actions job metadata and issue #38",
-      "bridgeSha": "8d3453dcc02bfb63710727f4f602edd9bc31efad",
-      "url": "https://github.com/yuriyyak23/HybridCPU-Compilers/actions/runs/44740086741/job/136301263920",
-      "status": "FAIL",
-      "scope": "Earlier Windows Companion compile and portable diagnostics",
-      "details": "CS0234/CS0246 reported; separate private preflight also failed."
-    },
-    {
-      "id": "historical-cw-synthetic-fixture-lock",
-      "origin": "CW exact reviewed fixture-lock file",
-      "bridgeSha": "797b6dd4fc1c7a44f958ebb22d43e745d0e6938c",
-      "url": "https://github.com/yuriyyak23/CircuitWeave/blob/66ffa4af96c3a8dbb1fb65f8cb8b31b1c3acae2c/tests/CircuitWeave.CWINT03.BridgeImport/Fixtures/bridge-v2-producer.lock.json",
-      "status": "NOT RUN",
-      "scope": "Static fixture pin review only. Previously recorded CI URL is in lock.",
-      "indexSha256": "8F4B195CE064F06DC24C67383BD57A3497A5FBCCE959BB64360605AF18F50E7E",
-      "closureSha256": "8107F7A9B676F2A39558A3FF333FABE9E547E63A45F1E57EF4104AC679A83520"
     }
   ]
 }
