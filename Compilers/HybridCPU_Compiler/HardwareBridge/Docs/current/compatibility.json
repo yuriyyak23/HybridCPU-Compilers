@@ -1,9 +1,9 @@
 {
   "registryVersion": 1,
-  "reviewDate": "2026-11-25",
+  "reviewDate": "2026-11-27",
   "baseline": {
-    "hybridCpuCompilers": "d95ff907171fda783897d1a87febdc37f2bcce08",
-    "circuitWeave": "66ffa4af96c3a8dbb1fb65f8cb8b31b1c3acae2c",
+    "hybridCpuCompilers": "8749de2c1c5cefbae82c22ab7d418f57d640bd71",
+    "circuitWeave": "8022bce4a6cfe89dda807630070c73094d893958",
     "golden": "6946ccab9d888f7dae0a4d8e18480f436138acd9",
     "traceWeaveStudio": "ab9f3f577653c1dd616e284b8442d0f01f0ba25e"
   },
@@ -24,7 +24,8 @@
       "fixture": "../example-candidate.json",
       "pairedExecution": "BLOCKED",
       "evidence": [
-        "ci-hb06-windows"
+        "ci-hb06-windows",
+        "review-20261127-paired"
       ],
       "gap": "Stricter CW overload/root and canonical shape checks."
     },
@@ -38,7 +39,8 @@
       "fixture": "../../Tests/HardwareBridge.SelfTests.csproj",
       "pairedExecution": "BLOCKED",
       "evidence": [
-        "ci-hb06-windows"
+        "ci-hb06-windows",
+        "review-20261127-paired"
       ],
       "gap": "Standalone viewer DTO inspection does not exercise Companion or debugger runtime."
     },
@@ -54,7 +56,8 @@
       "evidence": [
         "ci-hb06-windows",
         "sidecar-example",
-        "cw-v1-example-parity"
+        "cw-v1-example-parity",
+        "review-20261127-paired"
       ],
       "gap": "Independent current SnapshotDigest and owned source bytes required."
     },
@@ -72,7 +75,8 @@
         "python-transport",
         "ci-hb06-core",
         "ci-cw03",
-        "historical-cw-synthetic-fixture-lock"
+        "historical-cw-synthetic-fixture-lock",
+        "review-20261127-paired"
       ],
       "gap": "Transport limits and independent index/closure pins do not qualify large Companion facts."
     },
@@ -87,7 +91,8 @@
       "pairedExecution": "BLOCKED",
       "evidence": [
         "python-transport",
-        "current-paired"
+        "current-paired",
+        "review-20261127-paired"
       ],
       "gap": "Raw binary chunks and capture-root pins do not establish invoked compiler, generator/response consumption or hardware admission."
     },
@@ -102,7 +107,8 @@
       "pairedExecution": "BLOCKED",
       "evidence": [
         "python-transport",
-        "python-integration"
+        "python-integration",
+        "review-20261127-paired"
       ],
       "gap": "Reviewed root/map pins and OS isolation separate."
     },
@@ -116,7 +122,8 @@
       "fixture": "../../Tests/HardwareBridge.V2.ContractTests.csproj",
       "pairedExecution": "BLOCKED",
       "evidence": [
-        "ci-hb06-windows"
+        "ci-hb06-windows",
+        "review-20261127-paired"
       ],
       "gap": "Bounded v1 snapshot and conservative Candidate graph."
     },
@@ -130,7 +137,8 @@
       "fixture": "../../Tests/CscLinkFixture/HardwareBridge.CscLink.FixtureTests.csproj",
       "pairedExecution": "BLOCKED",
       "evidence": [
-        "current-paired"
+        "current-paired",
+        "review-20261127-paired"
       ],
       "gap": "Observed task/argv, bytes, execution and independent replay have separate scope."
     },
@@ -144,9 +152,10 @@
       "fixture": "CW tests/CircuitWeave.BridgeV3Import.Tests",
       "pairedExecution": "BLOCKED",
       "evidence": [
-        "current-paired"
+        "current-paired",
+        "review-20261127-paired"
       ],
-      "gap": "Requires external base/output and structural witness v1 pins."
+      "gap": "Requires external base/output and structural witness v1 pins. Reviewed CLI refuses before CWR3 composition; replay remains NotRun."
     },
     {
       "schema": "circuitweave.bridge-compiler-output-supplement/v4",
@@ -159,9 +168,10 @@
       "pairedExecution": "BLOCKED",
       "evidence": [
         "python-transport",
-        "current-paired"
+        "current-paired",
+        "review-20261127-paired"
       ],
-      "gap": "External v2 base, raw capture, Csc profile, outputs/witness and matching generated order. No original task qualification."
+      "gap": "External v2 base, raw capture, Csc profile, outputs/witness and matching generated order. No original task qualification. Reviewed CLI refuses before CWR3 composition; replay remains NotRun."
     },
     {
       "schema": "hybridcpu.hardwarebridge.golden-observation/v1",
@@ -173,7 +183,8 @@
       "fixture": "../example-candidate.json",
       "pairedExecution": "BLOCKED",
       "evidence": [
-        "ci-hb06-windows"
+        "ci-hb06-windows",
+        "review-20261127-paired"
       ],
       "gap": "Caller trust and bounded scalar observations only."
     },
@@ -187,7 +198,8 @@
       "fixture": "../../Tests/GoldenBoundVectors.ContractTests.csproj",
       "pairedExecution": "BLOCKED",
       "evidence": [
-        "current-paired"
+        "current-paired",
+        "review-20261127-paired"
       ],
       "gap": "Independent expected source, assembly, method and vector custody."
     },
@@ -201,7 +213,8 @@
       "fixture": "../../Tests/GoldenRawTrace.ContractTests.csproj",
       "pairedExecution": "BLOCKED",
       "evidence": [
-        "current-paired"
+        "current-paired",
+        "review-20261127-paired"
       ],
       "gap": "Raw host steps only. No cycles, stateful Processor or native proof."
     },
@@ -215,7 +228,8 @@
       "fixture": "../../Tests/GoldenBoundVectorsR301.ContractTests.csproj",
       "pairedExecution": "BLOCKED",
       "evidence": [
-        "current-paired"
+        "current-paired",
+        "review-20261127-paired"
       ],
       "gap": "Scope remains explicitly pinned one-delegate observation."
     },
@@ -231,9 +245,11 @@
       "evidence": [
         "r303-inventory",
         "r303-dual-artifact",
-        "current-paired"
+        "current-paired",
+        "review-20261127-paired"
       ],
       "gap": "Shared lowering is insufficient for independent equivalence."
     }
-  ]
+  ],
+  "consumerStatus": "https://github.com/yuriyyak23/CircuitWeave/blob/8022bce4a6cfe89dda807630070c73094d893958/docs/current/STATUS.md"
 }
