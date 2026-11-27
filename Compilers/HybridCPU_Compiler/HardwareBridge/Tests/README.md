@@ -109,10 +109,4 @@ actual command exit and stdout/stderr hashes. A failed build leaves runtime
 tests `NotRun` and keeps the gate red. Existing v1/v2/mutation commands remain
 independent and execute even when the Companion build is blocked.
 
-**Current parent-compiler blocker at 2026-11-20 audit:** `Core/IR/Artifacts`
-does not exist in `master@797b6dd4fc1c7a44f958ebb22d43e745d0e6938c`,
-while the compiler Core consumers require exported artifacts contracts.
-Restore the actual compiler-owned contract implementation and its validators
-in the software compiler owner zone; do not add fake DTOs to Bridge and
-do not exclude the Core IR subtree to make CI green. Until a real compile
-passes, the Companion build and Csc/PE/PDB run are **Blocked/NotRun**.
+See the [Companion blocker and acceptance criteria](../Docs/current/blockers.md).

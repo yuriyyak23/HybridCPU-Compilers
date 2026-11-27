@@ -1,6 +1,6 @@
 # HardwareBridge current status
 
-Baseline reviewed 2026-11-25. This register supersedes the status summaries in the integration plan and modernization audit. Protocol documents remain authoritative for their own formats. “Implemented” describes code at the baseline. Execution claims below are scoped to the named command, artifact and revision.
+Updated 2026-11-27. The table preserves the reviewed 2026-11-25 baseline. The documentation refresh inspected compiler HEAD `8749de2c1c5cefbae82c22ab7d418f57d640bd71` and CircuitWeave HEAD `8022bce4a6cfe89dda807630070c73094d893958`. Prior execution receipts retain their original commits and input hashes. This register supersedes the status summaries in the integration plan and modernization audit. Protocol documents remain authoritative for their own formats. “Implemented” describes code at the baseline. Execution claims below are scoped to the named command, artifact and revision.
 
 | Repository | Reviewed commit | Role |
 | --- | --- | --- |
@@ -11,6 +11,13 @@ Baseline reviewed 2026-11-25. This register supersedes the status summaries in t
 | TraceWeave-Studio | `ab9f3f577653c1dd616e284b8442d0f01f0ba25e` | Reported CompilerFacts viewer |
 
 The strict R0-02 workflow specifies Core `b5c44685197a40df99a4d48891120b12475c6ca5` and Golden `6946ccab9d888f7dae0a4d8e18480f436138acd9`. Runtime custody of owner approval variables and a scoped credential was not established. The reviewed Core HEAD above is a source-review reference, independent of this workflow's approval pin. R2-02 replay has separate dispatch inputs, receipt gate and workflow. Its current dispatch policy validates event, repository, master ref, mode and input pin syntax. It does not explicitly check `github.ref_protected` or compare those inputs to R0-02’s fixed owner variables. Treat that as an unresolved policy difference. See [R0-02](../R0_Core_Readonly_CI_Gate.md) and [replay](../HB_INT_06_CrossRepo_Replay.md).
+
+## Local Windows evidence
+
+- The .NET R0 runner is the Windows build receipt entry point in Core. Its local receipt passed the applicable matrix with Golden snapshot set to NotRun.
+- The separate Core consumer imported pinned V2/V4 transport with 50 generated source rows matched to 50 PDB documents and three compiler outputs. Exit code 2 records the expected refusal before CWR3 composition. Status is CandidateOnly, independent replay NotRun, admission NotAdmitted.
+- The Windows AppContainer fixture passed alias, timeout and cleanup checks without editing the global TEMP DACL. Scope is synthetic. Golden replay still needs safe read/write separation for the captured obj operands and qualification of the Windows isolation boundary.
+- Exact commands, input pins, hashes and output paths are recorded in Core backlog entries `windowsDotnetR0ReceiptMigration20261125`, `currentCapturedV4IndependentConsumer20261125` and `appContainerAliasNoGlobalTempAcl20261125`. Hosted trust and complete Processor qualification remain open.
 
 ## Profiles and dependency direction
 

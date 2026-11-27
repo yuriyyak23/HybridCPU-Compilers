@@ -77,7 +77,7 @@ compilers, set EnableBridgeHwirLegacyFixtures=true and provide the reviewed Core
 root, frontend project, exact HEAD SHA and .NET SDK version as described in
 [HB-INT-01 pinned opt-in migration](../Docs/HB_INT_01_Pinned_OptIn.md).
 No sibling directory name is inferred. Golden/ISE source is never an output tree.
-The merged Core P14 launcher validates both reviewed revisions but still needs a Core-owned follow-up to forward the new HB-INT-01 MSBuild properties.
+For the current Core launcher and compatibility evidence, see the [status register](../Docs/current/STATUS.md).
 Run the **original bounded P14 fixture suite** only through the explicit
 revision-checked compatibility launcher in the Core checkout:
 
